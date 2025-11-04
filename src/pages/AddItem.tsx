@@ -140,41 +140,25 @@ export const AddItem = () => {
         lng: data.lng,
       }));
 
-      // Calculate expiration date if validity period is set
-      if (data.validityPeriod && data.validityPeriod !== 'never') {
-        const now = new Date();
-        let expiresAt;
-        
-        switch (data.validityPeriod) {
-          case '2h':
-            expiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-            break;
-          case '6h':
-            expiresAt = new Date(now.getTime() + 6 * 60 * 60 * 1000);
-            break;
-          case '12h':
-            expiresAt = new Date(now.getTime() + 12 * 60 * 60 * 1000);
-            break;
-          case '24h':
-            expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-            break;
-        }
-        
-        if (expiresAt) {
-          formData.append('expiresAt', expiresAt.toISOString());
-        }
+      // Add validity period
+      if (data.validityPeriod) {
+        formData.append('validityPeriod', data.validityPeriod);
       }
 
       imageFiles.forEach(file => {
         formData.append('images', file);
       });
 
-      await itemsAPI.create(formData);
-
+      const response = await itemsAPI.create(formData);
+      
+      console.log('Item created successfully:', response);
       alert('Item added successfully!');
       navigate('/my-items');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to add item');
+      console.error('Create item error:', err);
+      console.error('Error response:', err.response?.data);
+      const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to add item';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
