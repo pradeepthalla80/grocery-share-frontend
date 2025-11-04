@@ -3,6 +3,7 @@ import { apiClient } from './config';
 export interface Location {
   lat: number;
   lng: number;
+  address?: string;
 }
 
 export interface Item {

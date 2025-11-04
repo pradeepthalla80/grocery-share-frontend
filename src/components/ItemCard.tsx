@@ -135,7 +135,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           
           <div className="flex items-center space-x-2">
             <MapPin className="h-4 w-4" />
-            <span>{item.location.lat.toFixed(4)}, {item.location.lng.toFixed(4)}</span>
+            <span className="text-xs">{item.location.address || `${item.location.lat.toFixed(4)}, ${item.location.lng.toFixed(4)}`}</span>
           </div>
 
           {item.user && (
