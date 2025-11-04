@@ -9,7 +9,6 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
 import { ArrowLeft } from 'lucide-react';
-import { useToast } from '../hooks/useToast';
 
 const editItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -61,7 +60,6 @@ export const EditItem = () => {
   const [deletedImagePublicIds, setDeletedImagePublicIds] = useState<string[]>([]);
   const [isFree, setIsFree] = useState(false);
   const [flexiblePickup, setFlexiblePickup] = useState(true);
-  const [address, setAddress] = useState('');
   const [currentLat, setCurrentLat] = useState(0);
   const [currentLng, setCurrentLng] = useState(0);
 
@@ -320,7 +318,6 @@ export const EditItem = () => {
             <div className="space-y-4">
               <AddressInput
                 onLocationSelect={(location) => {
-                  setAddress(location.address);
                   setValue('lat', location.lat.toString());
                   setValue('lng', location.lng.toString());
                   setCurrentLat(location.lat);
