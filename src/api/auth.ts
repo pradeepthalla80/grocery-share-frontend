@@ -18,7 +18,13 @@ export interface AuthResponse {
     id: string;
     name: string;
     email: string;
+    createdAt?: string;
   };
+}
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export const authAPI = {
@@ -29,6 +35,11 @@ export const authAPI = {
 
   login: async (data: LoginData): Promise<AuthResponse> => {
     const response = await apiClient.post('/auth/login', data);
+    return response.data;
+  },
+
+  changePassword: async (data: ChangePasswordData): Promise<{ message: string }> => {
+    const response = await apiClient.put('/auth/change-password', data);
     return response.data;
   },
 };

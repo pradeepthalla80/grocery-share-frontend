@@ -6,7 +6,10 @@ import { z } from 'zod';
 import { itemsAPI, type Item } from '../api/items';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
+import { AddressInput } from '../components/AddressInput';
+import { LocationMap } from '../components/LocationMap';
 import { ArrowLeft } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 
 const editItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -58,6 +61,9 @@ export const EditItem = () => {
   const [deletedImagePublicIds, setDeletedImagePublicIds] = useState<string[]>([]);
   const [isFree, setIsFree] = useState(false);
   const [flexiblePickup, setFlexiblePickup] = useState(true);
+  const [address, setAddress] = useState('');
+  const [currentLat, setCurrentLat] = useState(0);
+  const [currentLng, setCurrentLng] = useState(0);
 
   const {
     register,
@@ -87,6 +93,8 @@ export const EditItem = () => {
           setValue('price', item.price.toString());
           setValue('lat', item.location.lat.toString());
           setValue('lng', item.location.lng.toString());
+          setCurrentLat(item.location.lat);
+          setCurrentLng(item.location.lng);
           const itemIsFree = item.isFree || false;
           setIsFree(itemIsFree);
           setValue('isFree', itemIsFree);
@@ -306,6 +314,25 @@ export const EditItem = () => {
                     error={errors.pickupTimeEnd?.message}
                   />
                 </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <AddressInput
+                onLocationSelect={(location) => {
+                  setAddress(location.address);
+                  setValue('lat', location.lat.toString());
+                  setValue('lng', location.lng.toString());
+                  setCurrentLat(location.lat);
+                  setCurrentLng(location.lng);
+                }}
+              />
+              
+              {currentLat !== 0 && currentLng !== 0 && (
+                <LocationMap
+                  lat={currentLat}
+                  lng={currentLng}
+                />
               )}
             </div>
 

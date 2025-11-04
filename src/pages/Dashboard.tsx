@@ -16,6 +16,8 @@ export const Dashboard = () => {
   const [lng, setLng] = useState('-87.623177');
   const [radius, setRadius] = useState('10');
   const [keyword, setKeyword] = useState('');
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState('');
 
   const handleSearch = async () => {
     try {
@@ -26,6 +28,8 @@ export const Dashboard = () => {
         lng: parseFloat(lng),
         radius: parseFloat(radius),
         keyword: keyword || undefined,
+        category: category || undefined,
+        tags: tags || undefined,
       });
       setItems(response.items);
     } catch (err: any) {
@@ -83,8 +87,60 @@ export const Dashboard = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Search Filters</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <h2 className="text-lg font-semibold mb-4 flex items-center">
+            <Search className="h-5 w-5 mr-2 text-green-600" />
+            Search Filters
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search Keyword
+              </label>
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Search items by name..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">All Categories</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Dairy">Dairy</option>
+                <option value="Meat">Meat</option>
+                <option value="Bakery">Bakery</option>
+                <option value="Canned Goods">Canned Goods</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Snacks">Snacks</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+              </label>
+              <input
+                type="text"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="organic, fresh, gluten-free..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Latitude
@@ -113,24 +169,17 @@ export const Dashboard = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Radius (miles)
               </label>
-              <input
-                type="number"
+              <select
                 value={radius}
                 onChange={(e) => setRadius(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Keyword
-              </label>
-              <input
-                type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search by name or tags"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
+              >
+                <option value="5">5 miles</option>
+                <option value="10">10 miles</option>
+                <option value="25">25 miles</option>
+                <option value="50">50 miles</option>
+                <option value="100">100 miles</option>
+              </select>
             </div>
           </div>
           <div className="mt-4 flex space-x-4">

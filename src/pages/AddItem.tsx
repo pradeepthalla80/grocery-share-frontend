@@ -6,7 +6,9 @@ import { z } from 'zod';
 import { itemsAPI } from '../api/items';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { AddressInput } from '../components/AddressInput';
+import { LocationMap } from '../components/LocationMap';
+import { ArrowLeft } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -19,8 +21,10 @@ const addItemSchema = z.object({
   pickupTimeStart: z.string().optional(),
   pickupTimeEnd: z.string().optional(),
   flexiblePickup: z.boolean().optional(),
-  lat: z.string().min(1, 'Latitude is required'),
-  lng: z.string().min(1, 'Longitude is required'),
+  validityPeriod: z.string().optional(),
+  address: z.string().min(1, 'Address is required'),
+  lat: z.number(),
+  lng: z.number(),
 }).refine((data) => {
   if (!data.isFree && (!data.price || Number(data.price) <= 0)) {
     return false;
@@ -49,36 +53,34 @@ export const AddItem = () => {
   const [imageError, setImageError] = useState('');
   const [isFree, setIsFree] = useState(false);
   const [flexiblePickup, setFlexiblePickup] = useState(true);
+  const [locationError, setLocationError] = useState('');
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<AddItemFormData>({
     resolver: zodResolver(addItemSchema),
     defaultValues: {
-      lat: '41.881832',
-      lng: '-87.623177',
+      address: '',
+      lat: 41.881832,
+      lng: -87.623177,
       isFree: false,
       flexiblePickup: true,
     },
   });
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setValue('lat', position.coords.latitude.toString());
-          setValue('lng', position.coords.longitude.toString());
-        },
-        (error) => {
-          alert('Could not get your location: ' + error.message);
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser');
-    }
+  const lat = watch('lat');
+  const lng = watch('lng');
+  const address = watch('address');
+
+  const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
+    setValue('address', location.address);
+    setValue('lat', location.lat);
+    setValue('lng', location.lng);
+    setLocationError('');
   };
 
   const handleImageChange = (files: File[]) => {
@@ -98,6 +100,12 @@ export const AddItem = () => {
 
       if (imageFiles.length === 0 && !data.imageURL) {
         setImageError('Please provide at least one image');
+        setLoading(false);
+        return;
+      }
+
+      if (!data.address || data.lat === undefined || data.lat === null || data.lng === undefined || data.lng === null) {
+        setLocationError('Please select a location');
         setLoading(false);
         return;
       }
@@ -126,10 +134,36 @@ export const AddItem = () => {
         : [];
       formData.append('tags', JSON.stringify(tags));
       
+      formData.append('address', data.address);
       formData.append('location', JSON.stringify({
-        lat: parseFloat(data.lat),
-        lng: parseFloat(data.lng),
+        lat: data.lat,
+        lng: data.lng,
       }));
+
+      // Calculate expiration date if validity period is set
+      if (data.validityPeriod && data.validityPeriod !== 'never') {
+        const now = new Date();
+        let expiresAt;
+        
+        switch (data.validityPeriod) {
+          case '2h':
+            expiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+            break;
+          case '6h':
+            expiresAt = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+            break;
+          case '12h':
+            expiresAt = new Date(now.getTime() + 12 * 60 * 60 * 1000);
+            break;
+          case '24h':
+            expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            break;
+        }
+        
+        if (expiresAt) {
+          formData.append('expiresAt', expiresAt.toISOString());
+        }
+      }
 
       imageFiles.forEach(file => {
         formData.append('images', file);
@@ -216,6 +250,26 @@ export const AddItem = () => {
               />
 
               <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Listing Validity Period
+                </label>
+                <select
+                  {...register('validityPeriod')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="never">Never expires</option>
+                  <option value="2h">2 hours</option>
+                  <option value="6h">6 hours</option>
+                  <option value="12h">12 hours</option>
+                  <option value="24h">24 hours</option>
+                </select>
+                <p className="text-xs text-gray-500">After this period, your listing will be automatically hidden</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              <div className="space-y-2">
                 <label className="flex items-center space-x-2 mb-3">
                   <input
                     type="checkbox"
@@ -277,37 +331,27 @@ export const AddItem = () => {
               )}
             </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
+            <AddressInput
+              onLocationSelect={handleLocationSelect}
+              defaultAddress={address}
+              defaultLat={lat}
+              defaultLng={lng}
+              error={locationError || errors.address?.message}
+            />
+
+            {lat !== undefined && lat !== null && lng !== undefined && lng !== null && (
+              <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Location
+                  Map Preview
                 </label>
-                <button
-                  type="button"
-                  onClick={getCurrentLocation}
-                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm"
-                >
-                  <MapPin className="h-4 w-4" />
-                  <span>Use Current Location</span>
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput
-                  label="Latitude"
-                  type="number"
-                  step="any"
-                  {...register('lat')}
-                  error={errors.lat?.message}
-                />
-                <FormInput
-                  label="Longitude"
-                  type="number"
-                  step="any"
-                  {...register('lng')}
-                  error={errors.lng?.message}
+                <LocationMap
+                  lat={lat}
+                  lng={lng}
+                  address={address}
+                  height="300px"
                 />
               </div>
-            </div>
+            )}
 
             <div className="flex space-x-4">
               <button

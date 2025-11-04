@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { type Item } from '../api/items';
-import { Calendar, DollarSign, MapPin, Tag, User, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Calendar, DollarSign, MapPin, Tag, User, ChevronLeft, ChevronRight, Clock, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '../hooks/useAuth';
 
 interface ItemCardProps {
   item: Item;
@@ -11,6 +13,9 @@ interface ItemCardProps {
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, showActions = false }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
   const allImages = item.images && item.images.length > 0 
     ? item.images 
     : item.imageURL 
@@ -18,6 +23,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
     : [];
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const isMyItem = item.user?.id === user?.id;
+
+  const handleContactSeller = () => {
+    if (item.user?.id) {
+      navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
+    }
+  };
 
   const nextImage = () => {
     if (allImages.length === 0) return;
@@ -143,6 +156,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
                 #{tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {!isMyItem && !showActions && item.user && (
+          <div className="mt-4">
+            <button
+              onClick={handleContactSeller}
+              className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Contact Seller
+            </button>
           </div>
         )}
 

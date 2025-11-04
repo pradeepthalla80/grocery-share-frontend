@@ -50,3 +50,8 @@ export const sendMessage = async (receiverId: string, message: string, itemId?: 
 export const markMessagesAsRead = async (conversationId: string): Promise<void> => {
   await apiClient.put(`/chat/conversations/${conversationId}/read`);
 };
+
+export const confirmPickup = async (conversationId: string) => {
+  const response = await apiClient.post(`/chat/conversations/${conversationId}/confirm-pickup`);
+  return response.data;
+};

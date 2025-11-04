@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -9,18 +11,32 @@ import { Dashboard } from './pages/Dashboard';
 import { MyItems } from './pages/MyItems';
 import { AddItem } from './pages/AddItem';
 import { EditItem } from './pages/EditItem';
+import { Profile } from './pages/Profile';
+import { AuthCallback } from './pages/AuthCallback';
+import { Chat } from './pages/Chat';
+import { ItemRequests } from './pages/ItemRequests';
+import { TermsAndConditions } from './pages/TermsAndConditions';
+import { ContactUs } from './pages/ContactUs';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <BrowserRouter>
+        <ToastProvider>
+          <BrowserRouter>
         <div className="min-h-screen bg-gray-50">
           <Navbar />
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/terms-acceptance" element={<TermsAndConditions />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/contact" element={<ContactUs />} />
             <Route
               path="/dashboard"
               element={
@@ -53,9 +69,35 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <Chat />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/item-requests"
+              element={
+                <ProtectedRoute>
+                  <ItemRequests />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
+          <Footer />
         </div>
       </BrowserRouter>
+        </ToastProvider>
       </NotificationProvider>
     </AuthProvider>
   );

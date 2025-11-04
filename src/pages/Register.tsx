@@ -12,6 +12,9 @@ const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  acceptedTerms: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the Terms of Use and Privacy Policy'
+  })
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -83,6 +86,27 @@ export const Register = () => {
             error={errors.password?.message}
             placeholder="••••••••"
           />
+
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              {...register('acceptedTerms')}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mt-1"
+            />
+            <label className="ml-2 block text-sm text-gray-700">
+              I agree to the{' '}
+              <Link to="/terms" className="text-green-600 hover:text-green-700 font-medium" target="_blank">
+                Terms of Use
+              </Link>
+              {' '}and{' '}
+              <Link to="/privacy" className="text-green-600 hover:text-green-700 font-medium" target="_blank">
+                Privacy Policy
+              </Link>
+            </label>
+          </div>
+          {errors.acceptedTerms && (
+            <p className="text-sm text-red-600 mt-1">{errors.acceptedTerms.message}</p>
+          )}
 
           <button
             type="submit"
