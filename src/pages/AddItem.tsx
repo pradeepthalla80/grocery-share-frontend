@@ -12,7 +12,6 @@ import { ArrowLeft } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  imageURL: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   category: z.string().optional(),
   tags: z.string().optional(),
   expiryDate: z.string().min(1, 'Expiry date is required'),
@@ -98,8 +97,8 @@ export const AddItem = () => {
       setError('');
       setImageError('');
 
-      if (imageFiles.length === 0 && !data.imageURL) {
-        setImageError('Please provide at least one image');
+      if (imageFiles.length === 0) {
+        setImageError('Please upload at least one image');
         setLoading(false);
         return;
       }
@@ -112,9 +111,6 @@ export const AddItem = () => {
 
       const formData = new FormData();
       formData.append('name', data.name);
-      if (data.imageURL) {
-        formData.append('imageURL', data.imageURL);
-      }
       if (data.category) {
         formData.append('category', data.category);
       }
@@ -153,7 +149,7 @@ export const AddItem = () => {
       
       console.log('Item created successfully:', response);
       alert('Item added successfully!');
-      navigate('/my-items');
+      navigate('/dashboard');
     } catch (err: any) {
       console.error('Create item error:', err);
       console.error('Error response:', err.response?.data);
@@ -197,14 +193,6 @@ export const AddItem = () => {
               maxImages={5}
               onChange={handleImageChange}
               error={imageError}
-            />
-
-            <FormInput
-              label="Image URL (Optional - only if not uploading files)"
-              type="url"
-              {...register('imageURL')}
-              error={errors.imageURL?.message}
-              placeholder="https://example.com/image.jpg"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
