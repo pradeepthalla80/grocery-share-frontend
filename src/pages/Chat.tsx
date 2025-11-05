@@ -212,11 +212,23 @@ export const Chat = () => {
         <div className="bg-white rounded-lg shadow-md overflow-hidden" style={{ height: '70vh' }}>
           <div className="flex h-full">
             <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
-              {conversations.length === 0 ? (
+              {conversations.length === 0 && !isNewConversation ? (
                 <div className="p-8 text-center">
                   <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No conversations yet</p>
-                  <p className="text-sm text-gray-400 mt-2">Start chatting with item owners!</p>
+                  <p className="text-gray-500 font-medium mb-2">No conversations yet</p>
+                  <p className="text-sm text-gray-400 mb-4">To start a conversation, find an item you're interested in and click "Contact Seller"</p>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm"
+                  >
+                    Browse Items
+                  </button>
+                </div>
+              ) : conversations.length === 0 && isNewConversation ? (
+                <div className="p-8 text-center">
+                  <MessageSquare className="h-12 w-12 text-green-400 mx-auto mb-4" />
+                  <p className="text-gray-700 font-medium">New Conversation</p>
+                  <p className="text-sm text-gray-500 mt-2">Send a message to start chatting!</p>
                 </div>
               ) : (
                 conversations.map((conv) => {
@@ -359,9 +371,10 @@ export const Chat = () => {
                 </>
               ) : (
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center">
+                  <div className="text-center px-8">
                     <MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">Select a conversation to start messaging</p>
+                    <p className="text-gray-500 mb-2">Select a conversation to start messaging</p>
+                    <p className="text-sm text-gray-400">Or browse items to find something you'd like and contact the seller</p>
                   </div>
                 </div>
               )}
