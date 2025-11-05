@@ -12,7 +12,6 @@ import { ArrowLeft } from 'lucide-react';
 
 const editItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  imageURL: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   category: z.string().optional(),
   tags: z.string().optional(),
   expiryDate: z.string().min(1, 'Expiry date is required'),
@@ -84,7 +83,6 @@ export const EditItem = () => {
         
         if (item) {
           setValue('name', item.name);
-          setValue('imageURL', item.imageURL || '');
           setValue('category', item.category || '');
           setValue('tags', item.tags.join(', '));
           setValue('expiryDate', item.expiryDate.split('T')[0]);
@@ -133,9 +131,6 @@ export const EditItem = () => {
 
       const formData = new FormData();
       formData.append('name', data.name);
-      if (data.imageURL) {
-        formData.append('imageURL', data.imageURL);
-      }
       if (data.category) {
         formData.append('category', data.category);
       }
@@ -217,14 +212,6 @@ export const EditItem = () => {
               maxImages={5}
               existingImages={existingImages}
               onChange={handleImageChange}
-            />
-
-            <FormInput
-              label="Image URL (Optional - only if not uploading files)"
-              type="url"
-              {...register('imageURL')}
-              error={errors.imageURL?.message}
-              placeholder="https://example.com/image.jpg"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
