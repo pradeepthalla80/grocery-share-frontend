@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { itemsAPI, type Item } from '../api/items';
 import { getRecommendations } from '../api/recommendations';
 import { ItemCard } from '../components/ItemCard';
-import { Search, MapPin, Plus, Sparkles } from 'lucide-react';
+import { AddressInput } from '../components/AddressInput';
+import { Search, Plus, Sparkles } from 'lucide-react';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -12,20 +13,25 @@ export const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const [lat, setLat] = useState('41.881832');
-  const [lng, setLng] = useState('-87.623177');
+  // Search location state (address-based, not coordinates)
+  const [searchLocation, setSearchLocation] = useState<{ address: string; lat: number; lng: number } | null>(null);
   const [radius, setRadius] = useState('10');
   const [keyword, setKeyword] = useState('');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
 
   const handleSearch = async () => {
+    if (!searchLocation) {
+      setError('Please select a location to search');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
       const response = await itemsAPI.search({
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
+        lat: searchLocation.lat,
+        lng: searchLocation.lng,
         radius: parseFloat(radius),
         keyword: keyword || undefined,
         category: category || undefined,
@@ -39,25 +45,15 @@ export const Dashboard = () => {
     }
   };
 
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLat(position.coords.latitude.toString());
-          setLng(position.coords.longitude.toString());
-        },
-        (error) => {
-          alert('Could not get your location: ' + error.message);
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser');
-    }
+  const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
+    setSearchLocation(location);
   };
 
   const fetchRecommendations = async () => {
+    if (!searchLocation) return;
+    
     try {
-      const response = await getRecommendations(parseFloat(lat), parseFloat(lng), 6);
+      const response = await getRecommendations(searchLocation.lat, searchLocation.lng, 6);
       setRecommendations(response.items);
     } catch (err) {
       console.error('Failed to fetch recommendations:', err);
@@ -65,9 +61,12 @@ export const Dashboard = () => {
   };
 
   useEffect(() => {
-    handleSearch();
-    fetchRecommendations();
-  }, []);
+    // Auto-search when location is selected
+    if (searchLocation) {
+      handleSearch();
+      fetchRecommendations();
+    }
+  }, [searchLocation]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -140,34 +139,18 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Latitude
-              </label>
-              <input
-                type="number"
-                step="any"
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              <AddressInput
+                onLocationSelect={handleLocationSelect}
+                defaultAddress={searchLocation?.address}
+                defaultLat={searchLocation?.lat}
+                defaultLng={searchLocation?.lng}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Longitude
-              </label>
-              <input
-                type="number"
-                step="any"
-                value={lng}
-                onChange={(e) => setLng(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Radius (miles)
+                Search Radius
               </label>
               <select
                 value={radius}
@@ -182,21 +165,14 @@ export const Dashboard = () => {
               </select>
             </div>
           </div>
-          <div className="mt-4 flex space-x-4">
+          <div className="mt-4">
             <button
               onClick={handleSearch}
-              disabled={loading}
+              disabled={loading || !searchLocation}
               className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition disabled:opacity-50"
             >
               <Search className="h-5 w-5" />
               <span>{loading ? 'Searching...' : 'Search'}</span>
-            </button>
-            <button
-              onClick={getCurrentLocation}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
-            >
-              <MapPin className="h-5 w-5" />
-              <span>Use My Location</span>
             </button>
           </div>
         </div>
