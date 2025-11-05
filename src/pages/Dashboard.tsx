@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { itemsAPI, type Item } from '../api/items';
 import { getRecommendations } from '../api/recommendations';
-import { ItemCard } from '../components/ItemCard';
 import { AddressInput } from '../components/AddressInput';
-import { Search, Plus, Sparkles } from 'lucide-react';
+import { Search, Plus, Sparkles, Calendar, DollarSign, MapPin } from 'lucide-react';
+import { format } from 'date-fns';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -67,6 +67,32 @@ export const Dashboard = () => {
       fetchRecommendations();
     }
   }, [searchLocation]);
+
+  // Auto-load items on page load using browser geolocation
+  useEffect(() => {
+    if ('geolocation' in navigator && !searchLocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          // Set location and trigger auto-search
+          setSearchLocation({
+            address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            lat: latitude,
+            lng: longitude
+          });
+        },
+        (error) => {
+          console.log('Geolocation error:', error);
+          // Fallback: use a default location (e.g., New York City)
+          setSearchLocation({
+            address: 'Default Location',
+            lat: 40.7128,
+            lng: -74.0060
+          });
+        }
+      );
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -189,10 +215,63 @@ export const Dashboard = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <ItemCard key={item.id} item={item} />
-          ))}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {items.map((item) => {
+            const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
+            const handleItemClick = () => {
+              if (item.user?.id) {
+                navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
+              }
+            };
+            return (
+              <div 
+                key={item.id} 
+                onClick={handleItemClick}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <div className="relative w-full h-32 bg-gray-200">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={item.name}
+                      className="w-full h-32 object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-400 text-xs">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <div className="p-3">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-1">{item.name}</h3>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <div className="flex items-center space-x-1">
+                      {item.isFree ? (
+                        <span className="bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded text-xs">
+                          🆓 FREE
+                        </span>
+                      ) : (
+                        <>
+                          <DollarSign className="h-3 w-3" />
+                          <span className="font-semibold text-green-600">${item.price.toFixed(2)}</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-3 w-3" />
+                      <span className="line-clamp-1">{format(new Date(item.expiryDate), 'MMM dd')}</span>
+                    </div>
+                    {item.location?.address && (
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="line-clamp-1 text-xs">{item.location.address.split(',')[0]}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {items.length === 0 && !loading && (
@@ -208,10 +287,63 @@ export const Dashboard = () => {
               <Sparkles className="h-6 w-6 text-green-600" />
               <h2 className="text-2xl font-bold text-gray-900">You Might Also Like</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendations.map((item) => (
-                <ItemCard key={item.id} item={item} />
-              ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {recommendations.map((item) => {
+                const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
+                const handleItemClick = () => {
+                  if (item.user?.id) {
+                    navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
+                  }
+                };
+                return (
+                  <div 
+                    key={item.id} 
+                    onClick={handleItemClick}
+                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  >
+                    <div className="relative w-full h-32 bg-gray-200">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={item.name}
+                          className="w-full h-32 object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400 text-xs">
+                          No Image
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-1">{item.name}</h3>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <div className="flex items-center space-x-1">
+                          {item.isFree ? (
+                            <span className="bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded text-xs">
+                              🆓 FREE
+                            </span>
+                          ) : (
+                            <>
+                              <DollarSign className="h-3 w-3" />
+                              <span className="font-semibold text-green-600">${item.price.toFixed(2)}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-3 w-3" />
+                          <span className="line-clamp-1">{format(new Date(item.expiryDate), 'MMM dd')}</span>
+                        </div>
+                        {item.location?.address && (
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            <span className="line-clamp-1 text-xs">{item.location.address.split(',')[0]}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
