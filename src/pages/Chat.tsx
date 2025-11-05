@@ -27,6 +27,8 @@ export const Chat = () => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [ratingUserId, setRatingUserId] = useState('');
   const [ratingUserName, setRatingUserName] = useState('');
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const receiverId = searchParams.get('receiverId');
   const itemId = searchParams.get('itemId');
@@ -36,6 +38,7 @@ export const Chat = () => {
       setSelectedConversation(null);
       setMessages([]);
       setIsNewConversation(true);
+      setUserHasScrolled(false); // Reset scroll state for new conversation
       fetchConversations(true);
     } else {
       fetchConversations(true);
@@ -62,8 +65,19 @@ export const Chat = () => {
   }, [selectedConversation]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Only auto-scroll if user hasn't manually scrolled up
+    if (!userHasScrolled) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, userHasScrolled]);
+
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      setUserHasScrolled(!isAtBottom);
+    }
+  };
 
   const fetchConversations = async (selectFirstOrMatch = false) => {
     try {
@@ -105,6 +119,7 @@ export const Chat = () => {
 
     const messageText = newMessage.trim();
     setNewMessage('');
+    setUserHasScrolled(false); // Reset scroll state to auto-scroll to new message
 
     try {
       setSendingMessage(true);
@@ -148,6 +163,7 @@ export const Chat = () => {
     setSelectedConversation(conversation);
     setIsNewConversation(false);
     setRevealedAddress(null);
+    setUserHasScrolled(false); // Reset scroll state to show latest messages
     if (receiverId) {
       navigate('/chat', { replace: true });
     }
@@ -316,7 +332,7 @@ export const Chat = () => {
                     )}
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4">
                     {messages.map((msg) => {
                       const isMyMessage = msg.sender.id === user?.id;
                       return (
