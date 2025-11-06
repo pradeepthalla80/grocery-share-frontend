@@ -48,6 +48,19 @@ Grocery Share is a peer-to-peer web application that enables users to share, req
 - Payment integration: Visible for paid, available, non-owned items on ItemDetail page
 - Dashboard auto-load: Geolocation-based item loading on page load with NYC fallback
 
+**Session 3: Flexible Request Pricing System**
+- Added price preference fields to request creation form (`pricePreference`, `maxPrice`)
+- Two options: "Free Only - Looking for donations" or "Willing to Pay - Set max price"
+- Max price field appears conditionally when "Willing to Pay" is selected
+- Updated `ItemRequest` interface to include `pricePreference` and `maxPrice` fields
+- Request detail page displays payment preference prominently with emoji indicator
+- Shows "🆓 Looking for FREE donations" for free_only requests
+- Shows "Willing to pay up to $X.XX" for willing_to_pay requests with max price
+- Form validation ensures correct data types and required fields
+- Edit request form preserves and allows updating price preferences
+- Simplified UI flow: Direct action buttons ("Buy Now", "Request This Item", "Offer to Help")
+- Removed multi-step "Interested" flow for cleaner user experience
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
