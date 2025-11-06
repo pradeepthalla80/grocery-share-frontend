@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { getUserProfile } from '../api/users';
 
 export const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -13,24 +12,29 @@ export const AuthCallback = () => {
     const handleCallback = async () => {
       try {
         const token = searchParams.get('token');
+        const userId = searchParams.get('userId');
+        const userName = searchParams.get('name');
+        const userEmail = searchParams.get('email');
         
         if (!token) {
           console.error('No token received from OAuth callback');
-          navigate('/login');
+          setError('Authentication failed - no token received');
+          setTimeout(() => navigate('/login'), 2000);
           return;
         }
 
-        console.log('Token received, fetching user profile...');
+        console.log('Token received from Google OAuth');
         
-        // Save token temporarily to make API request
-        localStorage.setItem('grocery_share_token', token);
+        // Create user object from URL parameters
+        const userData = {
+          id: userId || '',
+          name: userName || 'User',
+          email: userEmail || '',
+        };
         
-        // Fetch full user profile
-        const userData = await getUserProfile();
+        console.log('User data from OAuth:', userData);
         
-        console.log('User profile fetched:', userData);
-        
-        // Login with full user data
+        // Login with user data
         login(token, userData);
         
         console.log('Login complete, redirecting to dashboard...');
