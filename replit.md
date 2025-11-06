@@ -4,7 +4,54 @@ Grocery Share is a peer-to-peer web application designed to reduce food waste by
 
 # Recent Changes (November 6, 2025)
 
-## Latest Session: Role-Based Admin System
+## Latest Session: Modern Chat Interface Redesign
+
+### Split-View Messaging Experience
+Complete redesign of the chat interface with clean, scannable message list and modern chat window.
+
+**What Was Changed:**
+1. **Messages List (Left Panel)**:
+   - Single-line compact rows similar to Dashboard items
+   - Circular avatars (item image or gradient user icon)
+   - Each row displays: avatar, sender name, relative timestamp, item name, and last message preview
+   - All information fits on one line for quick scanning
+   - Selected conversation highlighted with green left border
+   - Smooth hover states and transitions
+
+2. **Chat Window (Right Panel)**:
+   - Modern rounded message bubbles with subtle shadows
+   - Gradient backgrounds for visual depth
+   - Cleaner header with circular avatar
+   - Rounded input field with improved styling
+   - Different bubble shapes for sender/receiver (rounded corners)
+
+3. **User Experience Improvements**:
+   - Relative timestamps ("2 minutes ago") for better context
+   - Better visual hierarchy and spacing
+   - Responsive design (fixed width on larger screens)
+   - Improved empty states with helpful CTAs
+
+**Files Changed:**
+- `src/pages/Chat.tsx` - Complete chat interface redesign
+
+**Features Preserved:**
+- ✅ Real-time message polling (3s for messages, 5s for conversations)
+- ✅ Auto-scroll to latest message (unless user scrolls up manually)
+- ✅ Reveal Address and Confirm Pickup buttons
+- ✅ Rating modal integration
+- ✅ Mark messages as read functionality
+- ✅ New conversation handling from URL parameters
+
+**Architect Review:** ✅ Passed
+- Clean single-line scannable message rows
+- Modern chat window design
+- No functionality broken
+- No performance concerns
+- TypeScript types correct
+
+---
+
+## Previous Session: Role-Based Admin System
 
 ### New Admin/Super Admin Functionality
 Complete role-based access control system for platform moderation and management.
