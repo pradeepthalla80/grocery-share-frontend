@@ -6,7 +6,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { RatingModal } from '../components/RatingModal';
-import { Send, MessageSquare, MapPin, Eye, CheckCircle } from 'lucide-react';
+import { Send, MessageSquare, MapPin, Eye, CheckCircle, User } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 export const Chat = () => {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ export const Chat = () => {
       setSelectedConversation(null);
       setMessages([]);
       setIsNewConversation(true);
-      setUserHasScrolled(false); // Reset scroll state for new conversation
+      setUserHasScrolled(false);
       fetchConversations(true);
     } else {
       fetchConversations(true);
@@ -65,7 +66,6 @@ export const Chat = () => {
   }, [selectedConversation]);
 
   useEffect(() => {
-    // Only auto-scroll if user hasn't manually scrolled up
     if (!userHasScrolled) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -119,7 +119,7 @@ export const Chat = () => {
 
     const messageText = newMessage.trim();
     setNewMessage('');
-    setUserHasScrolled(false); // Reset scroll state to auto-scroll to new message
+    setUserHasScrolled(false);
 
     try {
       setSendingMessage(true);
@@ -163,7 +163,7 @@ export const Chat = () => {
     setSelectedConversation(conversation);
     setIsNewConversation(false);
     setRevealedAddress(null);
-    setUserHasScrolled(false); // Reset scroll state to show latest messages
+    setUserHasScrolled(false);
     if (receiverId) {
       navigate('/chat', { replace: true });
     }
@@ -227,7 +227,8 @@ export const Chat = () => {
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden" style={{ height: 'calc(100vh - 200px)', maxHeight: '700px' }}>
           <div className="flex h-full">
-            <div className="w-1/3 border-r border-gray-200 overflow-y-auto">
+            {/* Messages List - Left Panel */}
+            <div className="w-full sm:w-96 border-r border-gray-200 overflow-y-auto bg-gray-50">
               {conversations.length === 0 && !isNewConversation ? (
                 <div className="p-8 text-center">
                   <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -247,59 +248,99 @@ export const Chat = () => {
                   <p className="text-sm text-gray-500 mt-2">Send a message to start chatting!</p>
                 </div>
               ) : (
-                conversations.map((conv) => {
-                  const otherUser = getOtherParticipant(conv);
-                  return (
-                    <div
-                      key={conv.id}
-                      onClick={() => handleConversationSelect(conv)}
-                      className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition ${
-                        selectedConversation?.id === conv.id ? 'bg-green-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        {conv.item?.imageURL && (
-                          <img
-                            src={conv.item.imageURL}
-                            alt={conv.item.name}
-                            className="w-12 h-12 rounded object-cover"
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 truncate">{otherUser?.name}</p>
-                          {conv.item && (
-                            <p className="text-xs text-gray-500 truncate">Re: {conv.item.name}</p>
-                          )}
-                          <p className="text-sm text-gray-600 truncate mt-1">{conv.lastMessage}</p>
+                <div className="divide-y divide-gray-200">
+                  {conversations.map((conv) => {
+                    const otherUser = getOtherParticipant(conv);
+                    const isSelected = selectedConversation?.id === conv.id;
+                    
+                    return (
+                      <div
+                        key={conv.id}
+                        onClick={() => handleConversationSelect(conv)}
+                        className={`px-4 py-3 cursor-pointer transition-colors hover:bg-white ${
+                          isSelected ? 'bg-white border-l-4 border-green-600' : 'bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Circular Avatar/Image */}
+                          <div className="flex-shrink-0">
+                            {conv.item?.imageURL ? (
+                              <img
+                                src={conv.item.imageURL}
+                                alt={otherUser?.name}
+                                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                                <User className="h-6 w-6 text-white" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Message Info - Single Line */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline justify-between gap-2 mb-1">
+                              <p className="font-semibold text-gray-900 truncate text-sm">
+                                {otherUser?.name}
+                              </p>
+                              <span className="text-xs text-gray-500 flex-shrink-0">
+                                {formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true })}
+                              </span>
+                            </div>
+                            
+                            {/* Item name and last message on same line */}
+                            <p className="text-xs text-gray-600 truncate">
+                              {conv.item && <span className="font-medium text-green-700">Re: {conv.item.name}</span>}
+                              {conv.item && conv.lastMessage && <span className="mx-1">·</span>}
+                              {conv.lastMessage && <span>{conv.lastMessage}</span>}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </div>
 
-            <div className="flex-1 flex flex-col">
+            {/* Chat Window - Right Panel */}
+            <div className="flex-1 flex flex-col bg-white">
               {selectedConversation || isNewConversation ? (
                 <>
-                  <div className="p-4 border-b border-gray-200 bg-gray-50">
+                  {/* Chat Header */}
+                  <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
                     {selectedConversation ? (
                       <>
                         <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-gray-900">
-                              {getOtherParticipant(selectedConversation)?.name}
-                            </p>
-                            {selectedConversation.item && (
-                              <p className="text-sm text-gray-600">About: {selectedConversation.item.name}</p>
+                          <div className="flex items-center gap-3">
+                            {/* Avatar in header */}
+                            {selectedConversation.item?.imageURL ? (
+                              <img
+                                src={selectedConversation.item.imageURL}
+                                alt={getOtherParticipant(selectedConversation)?.name}
+                                className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                                <User className="h-5 w-5 text-white" />
+                              </div>
                             )}
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                {getOtherParticipant(selectedConversation)?.name}
+                              </p>
+                              {selectedConversation.item && (
+                                <p className="text-sm text-gray-600">About: {selectedConversation.item.name}</p>
+                              )}
+                            </div>
                           </div>
+                          
                           {selectedConversation.item && (
                             <div className="flex gap-2">
                               <button
                                 onClick={handleRevealAddress}
                                 disabled={revealingAddress}
-                                className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+                                className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50"
                               >
                                 <Eye className="h-4 w-4" />
                                 {revealingAddress ? 'Loading...' : 'Reveal Address'}
@@ -307,7 +348,7 @@ export const Chat = () => {
                               <button
                                 onClick={handleConfirmPickup}
                                 disabled={confirmingPickup}
-                                className="flex items-center gap-2 px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"
+                                className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-50"
                               >
                                 <CheckCircle className="h-4 w-4" />
                                 {confirmingPickup ? 'Loading...' : 'Confirm Pickup'}
@@ -315,6 +356,7 @@ export const Chat = () => {
                             </div>
                           )}
                         </div>
+                        
                         {revealedAddress && (
                           <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
                             <div className="flex items-start gap-2">
@@ -332,7 +374,12 @@ export const Chat = () => {
                     )}
                   </div>
 
-                  <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {/* Messages Container */}
+                  <div 
+                    ref={messagesContainerRef} 
+                    onScroll={handleScroll} 
+                    className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50 to-white"
+                  >
                     {messages.map((msg) => {
                       const isMyMessage = msg.sender.id === user?.id;
                       return (
@@ -340,16 +387,18 @@ export const Chat = () => {
                           key={msg.id}
                           className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                         >
-                          <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              isMyMessage
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-200 text-gray-900'
-                            }`}
-                          >
-                            <p className="text-sm">{msg.message}</p>
-                            <p className={`text-xs mt-1 ${isMyMessage ? 'text-green-100' : 'text-gray-500'}`}>
-                              {new Date(msg.createdAt).toLocaleTimeString()}
+                          <div className="flex flex-col max-w-xs lg:max-w-md">
+                            <div
+                              className={`px-4 py-3 rounded-2xl shadow-sm ${
+                                isMyMessage
+                                  ? 'bg-green-600 text-white rounded-br-sm'
+                                  : 'bg-white text-gray-900 border border-gray-200 rounded-bl-sm'
+                              }`}
+                            >
+                              <p className="text-sm leading-relaxed">{msg.message}</p>
+                            </div>
+                            <p className={`text-xs mt-1 px-2 ${isMyMessage ? 'text-right text-gray-500' : 'text-left text-gray-500'}`}>
+                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
                         </div>
@@ -358,20 +407,21 @@ export const Chat = () => {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
-                    <div className="flex gap-2">
+                  {/* Message Input */}
+                  <form onSubmit={handleSendMessage} className="px-6 py-4 border-t border-gray-200 bg-white">
+                    <div className="flex gap-3">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type your message..."
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         disabled={sendingMessage}
                       />
                       <button
                         type="submit"
                         disabled={sendingMessage || !newMessage.trim()}
-                        className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-md hover:shadow-lg"
                       >
                         {sendingMessage ? (
                           <LoadingSpinner size="sm" />
@@ -386,11 +436,13 @@ export const Chat = () => {
                   </form>
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
                   <div className="text-center px-8">
-                    <MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-2">Select a conversation to start messaging</p>
-                    <p className="text-sm text-gray-400">Or browse items to find something you'd like and contact the seller</p>
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center mx-auto mb-4">
+                      <MessageSquare className="h-10 w-10 text-green-600" />
+                    </div>
+                    <p className="text-gray-700 font-medium text-lg mb-2">Select a conversation</p>
+                    <p className="text-sm text-gray-500">Choose a message from the list to start chatting</p>
                   </div>
                 </div>
               )}
