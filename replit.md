@@ -4,6 +4,16 @@ Grocery Share is a peer-to-peer web application that enables users to share, req
 
 # Recent Changes (November 6, 2025)
 
+**Session 6: Quick Fixes for User-Reported Issues**
+- Added "Interested to Buy" button to ItemDetail page (purple gradient, Heart icon)
+- Added "Interested to Offer" button to RequestDetail page (purple gradient, Heart icon)
+- Both buttons send notifications to creators without revealing contact info
+- Fixed chat scrolling bug: Changed container from fixed 70vh to calc(100vh - 200px) with max 700px
+- Verified Google OAuth routing correct (/auth/callback exists, all secrets present)
+- Verified notification polling active (60-second intervals via NotificationContext)
+- Verified payment integration visible for paid, available, non-owned items only
+- Interest buttons only show for available items/requests, not user's own listings
+
 **Session 1: Item Request Edit/Delete Functionality**
 - Added `updateRequest()` API function in `itemRequests.ts` for editing existing requests
 - Implemented edit form handling in `ItemRequests.tsx` using URL parameters (`?edit=requestId`)
