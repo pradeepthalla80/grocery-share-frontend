@@ -61,6 +61,17 @@ Grocery Share is a peer-to-peer web application that enables users to share, req
 - Simplified UI flow: Direct action buttons ("Buy Now", "Request This Item", "Offer to Help")
 - Removed multi-step "Interested" flow for cleaner user experience
 
+**Session 5: Provider Offer Flow for Requests**
+- Created `OfferModal` component for providers to make offers on requests
+- Modal displays requester's price preference (free only or willing to pay up to X)
+- Provider can choose to offer free OR set a price within requester's budget
+- Free offers navigate directly to chat for coordination
+- Paid offers show price input with validation (must be within max price)
+- RequestDetail page updated with "Make an Offer" button
+- Shows requester's preference hint below button
+- Payment integration for paid request offers: TODO (placeholder message shown)
+- "Or Just Chat" option preserved for questions before making offers
+
 **Session 4: Dashboard Compact List View with Proximity Sorting**
 - Redesigned dashboard default view to show both available items and requested items together
 - Implemented compact single-row list view for quick scanning across ALL views

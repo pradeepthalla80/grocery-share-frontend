@@ -6,6 +6,7 @@ import { getRequestById, deleteRequest, type ItemRequest } from '../api/itemRequ
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { requestPickup } from '../api/notifications';
+import { OfferModal } from '../components/OfferModal';
 
 export const RequestDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,8 +16,8 @@ export const RequestDetail = () => {
   
   const [request, setRequest] = useState<ItemRequest | null>(null);
   const [loading, setLoading] = useState(true);
-  const [offerMessage, setOfferMessage] = useState('');
   const [distance, setDistance] = useState<number | null>(null);
+  const [showOfferModal, setShowOfferModal] = useState(false);
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -68,22 +69,9 @@ export const RequestDetail = () => {
     return R * c;
   };
 
-  const handleOfferItem = async () => {
-    if (!request) return;
-    
-    try {
-      await requestPickup(request._id);
-      showToast('✅ Offer sent to requester! They will contact you soon.', 'success');
-    } catch (error) {
-      showToast('Failed to send offer', 'error');
-    }
-  };
-
   const handleContactRequester = () => {
     if (request?.user?.id) {
-      const message = offerMessage.trim() 
-        ? `I can help with your request for "${request.itemName}": ${offerMessage}` 
-        : `I have a question about your request for "${request.itemName}"`;
+      const message = `I have a question about your request for "${request.itemName}"`;
       navigate(`/chat?receiverId=${request.user.id}&message=${encodeURIComponent(message)}`);
     }
   };
@@ -288,29 +276,27 @@ export const RequestDetail = () => {
                     </div>
                   </div>
                   <button
-                    onClick={handleOfferItem}
+                    onClick={() => setShowOfferModal(true)}
                     className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 font-semibold"
                   >
                     <PackageCheck className="h-5 w-5" />
-                    <span>Offer to Help</span>
+                    <span>Make an Offer</span>
                   </button>
                   <p className="text-xs text-blue-600 mt-3 text-center">
-                    🤝 Requester will be notified you can help!
+                    {request.pricePreference === 'free_only' 
+                      ? '🆓 This requester is looking for free donations'
+                      : request.pricePreference === 'willing_to_pay'
+                      ? `💰 Willing to pay up to $${request.maxPrice?.toFixed(2) || '0.00'}`
+                      : '🤝 Choose to offer free or set a price'
+                    }
                   </p>
                 </div>
 
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Contact Requester</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Or Just Chat</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   Have questions? Start a conversation:
                 </p>
                 
-                <textarea
-                  value={offerMessage}
-                  onChange={(e) => setOfferMessage(e.target.value)}
-                  placeholder="Optional: Add details or ask questions..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
-                  rows={3}
-                />
                 <button
                   onClick={handleContactRequester}
                   className="w-full bg-gray-700 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition flex items-center justify-center space-x-2"
@@ -342,6 +328,15 @@ export const RequestDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Offer Modal */}
+      {request && (
+        <OfferModal
+          isOpen={showOfferModal}
+          onClose={() => setShowOfferModal(false)}
+          request={request}
+        />
+      )}
     </div>
   );
 };
