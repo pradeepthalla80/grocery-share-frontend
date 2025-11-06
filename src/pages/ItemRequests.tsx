@@ -3,10 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, MapPin, Package, MessageCircle, CheckCircle, X } from 'lucide-react';
-import { getNearbyRequests, createItemRequest, respondToRequest, type ItemRequest } from '../api/itemRequests';
+import { getNearbyRequests, createItemRequest, respondToRequest, updateRequest, getRequestById, type ItemRequest } from '../api/itemRequests';
 import { useToast } from '../hooks/useToast';
 import { AddressInput } from '../components/AddressInput';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const requestSchema = z.object({
   itemName: z.string().min(1, 'Item name is required'),
@@ -21,17 +21,21 @@ type RequestFormData = z.infer<typeof requestSchema>;
 export const ItemRequests = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
   const [requests, setRequests] = useState<ItemRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
+  const [editingRequest, setEditingRequest] = useState<ItemRequest | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    setValue
   } = useForm<RequestFormData>({
     resolver: zodResolver(requestSchema),
   });
@@ -53,6 +57,43 @@ export const ItemRequests = () => {
     }
   }, []);
 
+  // Handle edit mode
+  useEffect(() => {
+    if (editId) {
+      const fetchRequestToEdit = async () => {
+        try {
+          const request = await getRequestById(editId);
+          setEditingRequest(request);
+          setShowCreateForm(true);
+          
+          // Populate form fields
+          setValue('itemName', request.itemName);
+          setValue('quantity', request.quantity);
+          setValue('category', request.category);
+          setValue('notes', request.notes || '');
+          
+          // Set location and address
+          if (request.location) {
+            setLocation({
+              lat: request.location.coordinates[1],
+              lng: request.location.coordinates[0]
+            });
+          }
+          if (request.address) {
+            setAddress(request.address);
+          }
+        } catch (error) {
+          showToast('Failed to load request for editing', 'error');
+          setSearchParams({});
+        }
+      };
+      
+      fetchRequestToEdit();
+    } else {
+      setEditingRequest(null);
+    }
+  }, [editId, setValue, showToast, setSearchParams]);
+
   const fetchRequests = async (lat: number, lng: number) => {
     try {
       const response = await getNearbyRequests(lat, lng, 10);
@@ -71,8 +112,7 @@ export const ItemRequests = () => {
     }
 
     try {
-      // Backend will calculate expiresAt from validityPeriod
-      await createItemRequest({
+      const requestData = {
         ...data,
         location: {
           coordinates: [location.lng, location.lat]
@@ -80,15 +120,28 @@ export const ItemRequests = () => {
         address,
         approximateLocation: address.split(',').slice(-2).join(',').trim(),
         validityPeriod: data.validityPeriod || 'never'
-      });
-      showToast('Item request created successfully!', 'success');
+      };
+
+      if (editingRequest) {
+        // Update existing request
+        await updateRequest(editingRequest._id, requestData);
+        showToast('Request updated successfully!', 'success');
+        setSearchParams({});
+      } else {
+        // Create new request
+        await createItemRequest(requestData);
+        showToast('Item request created successfully!', 'success');
+      }
+      
       reset();
       setShowCreateForm(false);
+      setEditingRequest(null);
       if (location) {
         fetchRequests(location.lat, location.lng);
       }
     } catch (error: any) {
-      showToast(error.response?.data?.error || 'Failed to create request', 'error');
+      const action = editingRequest ? 'update' : 'create';
+      showToast(error.response?.data?.error || `Failed to ${action} request`, 'error');
     }
   };
 
@@ -123,7 +176,9 @@ export const ItemRequests = () => {
 
         {showCreateForm && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Create Item Request</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              {editingRequest ? 'Edit Item Request' : 'Create Item Request'}
+            </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
@@ -201,7 +256,7 @@ export const ItemRequests = () => {
                 type="submit"
                 className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition"
               >
-                Post Request
+                {editingRequest ? 'Update Request' : 'Post Request'}
               </button>
             </form>
           </div>

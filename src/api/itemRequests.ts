@@ -75,6 +75,20 @@ export const getRequestById = async (requestId: string): Promise<ItemRequest> =>
   return response.data;
 };
 
+export const updateRequest = async (requestId: string, data: {
+  itemName?: string;
+  quantity?: string;
+  category?: string;
+  notes?: string;
+  location?: { coordinates: number[] };
+  address?: string;
+  approximateLocation?: string;
+  validityPeriod?: string;
+}) => {
+  const response = await apiClient.put(`/item-requests/${requestId}`, data);
+  return response.data;
+};
+
 export const deleteRequest = async (requestId: string) => {
   const response = await apiClient.delete(`/item-requests/${requestId}`);
   return response.data;
