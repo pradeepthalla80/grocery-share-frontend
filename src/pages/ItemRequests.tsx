@@ -31,7 +31,6 @@ export const ItemRequests = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
   const [editingRequest, setEditingRequest] = useState<ItemRequest | null>(null);
-  const [pricePreference, setPricePreference] = useState<'free_only' | 'willing_to_pay'>('free_only');
 
   const {
     register,
