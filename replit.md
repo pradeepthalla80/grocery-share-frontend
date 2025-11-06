@@ -4,7 +4,7 @@ Grocery Share is a peer-to-peer web application designed to reduce food waste by
 
 # Recent Changes (November 6, 2025)
 
-## Latest Session: Modern Chat Interface Redesign
+## Latest Session: Modern Chat Interface Redesign + OAuth Fix
 
 ### Split-View Messaging Experience
 Complete redesign of the chat interface with clean, scannable message list and modern chat window.
@@ -48,6 +48,30 @@ Complete redesign of the chat interface with clean, scannable message list and m
 - No functionality broken
 - No performance concerns
 - TypeScript types correct
+
+---
+
+### Gmail OAuth User Name Fix
+
+**Issue Fixed:** Users logging in with Gmail OAuth were showing as "User" instead of their actual Google name.
+
+**Solution:** Updated OAuth callback to fetch full user profile from backend `/users/me` endpoint after receiving token, ensuring real name and complete user data (including admin role) is loaded.
+
+**Files Changed:**
+- `src/pages/AuthCallback.tsx` - Now fetches user profile from backend
+
+**How it works:**
+1. Receive OAuth token from Google callback
+2. Save token to enable authenticated API calls
+3. Fetch complete user profile from `/users/me` endpoint
+4. Use backend data (includes Google name, role, etc.)
+5. Fallback to URL params if profile fetch fails
+
+**Architect Review:** ✅ Passed
+- OAuth flow works correctly
+- Real user name fetched from backend
+- Admin roles preserved
+- Proper error handling and fallback
 
 ---
 
