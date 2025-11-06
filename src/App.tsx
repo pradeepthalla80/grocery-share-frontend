@@ -19,6 +19,7 @@ import { TermsAndConditions } from './pages/TermsAndConditions';
 import { ContactUs } from './pages/ContactUs';
 import { ItemDetail } from './pages/ItemDetail';
 import { RequestDetail } from './pages/RequestDetail';
+import { AdminDashboard } from './pages/AdminDashboard';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
@@ -108,6 +109,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RequestDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />

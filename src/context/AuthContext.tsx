@@ -5,6 +5,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  role?: 'user' | 'admin' | 'super_admin';
   createdAt?: string;
   googleId?: string;
 }

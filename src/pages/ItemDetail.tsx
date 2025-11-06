@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, PackageCheck, Heart } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, PackageCheck, Heart, Trash2, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
+import { useAdmin } from '../hooks/useAdmin';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
@@ -13,6 +14,7 @@ export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { canDeleteAnyContent } = useAdmin();
   const { showToast } = useToast();
   
   const [item, setItem] = useState<Item | null>(null);
@@ -120,6 +122,21 @@ export const ItemDetail = () => {
     }
   };
 
+  const handleAdminDelete = async () => {
+    if (!item) return;
+    
+    if (!confirm(`⚠️ ADMIN ACTION\n\nAre you sure you want to delete "${item.name}"?\n\nThis action cannot be undone and will:\n- Permanently remove the item\n- Notify the owner\n- Process refunds if applicable`)) {
+      return;
+    }
+    
+    try {
+      await itemsAPI.delete(item.id);
+      showToast('Item deleted successfully', 'success');
+      navigate('/admin');
+    } catch (error) {
+      showToast('Failed to delete item', 'error');
+    }
+  };
 
   const handleRefund = async () => {
     if (!item) return;
@@ -547,6 +564,30 @@ export const ItemDetail = () => {
                   <p className="text-blue-800 text-center">
                     This is your item listing
                   </p>
+                </div>
+              )}
+
+              {canDeleteAnyContent && !isMyItem && (
+                <div className="border-t mt-6 pt-6">
+                  <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Shield className="h-6 w-6 text-red-600" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Admin Controls</h3>
+                        <p className="text-sm text-red-600">Admin-only delete function</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleAdminDelete}
+                      className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition flex items-center justify-center space-x-2 font-semibold"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                      <span>Delete Item (Admin)</span>
+                    </button>
+                    <p className="text-xs text-gray-600 mt-3 text-center">
+                      ⚠️ This action is permanent and will be logged
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

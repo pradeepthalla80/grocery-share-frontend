@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star, PackageCheck, Heart } from 'lucide-react';
+import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star, PackageCheck, Heart, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { getRequestById, deleteRequest, type ItemRequest } from '../api/itemRequests';
 import { useAuth } from '../hooks/useAuth';
+import { useAdmin } from '../hooks/useAdmin';
 import { useToast } from '../hooks/useToast';
 import { sendInterestNotification } from '../api/notifications';
 import { OfferModal } from '../components/OfferModal';
@@ -12,6 +13,7 @@ export const RequestDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { canDeleteAnyContent } = useAdmin();
   const { showToast } = useToast();
   
   const [request, setRequest] = useState<ItemRequest | null>(null);
@@ -101,6 +103,22 @@ export const RequestDetail = () => {
       await deleteRequest(request._id);
       showToast('Request deleted successfully', 'success');
       navigate('/item-requests');
+    } catch (error) {
+      showToast('Failed to delete request', 'error');
+    }
+  };
+
+  const handleAdminDelete = async () => {
+    if (!request) return;
+    
+    if (!confirm(`⚠️ ADMIN ACTION\n\nAre you sure you want to delete this request for "${request.itemName}"?\n\nThis action cannot be undone and will:\n- Permanently remove the request\n- Notify the requester\n- Delete all responses`)) {
+      return;
+    }
+    
+    try {
+      await deleteRequest(request._id);
+      showToast('Request deleted successfully (Admin)', 'success');
+      navigate('/admin');
     } catch (error) {
       showToast('Failed to delete request', 'error');
     }
@@ -346,6 +364,30 @@ export const RequestDetail = () => {
                 <p className="text-blue-800 text-center">
                   This is your request. {request.responses?.length || 0} {request.responses?.length === 1 ? 'person has' : 'people have'} responded.
                 </p>
+              </div>
+            )}
+
+            {canDeleteAnyContent && !isMyRequest && (
+              <div className="border-t mt-6 pt-6">
+                <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="h-6 w-6 text-red-600" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Admin Controls</h3>
+                      <p className="text-sm text-red-600">Admin-only delete function</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleAdminDelete}
+                    className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition flex items-center justify-center space-x-2 font-semibold"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                    <span>Delete Request (Admin)</span>
+                  </button>
+                  <p className="text-xs text-gray-600 mt-3 text-center">
+                    ⚠️ This action is permanent and will be logged
+                  </p>
+                </div>
               </div>
             )}
 

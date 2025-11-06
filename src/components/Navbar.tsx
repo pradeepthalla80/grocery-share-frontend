@@ -1,10 +1,12 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart } from 'lucide-react';
+import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
+import { useAdmin } from '../hooks/useAdmin';
 
 export const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { hasAdminAccess } = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,6 +71,19 @@ export const Navbar = () => {
                   <HandHeart className="h-4 w-4" />
                   <span>Requests</span>
                 </Link>
+                {hasAdminAccess && (
+                  <Link
+                    to="/admin"
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${
+                      location.pathname === '/admin'
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'
+                    }`}
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Admin</span>
+                  </Link>
+                )}
               </div>
             )}
           </div>
