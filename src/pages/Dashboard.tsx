@@ -10,6 +10,19 @@ import { format } from 'date-fns';
 type TabType = 'available' | 'requested';
 type SortOption = 'distance' | 'price' | 'expiry' | 'newest';
 
+type CombinedListItem = {
+  id: string;
+  type: 'item' | 'request';
+  name: string;
+  category: string;
+  distance: number;
+  thumbnail?: string;
+  isFree?: boolean;
+  price?: number;
+  status?: string;
+  data: Item | ItemRequest;
+};
+
 export const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('available');
@@ -27,6 +40,36 @@ export const Dashboard = () => {
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
 
+  // Fetch both items and requests on initial load
+  const fetchAllData = async () => {
+    if (!searchLocation) return;
+
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Fetch items and requests in parallel with expanding radius
+      const [itemsResponse, requestsResponse] = await Promise.all([
+        itemsAPI.search({
+          lat: searchLocation.lat,
+          lng: searchLocation.lng,
+          radius: 50, // Fetch all within 50 miles for proximity sorting
+          keyword: keyword || undefined,
+          category: category || undefined,
+          tags: tags || undefined,
+        }),
+        getNearbyRequests(searchLocation.lat, searchLocation.lng, 50)
+      ]);
+
+      setItems(itemsResponse.items);
+      setRequests(requestsResponse.requests || []);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchLocation) {
       setError('Please select a location to search');
@@ -37,7 +80,22 @@ export const Dashboard = () => {
       setLoading(true);
       setError('');
       
-      if (activeTab === 'available') {
+      // If showing default combined list (no filters), fetch both items and requests
+      if (!keyword && !category && !tags && activeTab === 'available') {
+        const [itemsResponse, requestsResponse] = await Promise.all([
+          itemsAPI.search({
+            lat: searchLocation.lat,
+            lng: searchLocation.lng,
+            radius: parseFloat(radius),
+            keyword: undefined,
+            category: undefined,
+            tags: undefined,
+          }),
+          getNearbyRequests(searchLocation.lat, searchLocation.lng, parseFloat(radius))
+        ]);
+        setItems(itemsResponse.items);
+        setRequests(requestsResponse.requests || []);
+      } else if (activeTab === 'available') {
         const response = await itemsAPI.search({
           lat: searchLocation.lat,
           lng: searchLocation.lng,
@@ -65,6 +123,83 @@ export const Dashboard = () => {
   const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
     setSearchLocation(location);
   };
+
+  // Combine items and requests into a unified list
+  const combineLists = (): CombinedListItem[] => {
+    const combined: CombinedListItem[] = [];
+
+    // Add items
+    items.forEach((item) => {
+      const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
+      combined.push({
+        id: item.id,
+        type: 'item',
+        name: item.name,
+        category: item.category || 'Uncategorized',
+        distance: item.distance || 0,
+        thumbnail: imageUrl,
+        isFree: item.isFree,
+        price: item.price,
+        status: 'Available',
+        data: item
+      });
+    });
+
+    // Add requests
+    requests.forEach((request) => {
+      combined.push({
+        id: request._id,
+        type: 'request',
+        name: request.itemName,
+        category: request.category || 'Uncategorized',
+        distance: request.distance || 0,
+        status: 'Requested',
+        data: request
+      });
+    });
+
+    return combined;
+  };
+
+  // Proximity-based sorting: 5 miles, 10 miles, 25 miles, then beyond
+  const sortByProximity = (list: CombinedListItem[]): CombinedListItem[] => {
+    return list.sort((a, b) => {
+      const aDistance = a.distance;
+      const bDistance = b.distance;
+
+      // Priority groups
+      const getPriority = (distance: number) => {
+        if (distance <= 5) return 0;
+        if (distance <= 10) return 1;
+        if (distance <= 25) return 2;
+        return 3;
+      };
+
+      const aPriority = getPriority(aDistance);
+      const bPriority = getPriority(bDistance);
+
+      // First sort by priority group
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+
+      // Within same priority group, sort by actual distance
+      return aDistance - bDistance;
+    });
+  };
+
+  // Get combined and sorted list
+  const getDefaultList = (): CombinedListItem[] => {
+    // Only show combined list when no filters are applied
+    if (!keyword && !category && !tags && activeTab === 'available') {
+      const combined = combineLists();
+      return sortByProximity(combined);
+    }
+    return [];
+  };
+
+  const defaultList = getDefaultList();
+  const showDefaultList = defaultList.length > 0;
 
   // Sorting function for items
   const sortItems = (itemsToSort: Item[]) => {
@@ -121,8 +256,13 @@ export const Dashboard = () => {
   };
 
   useEffect(() => {
-    // Auto-search when location is selected or tab changes
-    if (searchLocation) {
+    // Auto-load data when location is selected
+    if (searchLocation && !keyword && !category && !tags) {
+      fetchAllData();
+      if (activeTab === 'available') {
+        fetchRecommendations();
+      }
+    } else if (searchLocation) {
       handleSearch();
       if (activeTab === 'available') {
         fetchRecommendations();
@@ -370,7 +510,93 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {activeTab === 'available' && (
+        {/* Default Compact List View - Shows when no filters applied */}
+        {showDefaultList && (
+          <>
+            <div className="mb-4">
+              <p className="text-gray-600">
+                Showing <span className="font-semibold">{defaultList.length}</span> items and requests nearby (sorted by proximity)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {defaultList.map((listItem) => {
+                const handleClick = () => {
+                  if (listItem.type === 'item') {
+                    navigate(`/item/${listItem.id}`);
+                  } else {
+                    navigate(`/request/${listItem.id}`);
+                  }
+                };
+
+                return (
+                  <div
+                    key={`${listItem.type}-${listItem.id}`}
+                    onClick={handleClick}
+                    className="flex items-center gap-4 p-3 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-16 h-16 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
+                      {listItem.thumbnail ? (
+                        <img
+                          src={listItem.thumbnail}
+                          alt={listItem.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400">
+                          {listItem.type === 'item' ? <Package className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Item Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">{listItem.name}</h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          listItem.type === 'item' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {listItem.status}
+                        </span>
+                        <span className="text-sm text-gray-600">{listItem.category}</span>
+                      </div>
+                    </div>
+
+                    {/* Price/Distance */}
+                    <div className="flex items-center gap-4 text-sm">
+                      {listItem.type === 'item' && (
+                        <div className="text-gray-700 font-semibold">
+                          {listItem.isFree ? (
+                            <span className="text-green-600">FREE</span>
+                          ) : (
+                            <span>${listItem.price?.toFixed(2)}</span>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1 text-gray-600">
+                        <MapPin className="h-4 w-4" />
+                        <span>{listItem.distance.toFixed(1)} mi</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {defaultList.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No items or requests found nearby</p>
+                <p className="text-gray-400 mt-2">Try searching in a different area</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Filtered View - Shows when user applies search criteria */}
+        {!showDefaultList && activeTab === 'available' && (
           <>
             <div className="mb-4 flex items-center justify-between">
               <p className="text-gray-600">
