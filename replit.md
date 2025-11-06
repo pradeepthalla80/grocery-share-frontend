@@ -63,14 +63,16 @@ Grocery Share is a peer-to-peer web application that enables users to share, req
 
 **Session 4: Dashboard Compact List View with Proximity Sorting**
 - Redesigned dashboard default view to show both available items and requested items together
-- Implemented compact single-row list view for quick scanning
+- Implemented compact single-row list view for quick scanning across ALL views
 - Each row displays: thumbnail image, item name, category/status badge, price (for items), distance
 - Created unified `CombinedListItem` type to merge items and requests into one list
 - Proximity-based sorting with priority groups: 0-5 miles → 5-10 miles → 10-25 miles → 25+ miles
 - Within each priority group, items sorted by actual distance (closest first)
 - Rows are clickable and navigate to respective detail pages (ItemDetail or RequestDetail)
 - Default list shows when no search filters are applied
-- Filtered view (grid layout) shows when user applies search criteria
+- Filtered search results also use compact list format (consistent UX)
+- Both "Available Items" and "Requested Items" tabs use same compact list layout
+- Fixed data synchronization: both items and requests refresh together when radius changes
 - Auto-fetches both items and requests on initial page load with 50-mile radius
 
 # User Preferences
