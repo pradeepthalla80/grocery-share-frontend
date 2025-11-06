@@ -4,7 +4,70 @@ Grocery Share is a peer-to-peer web application designed to reduce food waste by
 
 # Recent Changes (November 6, 2025)
 
-## Session: Button Visibility & OAuth Fixes
+## Latest Session: Role-Based Admin System
+
+### New Admin/Super Admin Functionality
+Complete role-based access control system for platform moderation and management.
+
+**What Was Added:**
+1. **User Roles**: `user` (default), `admin`, and `super_admin` roles
+2. **Admin Dashboard**: New `/admin` route with platform overview and management
+3. **Admin Controls**: Delete buttons on item and request detail pages (admin-only)
+4. **Admin Navigation**: Purple "Admin" link in navbar (visible only to admins)
+5. **Admin Utilities**: `useAdmin` hook and permission checking functions
+6. **Documentation**: Complete ADMIN_SETUP.md guide for backend integration
+
+**Files Changed:**
+- `src/context/AuthContext.tsx` - Added role field to User interface
+- `src/hooks/useAdmin.ts` - New hook for admin permission checks
+- `src/utils/adminUtils.ts` - Admin utility functions
+- `src/pages/AdminDashboard.tsx` - Admin dashboard page
+- `src/pages/ItemDetail.tsx` - Added admin delete button
+- `src/pages/RequestDetail.tsx` - Added admin delete button
+- `src/components/Navbar.tsx` - Added admin link for admins
+- `src/App.tsx` - Added admin route
+- `ADMIN_SETUP.md` - Complete setup and integration guide
+
+**Backend Requirements:**
+⚠️ Admin system requires backend support to function fully:
+- Update User model with `role` field ('user' | 'admin' | 'super_admin')
+- Include `role` in JWT tokens and login responses
+- Create admin middleware for protected endpoints
+- **Required endpoints for dashboard:**
+  - `GET /admin/items` - Get all items platform-wide
+  - `GET /admin/requests` - Get all requests platform-wide
+  - `GET /admin/stats` - Get platform statistics
+  - `DELETE /items/:id` - Allow admin delete with elevated permissions
+  - `DELETE /requests/:id` - Allow admin delete with elevated permissions
+
+**Current Limitations (until backend is updated):**
+- Admin Dashboard shows only admin's own items/requests (not platform-wide data)
+- Delete operations may require backend permission updates
+- Statistics are incomplete without admin endpoints
+
+**How to Make a User Admin:**
+See ADMIN_SETUP.md for detailed instructions. Quickest method:
+```javascript
+// MongoDB direct update
+db.users.updateOne(
+  { email: "admin@example.com" },
+  { $set: { role: "super_admin" } }
+);
+```
+Then logout and login to get new JWT with role.
+
+**Architect Review:** ✅ Passed
+- Permission checks are sound
+- UI only shows for authorized users
+- Delete functions have proper confirmations
+- TypeScript types are correct
+- No security issues detected
+- Documentation is comprehensive
+- No breaking changes to existing functionality
+
+---
+
+## Previous Session: Button Visibility & OAuth Fixes
 
 ### Issues Fixed
 1. **Buy Now button missing** - Payment integration wasn't visible on ItemDetail page
