@@ -14,6 +14,8 @@ const requestSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   notes: z.string().optional(),
   validityPeriod: z.string().optional(),
+  pricePreference: z.enum(['free_only', 'willing_to_pay']),
+  maxPrice: z.string().optional(),
 });
 
 type RequestFormData = z.infer<typeof requestSchema>;
@@ -29,16 +31,23 @@ export const ItemRequests = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
   const [editingRequest, setEditingRequest] = useState<ItemRequest | null>(null);
+  const [pricePreference, setPricePreference] = useState<'free_only' | 'willing_to_pay'>('free_only');
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    setValue
+    setValue,
+    watch
   } = useForm<RequestFormData>({
     resolver: zodResolver(requestSchema),
+    defaultValues: {
+      pricePreference: 'free_only'
+    }
   });
+
+  const watchPricePreference = watch('pricePreference');
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -226,6 +235,36 @@ export const ItemRequests = () => {
                 }}
                 defaultAddress={address}
               />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Preference</label>
+                <select
+                  {...register('pricePreference')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                >
+                  <option value="free_only">Free Only - Looking for donations</option>
+                  <option value="willing_to_pay">Willing to Pay - Set max price</option>
+                </select>
+                {errors.pricePreference && <p className="text-sm text-red-600 mt-1">{errors.pricePreference.message}</p>}
+              </div>
+
+              {watchPricePreference === 'willing_to_pay' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Price You'll Pay</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-500">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...register('maxPrice')}
+                      className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Providers can offer for free or any amount up to this price</p>
+                  {errors.maxPrice && <p className="text-sm text-red-600 mt-1">{errors.maxPrice.message}</p>}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Request Validity Period</label>

@@ -188,6 +188,23 @@ export const RequestDetail = () => {
                 </div>
               </div>
 
+              {request.pricePreference && (
+                <div className="flex items-center space-x-3 text-gray-700">
+                  <Star className="h-5 w-5 text-green-600" />
+                  <div>
+                    <span className="font-semibold">Payment:</span>{' '}
+                    {request.pricePreference === 'free_only' ? (
+                      <span className="text-green-600 font-semibold">🆓 Looking for FREE donations</span>
+                    ) : (
+                      <span>
+                        Willing to pay up to{' '}
+                        <span className="text-green-600 font-semibold">${request.maxPrice?.toFixed(2) || '0.00'}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center space-x-3 text-gray-700">
                 <Calendar className="h-5 w-5 text-green-600" />
                 <div>

@@ -19,6 +19,8 @@ export interface ItemRequest {
   zipCode?: string;
   approximateLocation?: string;
   status: 'active' | 'fulfilled' | 'cancelled';
+  pricePreference?: 'free_only' | 'willing_to_pay';
+  maxPrice?: number;
   distance?: number;
   responses: Array<{
     user: {
@@ -43,6 +45,8 @@ export const createItemRequest = async (data: {
   zipCode?: string;
   approximateLocation?: string;
   validityPeriod?: string;
+  pricePreference?: 'free_only' | 'willing_to_pay';
+  maxPrice?: string;
 }) => {
   const response = await apiClient.post('/item-requests', data);
   return response.data;
@@ -84,6 +88,8 @@ export const updateRequest = async (requestId: string, data: {
   address?: string;
   approximateLocation?: string;
   validityPeriod?: string;
+  pricePreference?: 'free_only' | 'willing_to_pay';
+  maxPrice?: string;
 }) => {
   const response = await apiClient.put(`/item-requests/${requestId}`, data);
   return response.data;
