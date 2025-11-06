@@ -4,7 +4,7 @@ Grocery Share is a peer-to-peer web application that enables users to share, req
 
 # Recent Changes (November 6, 2025)
 
-**Item Request Edit/Delete Functionality**
+**Session 1: Item Request Edit/Delete Functionality**
 - Added `updateRequest()` API function in `itemRequests.ts` for editing existing requests
 - Implemented edit form handling in `ItemRequests.tsx` using URL parameters (`?edit=requestId`)
 - Form auto-populates with existing request data when editing
@@ -12,22 +12,41 @@ Grocery Share is a peer-to-peer web application that enables users to share, req
 - Dynamic form titles and button text ("Edit Request" vs "Create Request")
 - RequestDetail page already had delete functionality with confirmation prompt
 
-**Search & Navigation Improvements**
+**Session 1: Search & Navigation Improvements**
 - Dashboard items navigate to ItemDetail page first (not directly to chat)
 - Dashboard requests have "View Details" button to open RequestDetail page
 - Sold and refunded items excluded from search results (prevents user confusion)
 - Separate "Offer to Help" button for initiating chat conversations
 
-**Item Status Management**
+**Session 1: Item Status Management**
 - Item status enum updated: ['available', 'pending', 'picked_up', 'sold', 'refunded']
 - Backend filtering ensures only available items appear in searches
 - Status changes properly tracked throughout purchase-to-pickup-or-refund workflow
 
-**Deployment & Version Control**
+**Session 1: Deployment & Version Control**
 - Fixed Vercel deployment: Removed duplicate grocery-share-frontend folder structure
 - Payment features moved to correct root directory for proper build path
 - GitHub authentication converted from SSH to HTTPS (Replit compatibility)
 - Successfully deployed commits to production
+
+**Session 2: Interest Notification System**
+- Added `sendInterestNotification()` API function in `notifications.ts`
+- "Interested to Buy" button on ItemDetail page sends notification to seller
+- "Interested to Offer" button on RequestDetail page sends notification to requester
+- Both buttons prominently displayed above chat/contact sections with clear messaging
+- Notifications let creators know someone is interested without forcing immediate contact
+
+**Session 2: Enhanced Dashboard Search**
+- Added "Item Type" dropdown filter in search section
+- Dropdown allows switching between "Available Items" and "Requested Items"
+- Complements existing tab navigation for better user control
+- 4-column search grid: Item Type, Search Keyword, Category, Tags/Radius
+
+**Session 2: Verified Features**
+- Google OAuth login: Frontend correctly configured, backend handles authentication
+- Notification system: Working properly with 60-second polling and bell icon display
+- Payment integration: Visible for paid, available, non-owned items on ItemDetail page
+- Dashboard auto-load: Geolocation-based item loading on page load with NYC fallback
 
 # User Preferences
 
