@@ -35,3 +35,7 @@ export const deleteNotification = async (id: string): Promise<void> => {
 export const sendInterestNotification = async (itemId: string, itemName: string, type: 'item' | 'request'): Promise<void> => {
   await apiClient.post('/notifications/interest', { itemId, itemName, type });
 };
+
+export const requestPickup = async (itemId: string): Promise<void> => {
+  await apiClient.post('/notifications/pickup-request', { itemId });
+};

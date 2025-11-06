@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, Heart } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, Heart, PackageCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
-import { sendInterestNotification } from '../api/notifications';
+import { sendInterestNotification, requestPickup } from '../api/notifications';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -106,6 +106,29 @@ export const ItemDetail = () => {
       showToast('✅ Interest notification sent to the seller!', 'success');
     } catch (error) {
       showToast('Failed to send notification', 'error');
+    }
+  };
+
+  const handleRequestPickup = async () => {
+    if (!item) return;
+    
+    try {
+      await requestPickup(item.id);
+      showToast('✅ Pickup request sent to the seller! They will contact you soon.', 'success');
+    } catch (error) {
+      showToast('Failed to send pickup request', 'error');
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    // Refresh item data to show updated status
+    if (id) {
+      try {
+        const data = await itemsAPI.getById(id);
+        setItem(data);
+      } catch (error) {
+        console.error('Failed to refresh item:', error);
+      }
     }
   };
 
@@ -378,7 +401,7 @@ export const ItemDetail = () => {
                       className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center space-x-2 font-semibold"
                     >
                       <CreditCard className="h-5 w-5" />
-                      <span>Purchase Now</span>
+                      <span>Buy Now</span>
                     </button>
                     <p className="text-xs text-gray-500 mt-3 text-center">
                       🔒 Your payment is secure. You'll receive pickup details after purchase.
