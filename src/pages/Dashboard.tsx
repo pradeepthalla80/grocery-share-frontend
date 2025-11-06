@@ -1,17 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { itemsAPI, type Item } from '../api/items';
+import { getNearbyRequests, type ItemRequest } from '../api/itemRequests';
 import { getRecommendations } from '../api/recommendations';
 import { AddressInput } from '../components/AddressInput';
-import { Search, Plus, Sparkles, Calendar, DollarSign, MapPin } from 'lucide-react';
+import { Search, Plus, Sparkles, Calendar, DollarSign, MapPin, Package, MessageCircle, ArrowUpDown, X } from 'lucide-react';
 import { format } from 'date-fns';
+
+type TabType = 'available' | 'requested';
+type SortOption = 'distance' | 'price' | 'expiry' | 'newest';
 
 export const Dashboard = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<TabType>('available');
   const [items, setItems] = useState<Item[]>([]);
+  const [requests, setRequests] = useState<ItemRequest[]>([]);
   const [recommendations, setRecommendations] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('distance');
   
   // Search location state (address-based, not coordinates)
   const [searchLocation, setSearchLocation] = useState<{ address: string; lat: number; lng: number } | null>(null);
@@ -29,17 +36,27 @@ export const Dashboard = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await itemsAPI.search({
-        lat: searchLocation.lat,
-        lng: searchLocation.lng,
-        radius: parseFloat(radius),
-        keyword: keyword || undefined,
-        category: category || undefined,
-        tags: tags || undefined,
-      });
-      setItems(response.items);
+      
+      if (activeTab === 'available') {
+        const response = await itemsAPI.search({
+          lat: searchLocation.lat,
+          lng: searchLocation.lng,
+          radius: parseFloat(radius),
+          keyword: keyword || undefined,
+          category: category || undefined,
+          tags: tags || undefined,
+        });
+        setItems(response.items);
+      } else {
+        const response = await getNearbyRequests(
+          searchLocation.lat,
+          searchLocation.lng,
+          parseFloat(radius)
+        );
+        setRequests(response.requests || []);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to search items');
+      setError(err.response?.data?.error || 'Failed to search');
     } finally {
       setLoading(false);
     }
@@ -48,6 +65,49 @@ export const Dashboard = () => {
   const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
     setSearchLocation(location);
   };
+
+  // Sorting function for items
+  const sortItems = (itemsToSort: Item[]) => {
+    const sorted = [...itemsToSort];
+    switch (sortBy) {
+      case 'distance':
+        return sorted.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      case 'price':
+        return sorted.sort((a, b) => {
+          if (a.isFree && !b.isFree) return -1;
+          if (!a.isFree && b.isFree) return 1;
+          return (a.price || 0) - (b.price || 0);
+        });
+      case 'expiry':
+        return sorted.sort((a, b) => 
+          new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
+        );
+      case 'newest':
+        return sorted.sort((a, b) => 
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+      default:
+        return sorted;
+    }
+  };
+
+  // Sorting function for requests
+  const sortRequests = (requestsToSort: ItemRequest[]) => {
+    const sorted = [...requestsToSort];
+    switch (sortBy) {
+      case 'distance':
+        return sorted.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      case 'newest':
+        return sorted.sort((a, b) => 
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+      default:
+        return sorted;
+    }
+  };
+
+  const sortedItems = sortItems(items);
+  const sortedRequests = sortRequests(requests);
 
   const fetchRecommendations = async () => {
     if (!searchLocation) return;
@@ -61,12 +121,14 @@ export const Dashboard = () => {
   };
 
   useEffect(() => {
-    // Auto-search when location is selected
+    // Auto-search when location is selected or tab changes
     if (searchLocation) {
       handleSearch();
-      fetchRecommendations();
+      if (activeTab === 'available') {
+        fetchRecommendations();
+      }
     }
-  }, [searchLocation]);
+  }, [searchLocation, activeTab]);
 
   // Auto-load items on page load using browser geolocation
   useEffect(() => {
@@ -209,20 +271,122 @@ export const Dashboard = () => {
           </div>
         )}
 
-        <div className="mb-4">
-          <p className="text-gray-600">
-            Found <span className="font-semibold">{items.length}</span> items within {radius} miles
-          </p>
+        {(keyword || category || tags) && (
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center flex-wrap gap-2">
+              <span className="text-sm text-gray-700 font-medium">Active Filters:</span>
+              {keyword && (
+                <button
+                  onClick={() => setKeyword('')}
+                  className="flex items-center gap-1 bg-white px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-50 transition"
+                >
+                  <span>Keyword: {keyword}</span>
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {category && (
+                <button
+                  onClick={() => setCategory('')}
+                  className="flex items-center gap-1 bg-white px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-50 transition"
+                >
+                  <span>Category: {category}</span>
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              {tags && (
+                <button
+                  onClick={() => setTags('')}
+                  className="flex items-center gap-1 bg-white px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-50 transition"
+                >
+                  <span>Tags: {tags}</span>
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setKeyword('');
+                  setCategory('');
+                  setTags('');
+                }}
+                className="ml-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="mb-6 border-b border-gray-200">
+          <div className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('available')}
+              className={`pb-4 px-1 relative ${
+                activeTab === 'available'
+                  ? 'text-green-600 border-b-2 border-green-600 font-semibold'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Package className="h-5 w-5" />
+                <span>Available Items</span>
+                {items.length > 0 && activeTab === 'available' && (
+                  <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">
+                    {items.length}
+                  </span>
+                )}
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('requested')}
+              className={`pb-4 px-1 relative ${
+                activeTab === 'requested'
+                  ? 'text-green-600 border-b-2 border-green-600 font-semibold'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <MessageCircle className="h-5 w-5" />
+                <span>Requested Items</span>
+                {requests.length > 0 && activeTab === 'requested' && (
+                  <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">
+                    {requests.length}
+                  </span>
+                )}
+              </div>
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {items.map((item) => {
+        {activeTab === 'available' && (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-gray-600">
+                Found <span className="font-semibold">{items.length}</span> items within {radius} miles
+              </p>
+              <div className="flex items-center space-x-2">
+                <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="distance">Sort by Distance</option>
+                  <option value="price">Sort by Price</option>
+                  <option value="expiry">Sort by Expiry Date</option>
+                  <option value="newest">Sort by Newest</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {sortedItems.map((item) => {
             const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
             const handleItemClick = () => {
-              if (item.user?.id) {
-                navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
-              }
+              navigate(`/item/${item.id}`);
             };
+            const isExpired = new Date(item.expiryDate) < new Date();
+            const daysUntilExpiry = Math.ceil((new Date(item.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+            
             return (
               <div 
                 key={item.id} 
@@ -239,6 +403,19 @@ export const Dashboard = () => {
                   ) : (
                     <div className="flex items-center justify-center h-full text-gray-400 text-xs">
                       No Image
+                    </div>
+                  )}
+                  {isExpired ? (
+                    <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
+                      Expired
+                    </div>
+                  ) : daysUntilExpiry <= 2 ? (
+                    <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
+                      Urgent
+                    </div>
+                  ) : (
+                    <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
+                      Active
                     </div>
                   )}
                 </div>
@@ -291,9 +468,7 @@ export const Dashboard = () => {
               {recommendations.map((item) => {
                 const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
                 const handleItemClick = () => {
-                  if (item.user?.id) {
-                    navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
-                  }
+                  navigate(`/item/${item.id}`);
                 };
                 return (
                   <div 
@@ -346,6 +521,90 @@ export const Dashboard = () => {
               })}
             </div>
           </div>
+        )}
+          </>
+        )}
+
+        {activeTab === 'requested' && (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-gray-600">
+                Found <span className="font-semibold">{requests.length}</span> requests within {radius} miles
+              </p>
+              <div className="flex items-center space-x-2">
+                <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="distance">Sort by Distance</option>
+                  <option value="newest">Sort by Newest</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedRequests.map((request) => (
+                <div key={request._id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{request.itemName}</h3>
+                      <p className="text-sm text-gray-600">{request.quantity}</p>
+                    </div>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                      {request.category}
+                    </span>
+                  </div>
+
+                  {request.notes && (
+                    <p className="text-gray-700 text-sm mb-4 line-clamp-2">{request.notes}</p>
+                  )}
+
+                  <div className="flex items-center text-sm text-gray-600 mb-4">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    {request.approximateLocation || 'Nearby'}
+                  </div>
+
+                  <div className="text-sm text-gray-600 mb-4">
+                    Requested by <span className="font-medium">{request.user.name}</span>
+                  </div>
+
+                  {request.responses && request.responses.length > 0 && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-sm text-blue-800">
+                        {request.responses.length} {request.responses.length === 1 ? 'person has' : 'people have'} responded
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => navigate(`/request/${request._id}`)}
+                      className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => navigate(`/chat?receiverId=${request.user.id}`)}
+                      className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Offer to Help
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {requests.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">No requests found in this area</p>
+                <p className="text-gray-400 mt-2">Try expanding your search radius</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

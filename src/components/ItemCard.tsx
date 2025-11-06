@@ -26,6 +26,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
 
   const isMyItem = item.user?.id === user?.id;
 
+  const handleViewDetails = () => {
+    navigate(`/item/${item.id}`);
+  };
+
   const handleContactSeller = () => {
     if (item.user?.id) {
       navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
@@ -160,7 +164,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         )}
 
         {!isMyItem && !showActions && item.user && (
-          <div className="mt-4">
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={handleViewDetails}
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-2"
+            >
+              View Details
+            </button>
             <button
               onClick={handleContactSeller}
               className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition flex items-center justify-center gap-2"

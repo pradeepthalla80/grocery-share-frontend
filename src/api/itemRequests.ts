@@ -19,6 +19,7 @@ export interface ItemRequest {
   zipCode?: string;
   approximateLocation?: string;
   status: 'active' | 'fulfilled' | 'cancelled';
+  distance?: number;
   responses: Array<{
     user: {
       id: string;
@@ -41,7 +42,7 @@ export const createItemRequest = async (data: {
   address?: string;
   zipCode?: string;
   approximateLocation?: string;
-  expiresAt?: string;
+  validityPeriod?: string;
 }) => {
   const response = await apiClient.post('/item-requests', data);
   return response.data;
@@ -66,6 +67,16 @@ export const respondToRequest = async (requestId: string, message?: string) => {
 
 export const updateRequestStatus = async (requestId: string, status: 'active' | 'fulfilled' | 'cancelled') => {
   const response = await apiClient.put(`/item-requests/${requestId}/status`, { status });
+  return response.data;
+};
+
+export const getRequestById = async (requestId: string): Promise<ItemRequest> => {
+  const response = await apiClient.get(`/item-requests/${requestId}`);
+  return response.data;
+};
+
+export const deleteRequest = async (requestId: string) => {
+  const response = await apiClient.delete(`/item-requests/${requestId}`);
   return response.data;
 };
 

@@ -10,6 +10,11 @@ export const confirmPayment = async (paymentIntentId: string) => {
   return response.data;
 };
 
+export const requestRefund = async (itemId: string, reason: string) => {
+  const response = await apiClient.post('/payment/request-refund', { itemId, reason });
+  return response.data;
+};
+
 export const getStripePublishableKey = async () => {
   const response = await apiClient.get('/payment/config');
   return response.data;

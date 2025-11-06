@@ -8,8 +8,29 @@ import { useAuth } from '../hooks/useAuth';
 import { FormInput } from '../components/FormInput';
 import { ShoppingBasket } from 'lucide-react';
 
+// Block fake/test email patterns
+const fakeEmailPatterns = [
+  /^test@test\./i,
+  /^test\d*@/i,
+  /^fake@/i,
+  /^dummy@/i,
+  /^example@/i,
+  /^noreply@/i,
+  /^temp@/i,
+  /@test\./i,
+  /@example\./i,
+  /@fake\./i
+];
+
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string()
+    .email('Invalid email address')
+    .refine((email) => {
+      // Check against fake email patterns
+      return !fakeEmailPatterns.some(pattern => pattern.test(email));
+    }, {
+      message: 'Please use a valid email address (test/fake emails are not allowed)'
+    }),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 

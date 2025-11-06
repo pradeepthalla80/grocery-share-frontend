@@ -71,27 +71,7 @@ export const ItemRequests = () => {
     }
 
     try {
-      // Calculate expiration date if validity period is set
-      let expiresAt;
-      if (data.validityPeriod && data.validityPeriod !== 'never') {
-        const now = new Date();
-        
-        switch (data.validityPeriod) {
-          case '2h':
-            expiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-            break;
-          case '6h':
-            expiresAt = new Date(now.getTime() + 6 * 60 * 60 * 1000);
-            break;
-          case '12h':
-            expiresAt = new Date(now.getTime() + 12 * 60 * 60 * 1000);
-            break;
-          case '24h':
-            expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-            break;
-        }
-      }
-
+      // Backend will calculate expiresAt from validityPeriod
       await createItemRequest({
         ...data,
         location: {
@@ -99,7 +79,7 @@ export const ItemRequests = () => {
         },
         address,
         approximateLocation: address.split(',').slice(-2).join(',').trim(),
-        expiresAt: expiresAt?.toISOString()
+        validityPeriod: data.validityPeriod || 'never'
       });
       showToast('Item request created successfully!', 'success');
       reset();
@@ -253,7 +233,7 @@ export const ItemRequests = () => {
                 </div>
 
                 {request.notes && (
-                  <p className="text-gray-700 text-sm mb-4">{request.notes}</p>
+                  <p className="text-gray-700 text-sm mb-4 line-clamp-2">{request.notes}</p>
                 )}
 
                 <div className="flex items-center text-sm text-gray-600 mb-4">
@@ -274,13 +254,21 @@ export const ItemRequests = () => {
                   </div>
                 )}
 
-                <button
-                  onClick={() => handleRespond(request._id, request.user.id)}
-                  className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Offer to Help
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate(`/request/${request._id}`)}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleRespond(request._id, request.user.id)}
+                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Offer to Help
+                  </button>
+                </div>
               </div>
             ))}
           </div>

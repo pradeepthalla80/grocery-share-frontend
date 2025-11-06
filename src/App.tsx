@@ -17,6 +17,8 @@ import { Chat } from './pages/Chat';
 import { ItemRequests } from './pages/ItemRequests';
 import { TermsAndConditions } from './pages/TermsAndConditions';
 import { ContactUs } from './pages/ContactUs';
+import { ItemDetail } from './pages/ItemDetail';
+import { RequestDetail } from './pages/RequestDetail';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
@@ -90,6 +92,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ItemRequests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/item/:id"
+              element={
+                <ProtectedRoute>
+                  <ItemDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/request/:id"
+              element={
+                <ProtectedRoute>
+                  <RequestDetail />
                 </ProtectedRoute>
               }
             />

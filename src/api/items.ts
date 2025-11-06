@@ -26,6 +26,7 @@ export interface Item {
     email: string;
   };
   notified: boolean;
+  distance?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -73,6 +74,11 @@ export const itemsAPI = {
 
   getMyItems: async (): Promise<ItemsResponse> => {
     const response = await apiClient.get('/items/my-items');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<Item> => {
+    const response = await apiClient.get(`/items/${id}`);
     return response.data;
   },
 

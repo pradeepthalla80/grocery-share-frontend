@@ -8,9 +8,39 @@ import { useAuth } from '../hooks/useAuth';
 import { FormInput } from '../components/FormInput';
 import { ShoppingBasket } from 'lucide-react';
 
+// Block fake/test email patterns
+const fakeEmailPatterns = [
+  /^test@test\./i,
+  /^test\d*@/i,
+  /^fake@/i,
+  /^dummy@/i,
+  /^example@/i,
+  /^noreply@/i,
+  /^temp@/i,
+  /@test\./i,
+  /@example\./i,
+  /@fake\./i
+];
+
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
+  email: z.string()
+    .email('Invalid email address')
+    .refine((email) => {
+      // Check against fake email patterns
+      return !fakeEmailPatterns.some(pattern => pattern.test(email));
+    }, {
+      message: 'Please use a valid email address (test/fake emails are not allowed)'
+    })
+    .refine((email) => {
+      // Ensure email has proper format with domain
+      const parts = email.split('@');
+      if (parts.length !== 2) return false;
+      const domain = parts[1];
+      return domain.includes('.') && domain.split('.').length >= 2;
+    }, {
+      message: 'Please use a valid email address with a proper domain'
+    }),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   acceptedTerms: z.boolean().refine((val) => val === true, {
     message: 'You must accept the Terms of Use and Privacy Policy'
