@@ -617,85 +617,70 @@ export const Dashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {sortedItems.map((item) => {
-            const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
-            const handleItemClick = () => {
-              navigate(`/item/${item.id}`);
-            };
-            const isExpired = new Date(item.expiryDate) < new Date();
-            const daysUntilExpiry = Math.ceil((new Date(item.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-            
-            return (
-              <div 
-                key={item.id} 
-                onClick={handleItemClick}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-              >
-                <div className="relative w-full h-32 bg-gray-200">
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={item.name}
-                      className="w-full h-32 object-cover"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-xs">
-                      No Image
-                    </div>
-                  )}
-                  {isExpired ? (
-                    <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
-                      Expired
-                    </div>
-                  ) : daysUntilExpiry <= 2 ? (
-                    <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
-                      Urgent
-                    </div>
-                  ) : (
-                    <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
-                      Active
-                    </div>
-                  )}
-                </div>
-                <div className="p-3">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-1">{item.name}</h3>
-                  <div className="space-y-1 text-xs text-gray-600">
-                    <div className="flex items-center space-x-1">
-                      {item.isFree ? (
-                        <span className="bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded text-xs">
-                          🆓 FREE
-                        </span>
+            <div className="space-y-2">
+              {sortedItems.map((item) => {
+                const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
+                const handleClick = () => {
+                  navigate(`/item/${item.id}`);
+                };
+                
+                return (
+                  <div
+                    key={item.id}
+                    onClick={handleClick}
+                    className="flex items-center gap-4 p-3 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-16 h-16 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        <>
-                          <DollarSign className="h-3 w-3" />
-                          <span className="font-semibold text-green-600">${item.price.toFixed(2)}</span>
-                        </>
+                        <div className="flex items-center justify-center h-full text-gray-400">
+                          <Package className="h-6 w-6" />
+                        </div>
                       )}
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="h-3 w-3" />
-                      <span className="line-clamp-1">{format(new Date(item.expiryDate), 'MMM dd')}</span>
-                    </div>
-                    {item.location?.address && (
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />
-                        <span className="line-clamp-1 text-xs">{item.location.address.split(',')[0]}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
 
-        {items.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No items found in this area</p>
-            <p className="text-gray-400 mt-2">Try expanding your search radius</p>
-          </div>
-        )}
+                    {/* Item Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Available
+                        </span>
+                        <span className="text-sm text-gray-600">{item.category || 'Uncategorized'}</span>
+                      </div>
+                    </div>
+
+                    {/* Price/Distance */}
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="text-gray-700 font-semibold">
+                        {item.isFree ? (
+                          <span className="text-green-600">FREE</span>
+                        ) : (
+                          <span>${item.price.toFixed(2)}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-600">
+                        <MapPin className="h-4 w-4" />
+                        <span>{(item.distance || 0).toFixed(1)} mi</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {items.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">No items found in this area</p>
+                <p className="text-gray-400 mt-2">Try expanding your search radius</p>
+              </div>
+            )}
 
         {recommendations.length > 0 && (
           <div className="mt-12">
@@ -783,57 +768,44 @@ export const Dashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedRequests.map((request) => (
-                <div key={request._id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{request.itemName}</h3>
-                      <p className="text-sm text-gray-600">{request.quantity}</p>
+            <div className="space-y-2">
+              {sortedRequests.map((request) => {
+                const handleClick = () => {
+                  navigate(`/request/${request._id}`);
+                };
+
+                return (
+                  <div
+                    key={request._id}
+                    onClick={handleClick}
+                    className="flex items-center gap-4 p-3 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer"
+                  >
+                    {/* Icon placeholder */}
+                    <div className="w-16 h-16 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
+                      <div className="flex items-center justify-center h-full text-gray-400">
+                        <MessageCircle className="h-6 w-6" />
+                      </div>
                     </div>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                      {request.category}
-                    </span>
-                  </div>
 
-                  {request.notes && (
-                    <p className="text-gray-700 text-sm mb-4 line-clamp-2">{request.notes}</p>
-                  )}
-
-                  <div className="flex items-center text-sm text-gray-600 mb-4">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {request.approximateLocation || 'Nearby'}
-                  </div>
-
-                  <div className="text-sm text-gray-600 mb-4">
-                    Requested by <span className="font-medium">{request.user.name}</span>
-                  </div>
-
-                  {request.responses && request.responses.length > 0 && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                      <p className="text-sm text-blue-800">
-                        {request.responses.length} {request.responses.length === 1 ? 'person has' : 'people have'} responded
-                      </p>
+                    {/* Request Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate">{request.itemName}</h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Requested
+                        </span>
+                        <span className="text-sm text-gray-600">{request.category || 'Uncategorized'}</span>
+                      </div>
                     </div>
-                  )}
 
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => navigate(`/request/${request._id}`)}
-                      className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-                    >
-                      View Details
-                    </button>
-                    <button
-                      onClick={() => navigate(`/chat?receiverId=${request.user.id}`)}
-                      className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Offer to Help
-                    </button>
+                    {/* Distance */}
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <MapPin className="h-4 w-4" />
+                      <span>{(request.distance || 0).toFixed(1)} mi</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {requests.length === 0 && !loading && (
