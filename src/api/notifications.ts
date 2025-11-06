@@ -31,3 +31,7 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
 export const deleteNotification = async (id: string): Promise<void> => {
   await apiClient.delete(`/notifications/${id}`);
 };
+
+export const sendInterestNotification = async (itemId: string, itemName: string, type: 'item' | 'request'): Promise<void> => {
+  await apiClient.post('/notifications/interest', { itemId, itemName, type });
+};

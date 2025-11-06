@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star } from 'lucide-react';
+import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { getRequestById, deleteRequest, type ItemRequest } from '../api/itemRequests';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import { sendInterestNotification } from '../api/notifications';
 
 export const RequestDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -73,6 +74,17 @@ export const RequestDetail = () => {
         ? `I can help with your request for "${request.itemName}": ${offerMessage}` 
         : `I can help with your request for "${request.itemName}"`;
       navigate(`/chat?receiverId=${request.user.id}&message=${encodeURIComponent(message)}`);
+    }
+  };
+
+  const handleInterested = async () => {
+    if (!request) return;
+    
+    try {
+      await sendInterestNotification(request._id, request.itemName, 'request');
+      showToast('✅ Interest notification sent to the requester!', 'success');
+    } catch (error) {
+      showToast('Failed to send notification', 'error');
     }
   };
 
@@ -254,6 +266,20 @@ export const RequestDetail = () => {
                 <p className="text-sm text-gray-600 mb-4">
                   Do you have this item? Send a message to help fulfill this request:
                 </p>
+                
+                <div className="mb-4">
+                  <button
+                    onClick={handleInterested}
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 font-semibold mb-3"
+                  >
+                    <Heart className="h-5 w-5" />
+                    <span>Interested to Offer</span>
+                  </button>
+                  <p className="text-xs text-blue-600 text-center">
+                    Click to let the requester know you can help. They'll receive a notification!
+                  </p>
+                </div>
+                
                 <textarea
                   value={offerMessage}
                   onChange={(e) => setOfferMessage(e.target.value)}

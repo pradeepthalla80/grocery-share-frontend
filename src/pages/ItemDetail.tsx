@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
+import { sendInterestNotification } from '../api/notifications';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -94,6 +95,17 @@ export const ItemDetail = () => {
         ? `Question about "${item.name}": ${question}` 
         : '';
       navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}${message ? `&message=${encodeURIComponent(message)}` : ''}`);
+    }
+  };
+
+  const handleInterested = async () => {
+    if (!item) return;
+    
+    try {
+      await sendInterestNotification(item.id, item.name, 'item');
+      showToast('✅ Interest notification sent to the seller!', 'success');
+    } catch (error) {
+      showToast('Failed to send notification', 'error');
     }
   };
 
@@ -429,6 +441,20 @@ export const ItemDetail = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     Have a question? Ask before starting a conversation:
                   </p>
+                  
+                  <div className="mb-4">
+                    <button
+                      onClick={handleInterested}
+                      className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 font-semibold mb-3"
+                    >
+                      <Heart className="h-5 w-5" />
+                      <span>Interested to Buy</span>
+                    </button>
+                    <p className="text-xs text-blue-600 text-center">
+                      Click to let the seller know you're interested. They'll receive a notification!
+                    </p>
+                  </div>
+                  
                   <textarea
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
