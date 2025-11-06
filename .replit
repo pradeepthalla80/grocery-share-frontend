@@ -30,9 +30,5 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 43011
-externalPort = 3000
-
 [nix]
 packages = ["openssh"]
