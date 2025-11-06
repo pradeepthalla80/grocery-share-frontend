@@ -512,8 +512,12 @@ export const ItemDetail = () => {
                       💜 Seller will be notified without revealing your contact info
                     </p>
                   </div>
+                </div>
+              )}
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Or Start a Conversation</h3>
+              {!isMyItem && (
+                <div className="border-t mt-6 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Contact Seller</h3>
                   <p className="text-sm text-gray-600 mb-4">
                     Have a question? Send a message:
                   </p>
@@ -530,7 +534,7 @@ export const ItemDetail = () => {
                     className="w-full bg-gray-700 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition flex items-center justify-center space-x-2"
                   >
                     <MessageCircle className="h-5 w-5" />
-                    <span>Start Conversation</span>
+                    <span>Chat with Seller</span>
                   </button>
                   <p className="text-xs text-gray-500 mt-2 text-center">
                     Address will be revealed only after both parties agree
