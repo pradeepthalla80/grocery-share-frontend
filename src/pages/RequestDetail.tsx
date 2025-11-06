@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star, Heart } from 'lucide-react';
+import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star, PackageCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { getRequestById, deleteRequest, type ItemRequest } from '../api/itemRequests';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { sendInterestNotification } from '../api/notifications';
+import { requestPickup } from '../api/notifications';
 
 export const RequestDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -68,23 +68,23 @@ export const RequestDetail = () => {
     return R * c;
   };
 
-  const handleOfferItem = () => {
-    if (request?.user?.id) {
-      const message = offerMessage.trim() 
-        ? `I can help with your request for "${request.itemName}": ${offerMessage}` 
-        : `I can help with your request for "${request.itemName}"`;
-      navigate(`/chat?receiverId=${request.user.id}&message=${encodeURIComponent(message)}`);
-    }
-  };
-
-  const handleInterested = async () => {
+  const handleOfferItem = async () => {
     if (!request) return;
     
     try {
-      await sendInterestNotification(request._id, request.itemName, 'request');
-      showToast('✅ Interest notification sent to the requester!', 'success');
+      await requestPickup(request._id);
+      showToast('✅ Offer sent to requester! They will contact you soon.', 'success');
     } catch (error) {
-      showToast('Failed to send notification', 'error');
+      showToast('Failed to send offer', 'error');
+    }
+  };
+
+  const handleContactRequester = () => {
+    if (request?.user?.id) {
+      const message = offerMessage.trim() 
+        ? `I can help with your request for "${request.itemName}": ${offerMessage}` 
+        : `I have a question about your request for "${request.itemName}"`;
+      navigate(`/chat?receiverId=${request.user.id}&message=${encodeURIComponent(message)}`);
     }
   };
 
@@ -262,40 +262,47 @@ export const RequestDetail = () => {
 
             {!isMyRequest && request.status === 'active' && (
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">📦 Offer This Item</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Do you have this item? Send a message to help fulfill this request:
-                </p>
-                
-                <div className="mb-4">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <PackageCheck className="h-6 w-6 text-blue-600" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Can You Help?</h3>
+                      <p className="text-sm text-gray-600">Offer this item to the requester</p>
+                    </div>
+                  </div>
                   <button
-                    onClick={handleInterested}
-                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 font-semibold mb-3"
+                    onClick={handleOfferItem}
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 font-semibold"
                   >
-                    <Heart className="h-5 w-5" />
-                    <span>Interested to Offer</span>
+                    <PackageCheck className="h-5 w-5" />
+                    <span>Offer to Help</span>
                   </button>
-                  <p className="text-xs text-blue-600 text-center">
-                    Click to let the requester know you can help. They'll receive a notification!
+                  <p className="text-xs text-blue-600 mt-3 text-center">
+                    🤝 Requester will be notified you can help!
                   </p>
                 </div>
+
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Contact Requester</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Have questions? Start a conversation:
+                </p>
                 
                 <textarea
                   value={offerMessage}
                   onChange={(e) => setOfferMessage(e.target.value)}
-                  placeholder="Optional: Add details about your offer (condition, pickup time, etc)..."
+                  placeholder="Optional: Add details or ask questions..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-4"
                   rows={3}
                 />
                 <button
-                  onClick={handleOfferItem}
-                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center space-x-2"
+                  onClick={handleContactRequester}
+                  className="w-full bg-gray-700 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition flex items-center justify-center space-x-2"
                 >
                   <MessageCircle className="h-5 w-5" />
-                  <span>Contact Requester</span>
+                  <span>Start Conversation</span>
                 </button>
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Address will be revealed only after both parties agree
+                  Address will be revealed after both parties agree
                 </p>
               </div>
             )}

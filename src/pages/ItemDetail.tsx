@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, Heart, PackageCheck } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, PackageCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
-import { sendInterestNotification, requestPickup } from '../api/notifications';
+import { requestPickup } from '../api/notifications';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -98,17 +98,6 @@ export const ItemDetail = () => {
     }
   };
 
-  const handleInterested = async () => {
-    if (!item) return;
-    
-    try {
-      await sendInterestNotification(item.id, item.name, 'item');
-      showToast('✅ Interest notification sent to the seller!', 'success');
-    } catch (error) {
-      showToast('Failed to send notification', 'error');
-    }
-  };
-
   const handleRequestPickup = async () => {
     if (!item) return;
     
@@ -120,17 +109,6 @@ export const ItemDetail = () => {
     }
   };
 
-  const handlePaymentSuccess = async () => {
-    // Refresh item data to show updated status
-    if (id) {
-      try {
-        const data = await itemsAPI.getById(id);
-        setItem(data);
-      } catch (error) {
-        console.error('Failed to refresh item:', error);
-      }
-    }
-  };
 
   const handleRefund = async () => {
     if (!item) return;
@@ -412,6 +390,26 @@ export const ItemDetail = () => {
 
               {isBuyer && isSoldItem && (
                 <div className="border-t mt-6 pt-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <PackageCheck className="h-6 w-6 text-blue-600" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Ready to Pick Up?</h3>
+                        <p className="text-sm text-gray-600">Notify the seller you're ready to arrange pickup</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleRequestPickup}
+                      className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 font-semibold"
+                    >
+                      <PackageCheck className="h-5 w-5" />
+                      <span>Request Pickup</span>
+                    </button>
+                    <p className="text-xs text-blue-600 mt-3 text-center">
+                      📍 Seller will be notified and share pickup details with you
+                    </p>
+                  </div>
+                  
                   <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <AlertTriangle className="h-6 w-6 text-orange-600" />
@@ -458,25 +456,36 @@ export const ItemDetail = () => {
                 </div>
               )}
 
-              {!isMyItem && (
+              {!isMyItem && item.isFree && !isSoldItem && (item as any).status === 'available' && (
                 <div className="border-t mt-6 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">📩 Contact Provider</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Have a question? Ask before starting a conversation:
-                  </p>
-                  
-                  <div className="mb-4">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <PackageCheck className="h-6 w-6 text-green-600" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Get This Free Item</h3>
+                        <p className="text-sm text-gray-600">Send a pickup request to the provider</p>
+                      </div>
+                    </div>
                     <button
-                      onClick={handleInterested}
-                      className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center space-x-2 font-semibold mb-3"
+                      onClick={handleRequestPickup}
+                      className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center space-x-2 font-semibold"
                     >
-                      <Heart className="h-5 w-5" />
-                      <span>Interested to Buy</span>
+                      <PackageCheck className="h-5 w-5" />
+                      <span>Request This Item</span>
                     </button>
-                    <p className="text-xs text-blue-600 text-center">
-                      Click to let the seller know you're interested. They'll receive a notification!
+                    <p className="text-xs text-green-600 mt-3 text-center">
+                      🆓 Provider will be notified and share pickup details
                     </p>
                   </div>
+                </div>
+              )}
+
+              {!isMyItem && (
+                <div className="border-t mt-6 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Contact Seller</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Have a question? Start a conversation:
+                  </p>
                   
                   <textarea
                     value={question}
@@ -487,7 +496,7 @@ export const ItemDetail = () => {
                   />
                   <button
                     onClick={handleContactProvider}
-                    className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center space-x-2"
+                    className="w-full bg-gray-700 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition flex items-center justify-center space-x-2"
                   >
                     <MessageCircle className="h-5 w-5" />
                     <span>Start Conversation</span>
