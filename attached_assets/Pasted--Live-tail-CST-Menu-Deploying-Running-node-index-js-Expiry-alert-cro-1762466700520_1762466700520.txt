@@ -1,0 +1,85 @@
+
+
+Live tail
+CST
+
+Menu
+
+     ==> Deploying...
+==> Running 'node index.js'
+⏰ Expiry alert cron job scheduled (daily at 9 AM)
+⏰ Nearby item monitoring scheduled (every 30 minutes)
+[CRON] Expiration cleanup job scheduled (runs every hour)
+Warning: connect.session() MemoryStore is not
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173, https://grocery-share-frontend.vercel.app
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> Detected service running on port 10000
+     ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+🔍 Checking for nearby items matching user preferences...
+✅ Nearby item monitoring complete
+==> Running 'node index.js'
+⏰ Expiry alert cron job scheduled (daily at 9 AM)
+⏰ Nearby item monitoring scheduled (every 30 minutes)
+[CRON] Expiration cleanup job scheduled (runs every hour)
+Warning: connect.session() MemoryStore is not
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173, https://grocery-share-frontend.vercel.app
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+🔍 Checking for nearby items matching user preferences...
+✅ Nearby item monitoring complete
+==> Running 'node index.js'
+⏰ Expiry alert cron job scheduled (daily at 9 AM)
+⏰ Nearby item monitoring scheduled (every 30 minutes)
+[CRON] Expiration cleanup job scheduled (runs every hour)
+Warning: connect.session() MemoryStore is not
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173, https://grocery-share-frontend.vercel.app
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+🔍 Checking for nearby items matching user preferences...
+✅ Nearby item monitoring complete
+[CRON] Expired items marked inactive: 1
+[CRON] Expired requests cancelled: 0
+🔍 Checking for nearby items matching user preferences...
+✅ Nearby item monitoring complete
+==> Running 'node index.js'
+⏰ Expiry alert cron job scheduled (daily at 9 AM)
+⏰ Nearby item monitoring scheduled (every 30 minutes)
+[CRON] Expiration cleanup job scheduled (runs every hour)
+Warning: connect.session() MemoryStore is not
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173, https://grocery-share-frontend.vercel.app
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+🔍 Checking for nearby items matching user preferences...
+✅ Nearby item monitoring complete
+[CRON] Expired items marked inactive: 0
+[CRON] Expired requests cancelled: 0
+🔍 Checking for nearby items matching user preferences...
+✅ Nearby item monitoring complete
