@@ -2,6 +2,33 @@
 
 Grocery Share is a peer-to-peer web application that enables users to share, request, and exchange surplus grocery items within their local community. The platform focuses on reducing food waste by connecting people who have excess groceries with those who need them. Users can list items (free or paid), search for available groceries nearby, communicate via real-time chat, and coordinate pickups through an integrated map-based system.
 
+# Recent Changes (November 6, 2025)
+
+**Item Request Edit/Delete Functionality**
+- Added `updateRequest()` API function in `itemRequests.ts` for editing existing requests
+- Implemented edit form handling in `ItemRequests.tsx` using URL parameters (`?edit=requestId`)
+- Form auto-populates with existing request data when editing
+- Edit/Delete buttons appear only for request owner when status is 'active'
+- Dynamic form titles and button text ("Edit Request" vs "Create Request")
+- RequestDetail page already had delete functionality with confirmation prompt
+
+**Search & Navigation Improvements**
+- Dashboard items navigate to ItemDetail page first (not directly to chat)
+- Dashboard requests have "View Details" button to open RequestDetail page
+- Sold and refunded items excluded from search results (prevents user confusion)
+- Separate "Offer to Help" button for initiating chat conversations
+
+**Item Status Management**
+- Item status enum updated: ['available', 'pending', 'picked_up', 'sold', 'refunded']
+- Backend filtering ensures only available items appear in searches
+- Status changes properly tracked throughout purchase-to-pickup-or-refund workflow
+
+**Deployment & Version Control**
+- Fixed Vercel deployment: Removed duplicate grocery-share-frontend folder structure
+- Payment features moved to correct root directory for proper build path
+- GitHub authentication converted from SSH to HTTPS (Replit compatibility)
+- Successfully deployed commits to production
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
