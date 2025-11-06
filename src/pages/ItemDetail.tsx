@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, PackageCheck } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, PackageCheck, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
-import { requestPickup } from '../api/notifications';
+import { requestPickup, sendInterestNotification } from '../api/notifications';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -106,6 +106,17 @@ export const ItemDetail = () => {
       showToast('✅ Pickup request sent to the seller! They will contact you soon.', 'success');
     } catch (error) {
       showToast('Failed to send pickup request', 'error');
+    }
+  };
+
+  const handleInterestNotification = async () => {
+    if (!item) return;
+    
+    try {
+      await sendInterestNotification(item.id, item.name, 'item');
+      showToast('✅ Seller notified of your interest! They may reach out soon.', 'success');
+    } catch (error) {
+      showToast('Failed to send interest notification', 'error');
     }
   };
 
@@ -480,11 +491,31 @@ export const ItemDetail = () => {
                 </div>
               )}
 
-              {!isMyItem && (
+              {!isMyItem && (item as any).status === 'available' && (
                 <div className="border-t mt-6 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Contact Seller</h3>
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Heart className="h-6 w-6 text-purple-600" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Interested in This Item?</h3>
+                        <p className="text-sm text-gray-600">Let the seller know you're interested</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleInterestNotification}
+                      className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition flex items-center justify-center space-x-2 font-semibold"
+                    >
+                      <Heart className="h-5 w-5" />
+                      <span>Interested to Buy</span>
+                    </button>
+                    <p className="text-xs text-purple-600 mt-3 text-center">
+                      💜 Seller will be notified without revealing your contact info
+                    </p>
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">💬 Or Start a Conversation</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Have a question? Start a conversation:
+                    Have a question? Send a message:
                   </p>
                   
                   <textarea

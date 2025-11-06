@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star, PackageCheck } from 'lucide-react';
+import { Calendar, MapPin, Package, User, ChevronLeft, MessageCircle, Edit, Trash2, Star, PackageCheck, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { getRequestById, deleteRequest, type ItemRequest } from '../api/itemRequests';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { requestPickup } from '../api/notifications';
+import { sendInterestNotification } from '../api/notifications';
 import { OfferModal } from '../components/OfferModal';
 
 export const RequestDetail = () => {
@@ -73,6 +73,17 @@ export const RequestDetail = () => {
     if (request?.user?.id) {
       const message = `I have a question about your request for "${request.itemName}"`;
       navigate(`/chat?receiverId=${request.user.id}&message=${encodeURIComponent(message)}`);
+    }
+  };
+
+  const handleInterestNotification = async () => {
+    if (!request) return;
+    
+    try {
+      await sendInterestNotification(request._id, request.itemName, 'request');
+      showToast('✅ Requester notified of your interest! They may reach out soon.', 'success');
+    } catch (error) {
+      showToast('Failed to send interest notification', 'error');
     }
   };
 
@@ -267,6 +278,26 @@ export const RequestDetail = () => {
 
             {!isMyRequest && request.status === 'active' && (
               <div className="border-t pt-6">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6 mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Heart className="h-6 w-6 text-purple-600" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Interested in Helping?</h3>
+                      <p className="text-sm text-gray-600">Let the requester know you can help</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleInterestNotification}
+                    className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition flex items-center justify-center space-x-2 font-semibold"
+                  >
+                    <Heart className="h-5 w-5" />
+                    <span>Interested to Offer</span>
+                  </button>
+                  <p className="text-xs text-purple-600 mt-3 text-center">
+                    💜 Requester will be notified without revealing your contact info
+                  </p>
+                </div>
+
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
                   <div className="flex items-center gap-3 mb-4">
                     <PackageCheck className="h-6 w-6 text-blue-600" />
