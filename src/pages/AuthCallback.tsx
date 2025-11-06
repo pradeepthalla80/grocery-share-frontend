@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { getUserProfile } from '../api/users';
+import { saveToken } from '../utils/token';
 
 export const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -15,6 +17,7 @@ export const AuthCallback = () => {
         const userId = searchParams.get('userId');
         const userName = searchParams.get('name');
         const userEmail = searchParams.get('email');
+        const userRole = searchParams.get('role');
         
         if (!token) {
           console.error('No token received from OAuth callback');
@@ -25,14 +28,36 @@ export const AuthCallback = () => {
 
         console.log('Token received from Google OAuth');
         
-        // Create user object from URL parameters
-        const userData = {
-          id: userId || '',
-          name: userName || 'User',
-          email: userEmail || '',
-        };
+        // Save token first so API calls can use it
+        saveToken(token);
         
-        console.log('User data from OAuth:', userData);
+        let userData;
+        
+        // Try to fetch full user profile from backend
+        try {
+          console.log('Fetching user profile from /users/me...');
+          const profileData = await getUserProfile();
+          userData = {
+            id: profileData.user?.id || profileData.id || userId || '',
+            name: profileData.user?.name || profileData.name || userName || 'User',
+            email: profileData.user?.email || profileData.email || userEmail || '',
+            role: profileData.user?.role || profileData.role || userRole as any,
+            googleId: profileData.user?.googleId || profileData.googleId,
+            createdAt: profileData.user?.createdAt || profileData.createdAt,
+          };
+          console.log('User profile fetched successfully:', userData);
+        } catch (profileError) {
+          console.warn('Failed to fetch user profile, using URL params:', profileError);
+          // Fallback to URL parameters if profile fetch fails
+          userData = {
+            id: userId || '',
+            name: userName || 'User',
+            email: userEmail || '',
+            role: userRole as any,
+          };
+        }
+        
+        console.log('Final user data for login:', userData);
         
         // Login with user data
         login(token, userData);
