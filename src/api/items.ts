@@ -27,6 +27,8 @@ export interface Item {
   };
   notified: boolean;
   distance?: number;
+  status?: 'available' | 'sold' | 'refunded';
+  buyerId?: string;
   createdAt: string;
   updatedAt: string;
 }

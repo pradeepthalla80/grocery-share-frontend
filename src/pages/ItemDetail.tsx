@@ -140,8 +140,8 @@ export const ItemDetail = () => {
   };
 
   const isMyItem = item?.user?.id === user?.id;
-  const isBuyer = !isMyItem && (item as any)?.buyerId === user?.id;
-  const isSoldItem = (item as any)?.status === 'sold';
+  const isBuyer = !isMyItem && item?.buyerId === user?.id;
+  const isSoldItem = item?.status === 'sold';
 
   if (loading) {
     return (
@@ -372,7 +372,7 @@ export const ItemDetail = () => {
                 </p>
               </div>
 
-              {!isMyItem && !item.isFree && !isSoldItem && (item as any)?.status !== 'refunded' && (item as any).status === 'available' && (
+              {!isMyItem && !item.isFree && !isSoldItem && item?.status !== 'refunded' && (!item.status || item.status === 'available') && (
                 <div className="border-t mt-6 pt-6">
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -467,7 +467,7 @@ export const ItemDetail = () => {
                 </div>
               )}
 
-              {!isMyItem && item.isFree && !isSoldItem && (item as any).status === 'available' && (
+              {!isMyItem && item.isFree && !isSoldItem && (!item.status || item.status === 'available') && (
                 <div className="border-t mt-6 pt-6">
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6 mb-6">
                     <div className="flex items-center gap-3 mb-4">
@@ -491,7 +491,7 @@ export const ItemDetail = () => {
                 </div>
               )}
 
-              {!isMyItem && (item as any).status === 'available' && (
+              {!isMyItem && (!item.status || item.status === 'available') && (
                 <div className="border-t mt-6 pt-6">
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6 mb-6">
                     <div className="flex items-center gap-3 mb-4">
