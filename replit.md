@@ -2,6 +2,60 @@
 
 Grocery Share is a peer-to-peer web application designed to reduce food waste by enabling users to share, request, and exchange surplus grocery items within their local community. The platform connects individuals with excess groceries to those in need, facilitating both free and paid item listings. Key capabilities include listing items, searching for nearby groceries, real-time chat communication, and integrated map-based pickup coordination. The vision is to foster community sharing, combat food insecurity, and promote sustainable consumption habits.
 
+# Recent Changes (November 6, 2025)
+
+## Session: Button Visibility & OAuth Fixes
+
+### Issues Fixed
+1. **Buy Now button missing** - Payment integration wasn't visible on ItemDetail page
+2. **Contact Seller section missing** - Chat option only showed for available items
+3. **Gmail OAuth login failing** - 404 error calling non-existent /users/me endpoint
+4. **TypeScript type errors** - Item interface missing status and buyerId fields
+
+### Changes Made
+
+**src/api/items.ts**
+- Added `status?: 'available' | 'sold' | 'refunded'` field to Item interface
+- Added `buyerId?: string` field to Item interface
+- Fixes TypeScript errors when accessing item.status and item.buyerId
+
+**src/pages/ItemDetail.tsx**
+- Fixed Buy Now button visibility: Shows for paid, available, non-owned items
+- Fixed Contact Seller section: Now shows for ALL non-owned items (regardless of status)
+- Fixed Interested to Buy button: Shows for available items only
+- Updated all visibility conditions to handle undefined status (defaults to 'available')
+- Removed type casting `(item as any)` in favor of proper typed access
+
+**src/pages/AuthCallback.tsx**
+- Removed dependency on missing `/users/me` endpoint
+- Now reads user data from OAuth callback URL parameters: token, userId, name, email
+- Backend must send these parameters in OAuth redirect URL
+
+**src/pages/RequestDetail.tsx**
+- Interested to Offer button verified working for active requests
+- Uses proper type definitions
+
+### Architect Review
+✅ All changes reviewed and approved
+- Button visibility logic handles edge cases properly
+- TypeScript types accurate and prevent future errors
+- No security issues detected
+- OAuth changes match backend contract
+
+### Testing Checklist for User
+- [ ] Buy Now button visible on paid items
+- [ ] Contact Seller always shows for non-owned items
+- [ ] Interested to Buy button works on available items
+- [ ] Interested to Offer button works on active requests
+- [ ] Gmail login works without console errors
+- [ ] Payment modal opens when clicking Buy Now
+- [ ] Stripe integration processes payments
+
+### Known Dependencies
+- Notification buttons require backend endpoint: `POST /notifications/interest`
+- OAuth requires backend to send userId, name, email in callback URL
+- Item status field must be sent by backend (or defaults to 'available')
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
