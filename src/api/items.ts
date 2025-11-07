@@ -29,6 +29,8 @@ export interface Item {
   distance?: number;
   status?: 'available' | 'sold' | 'refunded';
   buyerId?: string;
+  offerDelivery?: boolean;
+  deliveryFee?: number;
   createdAt: string;
   updatedAt: string;
 }

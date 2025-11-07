@@ -24,6 +24,8 @@ export const OfferModal = ({ isOpen, onClose, request }: OfferModalProps) => {
   const [offerType, setOfferType] = useState<'free' | 'paid'>('free');
   const [offerPrice, setOfferPrice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [offerDelivery, setOfferDelivery] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState('free');
 
   if (!isOpen) return null;
 
@@ -49,19 +51,29 @@ export const OfferModal = ({ isOpen, onClose, request }: OfferModalProps) => {
       }
 
       // TODO: Implement payment flow for paid offers
+      const deliveryInfo = offerDelivery 
+        ? `(${deliveryFee === 'free' ? 'Free delivery available' : `$${deliveryFee} delivery available`})`
+        : '';
+      const offerMessage = `I can offer "${request.itemName}" for $${price.toFixed(2)}. ${deliveryInfo}`;
+      
       showToast(`Payment integration for request offers coming soon! Price: $${price.toFixed(2)}`, 'info');
       setLoading(true);
       setTimeout(() => {
         setLoading(false);
         onClose();
-        // Navigate to chat to coordinate
-        navigate(`/chat?receiverId=${request.user.id}`);
+        // Navigate to chat with offer details
+        navigate(`/chat?receiverId=${request.user.id}&message=${encodeURIComponent(offerMessage)}`);
       }, 1500);
     } else {
-      // Free offer - just notify and coordinate
+      // Free offer - notify and coordinate with delivery info
+      const deliveryInfo = offerDelivery 
+        ? (deliveryFee === 'free' ? ' I can offer free delivery!' : ` I can deliver for $${deliveryFee}.`)
+        : '';
+      const offerMessage = `I can offer you "${request.itemName}" for free!${deliveryInfo}`;
+      
       showToast('Offer sent! Start a conversation to coordinate pickup.', 'success');
       onClose();
-      navigate(`/chat?receiverId=${request.user.id}`);
+      navigate(`/chat?receiverId=${request.user.id}&message=${encodeURIComponent(offerMessage)}`);
     }
   };
 
@@ -194,6 +206,51 @@ export const OfferModal = ({ isOpen, onClose, request }: OfferModalProps) => {
               </p>
             </div>
           )}
+
+          {/* Delivery Options */}
+          <div className="mb-6 border-t pt-4">
+            <label className="flex items-center space-x-2 mb-3">
+              <input
+                type="checkbox"
+                checked={offerDelivery}
+                onChange={(e) => setOfferDelivery(e.target.checked)}
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              />
+              <span className="text-sm font-medium text-gray-700">Offer Delivery/Drop-off</span>
+            </label>
+
+            {offerDelivery && (
+              <div className="ml-6 space-y-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Delivery Fee
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      value="free"
+                      checked={deliveryFee === 'free'}
+                      onChange={(e) => setDeliveryFee(e.target.value)}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <span className="text-sm text-gray-700">🚚 Free Delivery</span>
+                  </label>
+                  {['1', '2', '3', '4', '5'].map((fee) => (
+                    <label key={fee} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value={fee}
+                        checked={deliveryFee === fee}
+                        onChange={(e) => setDeliveryFee(e.target.value)}
+                        className="h-4 w-4 text-blue-600"
+                      />
+                      <span className="text-sm text-gray-700">${fee} Delivery Fee</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex gap-3">
             <button

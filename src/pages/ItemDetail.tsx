@@ -355,6 +355,24 @@ export const ItemDetail = () => {
                   </div>
                 )}
 
+                {item.offerDelivery && (
+                  <div className="flex items-center space-x-3 text-gray-700">
+                    <PackageCheck className="h-5 w-5 text-green-600" />
+                    <div>
+                      <span className="font-semibold">Delivery Available:</span>
+                      {item.deliveryFee && item.deliveryFee > 0 ? (
+                        <span className="ml-2 text-green-600 font-medium">
+                          🚚 ${item.deliveryFee} delivery fee
+                        </span>
+                      ) : (
+                        <span className="ml-2 text-green-600 font-medium">
+                          🚚 Free delivery
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {item.user && (
                   <div className="flex items-center space-x-3 text-gray-700">
                     <User className="h-5 w-5 text-green-600" />

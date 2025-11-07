@@ -24,6 +24,19 @@ const addItemSchema = z.object({
   address: z.string().min(1, 'Address is required'),
   lat: z.number(),
   lng: z.number(),
+  offerDelivery: z.boolean().optional(),
+  deliveryFee: z.string().optional(),
+}).refine((data) => {
+  if (data.offerDelivery && data.deliveryFee && data.deliveryFee !== 'free') {
+    const fee = Number(data.deliveryFee);
+    if (isNaN(fee) || fee < 1 || fee > 5) {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: 'Delivery fee must be free or between $1-$5',
+  path: ['deliveryFee'],
 }).refine((data) => {
   if (!data.isFree && (!data.price || Number(data.price) <= 0)) {
     return false;
@@ -53,6 +66,8 @@ export const AddItem = () => {
   const [isFree, setIsFree] = useState(false);
   const [flexiblePickup, setFlexiblePickup] = useState(true);
   const [locationError, setLocationError] = useState('');
+  const [offerDelivery, setOfferDelivery] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState('free');
 
   const {
     register,
@@ -68,6 +83,8 @@ export const AddItem = () => {
       lng: -87.623177,
       isFree: false,
       flexiblePickup: true,
+      offerDelivery: false,
+      deliveryFee: 'free',
     },
   });
 
@@ -139,6 +156,12 @@ export const AddItem = () => {
       // Add validity period
       if (data.validityPeriod) {
         formData.append('validityPeriod', data.validityPeriod);
+      }
+
+      // Add delivery options
+      formData.append('offerDelivery', offerDelivery.toString());
+      if (offerDelivery) {
+        formData.append('deliveryFee', deliveryFee === 'free' ? '0' : deliveryFee);
       }
 
       imageFiles.forEach(file => {
@@ -299,6 +322,61 @@ export const AddItem = () => {
                     {...register('pickupTimeEnd')}
                     error={errors.pickupTimeEnd?.message}
                   />
+                </div>
+              )}
+            </div>
+
+            <div className="border-t pt-6 space-y-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  {...register('offerDelivery')}
+                  checked={offerDelivery}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setOfferDelivery(checked);
+                    setValue('offerDelivery', checked);
+                  }}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">Offer Delivery/Drop-off</span>
+              </label>
+
+              {offerDelivery && (
+                <div className="ml-6 space-y-3 bg-green-50 border border-green-200 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Fee
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="free"
+                        checked={deliveryFee === 'free'}
+                        onChange={(e) => {
+                          setDeliveryFee(e.target.value);
+                          setValue('deliveryFee', e.target.value);
+                        }}
+                        className="h-4 w-4 text-green-600"
+                      />
+                      <span className="text-sm text-gray-700">🚚 Free Delivery</span>
+                    </label>
+                    {['1', '2', '3', '4', '5'].map((fee) => (
+                      <label key={fee} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          value={fee}
+                          checked={deliveryFee === fee}
+                          onChange={(e) => {
+                            setDeliveryFee(e.target.value);
+                            setValue('deliveryFee', e.target.value);
+                          }}
+                          className="h-4 w-4 text-green-600"
+                        />
+                        <span className="text-sm text-gray-700">${fee} Delivery Fee</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
