@@ -33,6 +33,7 @@ export const Chat = () => {
 
   const receiverId = searchParams.get('receiverId');
   const itemId = searchParams.get('itemId');
+  const prefilledMessage = searchParams.get('message');
 
   useEffect(() => {
     if (receiverId) {
@@ -40,6 +41,12 @@ export const Chat = () => {
       setMessages([]);
       setIsNewConversation(true);
       setUserHasScrolled(false);
+      
+      // Pre-fill message if provided in URL
+      if (prefilledMessage) {
+        setNewMessage(decodeURIComponent(prefilledMessage));
+      }
+      
       fetchConversations(true);
     } else {
       fetchConversations(true);
