@@ -34,5 +34,9 @@ externalPort = 80
 localPort = 39009
 externalPort = 3000
 
+[[ports]]
+localPort = 39229
+externalPort = 3001
+
 [nix]
 packages = ["openssh"]
