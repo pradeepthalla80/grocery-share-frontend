@@ -1,0 +1,196 @@
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const validator = require('validator');
+
+// Register new user
+const register = async (req, res) => {
+  try {
+    const { name, email, password, acceptedTerms } = req.body;
+    
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ 
+        error: 'Please provide name, email, and password' 
+      });
+    }
+    
+    // Validate Terms & Conditions acceptance
+    if (!acceptedTerms) {
+      return res.status(400).json({ 
+        error: 'You must accept the Terms and Conditions to create an account' 
+      });
+    }
+    
+    // Validate email format
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ 
+        error: 'Please provide a valid email address' 
+      });
+    }
+    
+    // Normalize email
+    const normalizedEmail = validator.normalizeEmail(email);
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(400).json({ 
+        error: 'User with this email already exists' 
+      });
+    }
+    
+    // Create new user (password will be hashed by pre-save hook)
+    const user = new User({
+      name,
+      email: normalizedEmail,
+      password,
+      acceptedTerms: true,
+      termsAcceptedAt: new Date()
+    });
+    
+    await user.save();
+    
+    // Generate JWT token
+    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
+    
+    res.status(201).json({
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ 
+      error: 'Error registering user',
+      details: error.message 
+    });
+  }
+};
+
+// Login user
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ 
+        error: 'Please provide email and password' 
+      });
+    }
+    
+    // Validate email format
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ 
+        error: 'Please provide a valid email address' 
+      });
+    }
+    
+    // Normalize email
+    const normalizedEmail = validator.normalizeEmail(email);
+    
+    // Find user
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(401).json({ 
+        error: 'Invalid email or password' 
+      });
+    }
+    
+    // Validate password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        error: 'Invalid email or password' 
+      });
+    }
+    
+    // Generate JWT token
+    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
+    
+    res.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ 
+      error: 'Error logging in',
+      details: error.message 
+    });
+  }
+};
+
+// Change password
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.userId;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        error: 'Please provide current password and new password' 
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        error: 'New password must be at least 6 characters' 
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        error: 'User not found' 
+      });
+    }
+
+    const isPasswordValid = await user.comparePassword(currentPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        error: 'Current password is incorrect' 
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ 
+      error: 'Error changing password',
+      details: error.message 
+    });
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  changePassword
+};
