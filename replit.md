@@ -4,7 +4,77 @@ Grocery Share is a peer-to-peer web application designed to reduce food waste by
 
 # Recent Changes (November 7, 2025)
 
-## Current Session: Backend Updates Ready to Deploy (November 7, 2025)
+## Current Session: Delivery/Drop-Off Options Complete (November 7, 2025)
+
+### Status: ✅ Frontend Complete - Ready for Backend Integration
+
+**What Was Added:**
+Complete delivery and drop-off functionality for both items and request offers, allowing users to offer free or paid delivery ($1-$5 range).
+
+### Changes Made:
+
+**1. Item Listings with Delivery Options (AddItem.tsx)**
+- Added "Offer Delivery or Drop-off" checkbox
+- Radio button selection: Free delivery or $1-$5 fee
+- Schema validation ensuring fee is free or between $1-$5
+- Delivery data included in item creation payload
+
+**2. Request Offers with Delivery (OfferModal.tsx)**
+- Same delivery options when making offers on requests
+- Delivery info included in pre-populated chat messages
+- Example: "I can offer apples for free! I can deliver for $2."
+- Both free and paid offer flows transmit delivery details
+
+**3. Item Detail Page Display (ItemDetail.tsx)**
+- Shows delivery availability with green truck emoji 🚚
+- Displays "Free delivery" or "$3 delivery fee" based on seller's selection
+- Clean visual integration with existing item details
+
+**4. Data Model Updates (items.ts)**
+- Added `offerDelivery?: boolean` to Item interface
+- Added `deliveryFee?: number` to Item interface
+- Enables TypeScript type safety across the app
+
+### Files Changed:
+- `src/api/items.ts` - Updated Item interface with delivery fields
+- `src/pages/AddItem.tsx` - Added delivery options and validation
+- `src/components/OfferModal.tsx` - Added delivery to offer flow with chat integration
+- `src/pages/ItemDetail.tsx` - Display delivery information to users
+
+### User Experience:
+1. **Creating an Item**: Checkbox to offer delivery, select free or $1-$5
+2. **Making an Offer**: Include delivery in your offer via checkbox and fee selection
+3. **Viewing Items**: See "🚚 $2 delivery fee" or "🚚 Free delivery" on item pages
+4. **Chat Integration**: Delivery info auto-populated in first message when making offers
+
+### Backend Requirements:
+⚠️ **Backend needs to accept these new fields:**
+- Update Item model: Add `offerDelivery` (Boolean) and `deliveryFee` (Number, 0-5)
+- Validate deliveryFee server-side: must be 0 (free) or 1-5
+- Return these fields in item GET endpoints so ItemDetail can display them
+- Store delivery data when items are created/updated
+
+**Current Behavior Without Backend:**
+- Delivery options are captured in forms but may not persist if backend doesn't accept them
+- ItemDetail will show delivery info once backend returns the fields
+- OfferModal communicates delivery via chat messages as a workaround
+
+### Architect Review: ✅ Passed
+- Complete end-to-end delivery flow through UI and chat
+- Proper validation preventing invalid fees
+- Security: No issues observed
+- Ready for backend coordination
+
+### Next Steps:
+1. Update backend Item model with delivery fields
+2. Test item creation with delivery options
+3. Verify delivery info displays on ItemDetail page
+4. Test offer flow with delivery selections
+5. Confirm chat messages include delivery information
+
+---
+
+## Previous Session: Backend Updates Ready to Deploy (November 7, 2025)
 
 ### Status: ⏳ Waiting for Backend Updates
 
