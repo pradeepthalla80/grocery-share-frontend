@@ -1,0 +1,35 @@
+~/workspace$ ls -la
+total 264
+drwxr-xr-x 1 runner runner    720 Nov  7 02:01 .
+drwxrwxrwx 1 runner runner     54 Nov  7 00:45 ..
+-rw-r--r-- 1 runner runner  10087 Nov  6 23:02 ADMIN_SETUP.md
+drwxr-xr-x 1 runner runner    474 Nov  6 22:05 attached_assets
+drwxr-xr-x 1 runner runner     38 Dec 11  2023 .cache
+drwxr-xr-x 1 runner runner      6 Nov  3 16:44 .config
+-rw-r--r-- 1 runner runner   1112 Nov  6 18:21 DEPLOY_TO_VERCEL.txt
+-rw-r--r-- 1 runner runner     60 Nov  6 18:21 .env.production
+-rw-r--r-- 1 runner runner    621 Nov  6 18:21 eslint.config.js
+drwxr-xr-x 1 runner runner    166 Nov  7 02:03 .git
+-rw-r--r-- 1 runner runner    280 Nov  6 18:21 .gitignore
+-rw-r--r-- 1 runner runner    371 Nov  6 18:21 index.html
+drwxr-xr-x 1 runner runner     20 Oct 31 21:26 .local
+-rw-r--r-- 1 runner runner      0 Nov  7 02:01 mangoose.schema
+drwxr-xr-x 1 runner runner     16 Nov  7 01:51 middleware
+drwxr-xr-x 1 runner runner   4360 Nov  6 23:55 node_modules
+-rw-r--r-- 1 runner runner   1320 Nov  6 20:30 package.json
+-rw-r--r-- 1 runner runner   1320 Nov  6 20:30 package.json.backup
+-rw-r--r-- 1 runner runner 160894 Nov  6 20:30 package-lock.json
+-rw-r--r-- 1 runner runner     91 Nov  6 18:21 postcss.config.js
+drwxr-xr-x 1 runner runner     16 Nov  6 18:21 public
+-rw-r--r-- 1 runner runner   2571 Nov  6 18:21 README.md
+-rw-r--r-- 1 runner runner    570 Nov  7 01:58 .replit
+-rw-r--r-- 1 runner runner  13250 Nov  7 01:19 replit.md
+drwxr-xr-x 1 runner runner     32 Nov  7 02:00 routes
+drwxr-xr-x 1 runner runner    144 Nov  6 22:58 src
+-rw-r--r-- 1 runner runner    367 Nov  6 18:21 tailwind.config.js
+-rw-r--r-- 1 runner runner    732 Nov  6 18:21 tsconfig.app.json
+-rw-r--r-- 1 runner runner    119 Nov  6 18:21 tsconfig.json
+-rw-r--r-- 1 runner runner    653 Nov  6 18:21 tsconfig.node.json
+drwxr-xr-x 1 runner runner     20 Nov  4 17:11 .upm
+-rw-r--r-- 1 runner runner    160 Nov  6 18:21 vercel.json
+-rw-r--r-- 1 runner runner    279 Nov  6 18:21 vite.config.ts
