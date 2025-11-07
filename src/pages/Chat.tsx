@@ -57,7 +57,7 @@ export const Chat = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [receiverId]);
+  }, [receiverId, prefilledMessage]);
 
   useEffect(() => {
     if (selectedConversation) {
