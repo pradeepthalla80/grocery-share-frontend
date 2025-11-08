@@ -225,11 +225,12 @@ export const ChatModal: React.FC<ChatModalProps> = ({
 
             {messages.map((message, index) => {
               const isOwnMessage = message.sender.id === currentUserId;
+              const isUnread = !isOwnMessage && !message.read;
               return (
                 <div key={index} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex items-end gap-2 max-w-[70%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-xs ${
-                      isOwnMessage ? 'bg-blue-500' : 'bg-purple-500'
+                      isOwnMessage ? 'bg-blue-500' : isUnread ? 'bg-green-500' : 'bg-purple-500'
                     }`}>
                       {message.sender.name.charAt(0).toUpperCase()}
                     </div>
@@ -237,9 +238,14 @@ export const ChatModal: React.FC<ChatModalProps> = ({
                       <div className={`px-4 py-2 rounded-2xl ${
                         isOwnMessage
                           ? 'bg-blue-500 text-white rounded-br-none'
+                          : isUnread
+                          ? 'bg-green-100 text-gray-900 rounded-bl-none shadow-md border-2 border-green-500'
                           : 'bg-white text-gray-800 rounded-bl-none shadow-md'
                       }`}>
-                        <p className="text-sm break-words">{message.message}</p>
+                        <p className={`text-sm break-words ${isUnread ? 'font-semibold' : ''}`}>{message.message}</p>
+                        {isUnread && (
+                          <span className="inline-block ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">New</span>
+                        )}
                       </div>
                       <p className={`text-xs text-gray-500 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
                         {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
