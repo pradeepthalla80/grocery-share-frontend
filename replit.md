@@ -10,9 +10,67 @@ User prefers complete file updates rather than partial edits - always provide en
 
 # Recent Work Sessions
 
+## November 8, 2025 - Session 3: Backend Price Fields Integration
+
+### ✅ Completed & Deployed
+
+**BACKEND (Updated on GitHub - Render Auto-Deploying):**
+
+1. **ItemRequest Model** (`models/ItemRequest.js`)
+   - Added `pricePreference` field (enum: 'free_only' or 'willing_to_pay')
+   - Added `maxPrice` field (Number, min: 0)
+
+2. **ItemRequest Controller** (`controllers/itemRequestController.js`)
+   - Updated `createRequest` to save pricePreference and maxPrice from request body
+   - Added NEW `updateRequest` function to handle editing requests (was missing!)
+   - Both functions parse maxPrice as float
+
+3. **ItemRequest Routes** (`routes/itemRequests.js`)
+   - Added PUT route `/item-requests/:requestId` for editing (was missing!)
+   - Imported `updateRequest` function from controller
+
+**FRONTEND (Pushed to GitHub - Vercel Auto-Deploying):**
+
+1. **RED Unread Messages** (changed from green per user request)
+   - `src/components/ChatModal.tsx` - RED avatar, RED background, RED border, RED "New" badge
+   - `src/components/ConversationCard.tsx` - RED left border for conversations with unread messages
+
+2. **Notification Navigation**
+   - `src/components/NotificationBell.tsx` - Clicking notification navigates to /chat, marks as read, closes dropdown
+
+3. **Request Edit Mode Fix**
+   - `src/pages/ItemRequests.tsx` - Now preserves pricePreference and maxPrice when editing (was losing them before)
+
+### 🧪 READY FOR TESTING
+
+**Test After Both Deployments Complete (~2 minutes):**
+
+1. **Delete old "Cloves" request** (created before price fields were added)
+2. **Create new request** with:
+   - Item: Cloves
+   - Payment Preference: "Willing to Pay"
+   - Max Price: $6.00
+3. **Verify 3 things:**
+   - ✅ Request details page shows "Willing to pay up to $6.00"
+   - ✅ Make an Offer modal shows TWO options (Free + Set a Price up to $6)
+   - ✅ Delivery checkbox visible with fee options ($1-$5 or free)
+
+### Files Modified (Session 3)
+
+**Backend (via GitHub):**
+- `models/ItemRequest.js` - Added pricePreference and maxPrice fields
+- `controllers/itemRequestController.js` - Added price handling in create/update
+- `routes/itemRequests.js` - Added PUT route for updates
+
+**Frontend:**
+- `src/components/ChatModal.tsx` - RED unread styling
+- `src/components/NotificationBell.tsx` - Navigation to /chat
+- `src/components/ConversationCard.tsx` - RED border for unread
+- `src/pages/ItemRequests.tsx` - Preserve price fields on edit
+
 ## November 8, 2025 - Session 2: UI Polish & Notification Navigation
 
-### ✅ Just Completed
+### ✅ Completed
 
 1. **Changed Unread Messages to RED** (per user request)
    - Unread messages now show RED background (was green)
@@ -31,13 +89,6 @@ User prefers complete file updates rather than partial edits - always provide en
    - When "Willing to Pay" selected, shows max price input field
    - Details page displays price correctly
    - OfferModal supports both free and paid offers with delivery
-
-### Files Modified (Session 2)
-
-**Frontend:**
-- `src/components/ChatModal.tsx` - Changed green to red for unread messages
-- `src/components/NotificationBell.tsx` - Added navigation to /chat on click
-- `src/components/ConversationCard.tsx` - Changed green to red border for unread
 
 ## November 8, 2025 - Session 1: Complete Feature Fixes & UX Improvements
 
@@ -73,15 +124,6 @@ User prefers complete file updates rather than partial edits - always provide en
    - Fixes "Interested to Buy" button 500 errors
    - Fixes pickup request notifications
    - Uses correct schema field names (user, not userId)
-
-### Files Modified (Session 1)
-
-**Frontend:**
-- `src/components/ChatModal.tsx` - Added unread message highlighting
-- All other chat/notification files from Nov 7 still active
-
-**Backend:**
-- `src/routes/notifications.js` - Complete rewrite with robust owner field handling and correct schema field names
 
 ## November 7, 2025 - Chat UI Redesign & Notification Fixes
 
@@ -126,7 +168,7 @@ Map integration uses Leaflet v1.9 with React-Leaflet v5 and OpenStreetMap/Nomina
 - **Search & Discovery**: Location-based search with radius filtering, keyword, category, and tag filtering, personalized recommendations, and trending items.
 - **Listing Management**: Multi-image upload, address autocomplete with map preview, flexible pricing (free/paid), pickup time windows, and category/tag organization.
 - **Communication**: One-on-one messaging via modal popup interface, conversation threads with unread badges (visual RED highlights), real-time polling, URL-driven chat entry, pre-filled messages, and an address reveal mechanism.
-- **Request Management**: Full request creation with price preferences ("Free Only" or "Willing to Pay up to $X"), quantity, category, location, and validity period. Request details page shows all info.
+- **Request Management**: Full request creation with price preferences ("Free Only" or "Willing to Pay up to $X"), quantity, category, location, and validity period. Request details page shows all info. BACKEND NOW SUPPORTS: pricePreference and maxPrice fields in database.
 - **Request Offers**: Full support for both free and paid offers with delivery options when responding to requests. OfferModal validates price against requester's max price.
 - **Gamification**: Badge system for achievements and a user rating/review system.
 - **Safety & Privacy**: Addresses are hidden by default, requiring mutual consent for revealing, and a pickup confirmation workflow.
@@ -134,7 +176,7 @@ Map integration uses Leaflet v1.9 with React-Leaflet v5 and OpenStreetMap/Nomina
 ## System Design Choices
 
 - **Routing**: React Router v7 handles client-side navigation with public and protected routes. Route protection is managed by a `ProtectedRoute` component.
-- **Data Models**: Core entities include User, Item, Message, Conversation (with unreadCount), Notification, ItemRequest, Rating, and Badge.
+- **Data Models**: Core entities include User, Item, Message, Conversation (with unreadCount), Notification, ItemRequest (with pricePreference and maxPrice), Rating, and Badge.
 - **Deployment**: 
   - Frontend deployed on Vercel (auto-deploys from GitHub on push)
   - Backend deployed on Render (auto-deploys from GitHub on push)
@@ -152,18 +194,32 @@ Map integration uses Leaflet v1.9 with React-Leaflet v5 and OpenStreetMap/Nomina
 ## Backend API
 
 - **Base URL**: `https://grocery-share-backend.onrender.com`.
-- A RESTful API requiring JWT authentication for protected endpoints, using JSON for requests and responses. The backend supports user management, item listings, chat, notifications, item requests, and admin functionalities.
+- A RESTful API requiring JWT authentication for protected endpoints, using JSON for requests and responses. The backend supports user management, item listings, chat, notifications, item requests (with price preferences), and admin functionalities.
 
 # Known Issues & Testing
 
-## Ready for Testing
+## Currently Deploying (Nov 8, Session 3)
 
-1. **"Interested to Buy" button** - Should work now with backend fix
-2. **Notification bell** - Should navigate to /chat and show notifications
-3. **Unread messages** - Should show RED highlights with "New" badges
-4. **Request price fields** - Form shows price preference dropdown and max price input
-5. **Request details page** - Shows payment amount user is willing to pay
-6. **Offer modal** - Supports paid/free offers with delivery options
+**Backend changes** (Render deploying ~1-2 min):
+- ItemRequest model now has pricePreference and maxPrice fields
+- Create/Update controllers save these fields
+- PUT route added for editing requests
+
+**Frontend changes** (Vercel deploying ~30 sec):
+- RED unread message styling
+- Notification bell navigates to /chat
+- Edit mode preserves price fields
+
+## Next Testing Steps
+
+After deployments complete:
+1. Hard refresh browser (Ctrl+Shift+R)
+2. Delete old "Cloves" request
+3. Create new request with "Willing to Pay" → $6
+4. Verify:
+   - Details page shows "$6.00"
+   - Offer modal shows paid option
+   - Delivery checkbox visible
 
 ## Previous Bugs Fixed
 - Distance calculation showing "0.00 miles" - FIXED
@@ -172,3 +228,5 @@ Map integration uses Leaflet v1.9 with React-Leaflet v5 and OpenStreetMap/Nomina
 - Notification polling too slow - FIXED (now 5 seconds)
 - Unread message styling - FIXED (RED highlights per user request)
 - Notification navigation - FIXED (clicks now go to /chat)
+- Request edit losing price fields - FIXED (now preserves them)
+- Backend missing price fields - FIXED (added to model/controller/routes)
