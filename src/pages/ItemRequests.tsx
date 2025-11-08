@@ -79,6 +79,8 @@ export const ItemRequests = () => {
           setValue('quantity', request.quantity);
           setValue('category', request.category);
           setValue('notes', request.notes || '');
+          setValue('pricePreference', request.pricePreference || 'free_only');
+          setValue('maxPrice', request.maxPrice?.toString() || '');
           
           // Set location and address
           if (request.location) {

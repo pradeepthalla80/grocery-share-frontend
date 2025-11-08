@@ -16,7 +16,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({ conversation
     <div
       onClick={onClick}
       className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer border-l-4 ${
-        hasUnread ? 'border-l-green-500' : 'border-l-blue-500'
+        hasUnread ? 'border-l-red-500' : 'border-l-blue-500'
       }`}
     >
       <div className="p-4 flex items-center gap-4">
