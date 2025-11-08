@@ -1,0 +1,345 @@
+
+
+Live tail
+CST
+
+Menu
+
+     ==> Deploying...
+==> Running 'node index.js'
+/opt/render/project/src/routes/notifications.js:31
+    const count = await Notification.countDocuments({ userId, read = false });
+                                                              ^^^^^^^^^^^^
+SyntaxError: Invalid shorthand property initializer
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/opt/render/project/src/index.js:10:29)
+Node.js v25.1.0
+     ==> Exited with status 1
+     ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'node index.js'
+/opt/render/project/src/routes/notifications.js:31
+    const count = await Notification.countDocuments({ userId, read = false });
+                                                              ^^^^^^^^^^^^
+SyntaxError: Invalid shorthand property initializer
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/opt/render/project/src/index.js:10:29)
+Node.js v25.1.0
+==> Running 'node index.js'
+⏰ Expiry alert cron job scheduled (daily at 9 AM)
+Warning: connect.session() MemoryStore is not
+⏰ Nearby item monitoring scheduled (every 30 minutes)
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+[CRON] Expiration cleanup job scheduled (runs every hour)
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173, https://grocery-share-frontend.vercel.app
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+/opt/render/project/src/routes/notifications.js:31
+    const count = await Notification.countDocuments({ userId, read = false });
+                                                              ^^^^^^^^^^^^
+SyntaxError: Invalid shorthand property initializer
+    at wrapSafe (node:internal/modules/cjs/loader:1691:18)
+    at Module._compile (node:internal/modules/cjs/loader:1734:20)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (/opt/render/project/src/index.js:10:29)
+Node.js v25.1.0
+     ==> Deploying...
+==> Running 'node index.js'
+⏰ Expiry alert cron job scheduled (daily at 9 AM)
+⏰ Nearby item monitoring scheduled (every 30 minutes)
+[CRON] Expiration cleanup job scheduled (runs every hour)
+Warning: connect.session() MemoryStore is not
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173, https://grocery-share-frontend.vercel.app
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+Error sending interest notification: Error: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690b7190b80ab609eb015fb9', name: 'milk' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2896:40)
+    at formatWithOptions (node:internal/util/inspect:2758:10)
+    at console.value (node:internal/console/constructor:356:14)
+    at console.error (node:internal/console/constructor:423:61)
+    at /opt/render/project/src/routes/notifications.js:213:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    item: CastError: Cast to ObjectId failed for value "{ id: '690b7190b80ab609eb015fb9', name: 'milk' }" (type Object) at path "item" because of "BSONError"
+        at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:251:11)
+        at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+        at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+        at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+        at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+        at /opt/render/project/src/routes/notifications.js:192:26
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+      stringValue: `"{ id: '690b7190b80ab609eb015fb9', name: 'milk' }"`,
+      messageFormat: undefined,
+      kind: 'ObjectId',
+      value: [Object],
+      path: 'item',
+      reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+          at new ObjectId (/opt/render/project/src/node_modules/bson/lib/bson.cjs:2538:23)
+          at castObjectId (/opt/render/project/src/node_modules/mongoose/lib/cast/objectid.js:25:12)
+          at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:249:12)
+          at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+          at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+          at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+          at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+          at /opt/render/project/src/routes/notifications.js:192:26,
+      valueType: 'Object'
+    },
+    user: ValidatorError: Path `user` is required.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'required',
+      path: 'user',
+      value: undefined,
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Notification validation failed'
+}
+Error stack: ValidationError: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690b7190b80ab609eb015fb9', name: 'milk' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at Document.invalidate (/opt/render/project/src/node_modules/mongoose/lib/document.js:3362:32)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1484:12)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+    at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+    at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+    at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+    at /opt/render/project/src/routes/notifications.js:192:26
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+     ==> Detected service running on port 10000
+     ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+Error sending interest notification: Error: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2896:40)
+    at formatWithOptions (node:internal/util/inspect:2758:10)
+    at console.value (node:internal/console/constructor:356:14)
+    at console.error (node:internal/console/constructor:423:61)
+    at /opt/render/project/src/routes/notifications.js:213:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    item: CastError: Cast to ObjectId failed for value "{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }" (type Object) at path "item" because of "BSONError"
+        at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:251:11)
+        at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+        at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+        at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+        at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+        at /opt/render/project/src/routes/notifications.js:192:26
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+      stringValue: `"{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }"`,
+      messageFormat: undefined,
+      kind: 'ObjectId',
+      value: [Object],
+      path: 'item',
+      reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+          at new ObjectId (/opt/render/project/src/node_modules/bson/lib/bson.cjs:2538:23)
+          at castObjectId (/opt/render/project/src/node_modules/mongoose/lib/cast/objectid.js:25:12)
+          at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:249:12)
+          at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+          at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+          at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+          at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+          at /opt/render/project/src/routes/notifications.js:192:26,
+      valueType: 'Object'
+    },
+    user: ValidatorError: Path `user` is required.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'required',
+      path: 'user',
+      value: undefined,
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Notification validation failed'
+}
+Error stack: ValidationError: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at Document.invalidate (/opt/render/project/src/node_modules/mongoose/lib/document.js:3362:32)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1484:12)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+    at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+    at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+    at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+    at /opt/render/project/src/routes/notifications.js:192:26
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Error sending interest notification: Error: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2896:40)
+    at formatWithOptions (node:internal/util/inspect:2758:10)
+    at console.value (node:internal/console/constructor:356:14)
+    at console.error (node:internal/console/constructor:423:61)
+    at /opt/render/project/src/routes/notifications.js:213:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    item: CastError: Cast to ObjectId failed for value "{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }" (type Object) at path "item" because of "BSONError"
+        at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:251:11)
+        at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+        at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+        at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+        at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+        at /opt/render/project/src/routes/notifications.js:192:26
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+      stringValue: `"{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }"`,
+      messageFormat: undefined,
+      kind: 'ObjectId',
+      value: [Object],
+      path: 'item',
+      reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+          at new ObjectId (/opt/render/project/src/node_modules/bson/lib/bson.cjs:2538:23)
+          at castObjectId (/opt/render/project/src/node_modules/mongoose/lib/cast/objectid.js:25:12)
+          at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:249:12)
+          at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+          at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+          at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+          at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+          at /opt/render/project/src/routes/notifications.js:192:26,
+      valueType: 'Object'
+    },
+    user: ValidatorError: Path `user` is required.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'required',
+      path: 'user',
+      value: undefined,
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Notification validation failed'
+}
+Error stack: ValidationError: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690e1c666d2b14c15ab7561e', name: 'Fried Onions' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at Document.invalidate (/opt/render/project/src/node_modules/mongoose/lib/document.js:3362:32)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1484:12)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+    at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+    at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+    at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+    at /opt/render/project/src/routes/notifications.js:192:26
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Error sending interest notification: Error: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690ba6b8451f09978498f646', name: 'ginger honey crystals' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2896:40)
+    at formatWithOptions (node:internal/util/inspect:2758:10)
+    at console.value (node:internal/console/constructor:356:14)
+    at console.error (node:internal/console/constructor:423:61)
+    at /opt/render/project/src/routes/notifications.js:213:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    item: CastError: Cast to ObjectId failed for value "{ id: '690ba6b8451f09978498f646', name: 'ginger honey crystals' }" (type Object) at path "item" because of "BSONError"
+        at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:251:11)
+        at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+        at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+        at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+        at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+        at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+        at /opt/render/project/src/routes/notifications.js:192:26
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+      stringValue: `"{ id: '690ba6b8451f09978498f646', name: 'ginger honey crystals' }"`,
+      messageFormat: undefined,
+      kind: 'ObjectId',
+      value: [Object],
+      path: 'item',
+      reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+          at new ObjectId (/opt/render/project/src/node_modules/bson/lib/bson.cjs:2538:23)
+          at castObjectId (/opt/render/project/src/node_modules/mongoose/lib/cast/objectid.js:25:12)
+          at SchemaObjectId.cast (/opt/render/project/src/node_modules/mongoose/lib/schema/objectId.js:249:12)
+          at SchemaType.applySetters (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1262:12)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1442:22)
+          at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+          at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+          at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+          at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+          at /opt/render/project/src/routes/notifications.js:192:26,
+      valueType: 'Object'
+    },
+    user: ValidatorError: Path `user` is required.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'required',
+      path: 'user',
+      value: undefined,
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Notification validation failed'
+}
+Error stack: ValidationError: Notification validation failed: item: Cast to ObjectId failed for value "{ id: '690ba6b8451f09978498f646', name: 'ginger honey crystals' }" (type Object) at path "item" because of "BSONError", user: Path `user` is required.
+    at Document.invalidate (/opt/render/project/src/node_modules/mongoose/lib/document.js:3362:32)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1484:12)
+    at model.$set (/opt/render/project/src/node_modules/mongoose/lib/document.js:1136:16)
+    at model.Document (/opt/render/project/src/node_modules/mongoose/lib/document.js:178:12)
+    at model.Model (/opt/render/project/src/node_modules/mongoose/lib/model.js:127:12)
+    at new model (/opt/render/project/src/node_modules/mongoose/lib/model.js:4845:15)
+    at /opt/render/project/src/routes/notifications.js:192:26
+    at process.processTicksAndRejections (node:internal/process/task_queues:10
