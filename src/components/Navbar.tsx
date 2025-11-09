@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield } from 'lucide-react';
+import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { useAdmin } from '../hooks/useAdmin';
 
@@ -70,6 +70,17 @@ export const Navbar = () => {
                 >
                   <HandHeart className="h-4 w-4" />
                   <span>Requests</span>
+                </Link>
+                <Link
+                  to="/analytics"
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${
+                    location.pathname === '/analytics'
+                      ? 'bg-green-100 text-green-700'
+                      : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Impact</span>
                 </Link>
                 {hasAdminAccess && (
                   <Link
