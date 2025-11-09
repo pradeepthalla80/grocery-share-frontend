@@ -8,6 +8,13 @@ Preferred communication style: Simple, everyday language.
 
 User prefers complete file updates rather than partial edits - always provide entire updated files when making backend changes.
 
+**CRITICAL: Mobile-First Development**
+- ALL new features and changes MUST work perfectly on mobile devices
+- Test and verify mobile responsiveness for screens ≤400px
+- Future goal: Convert to native mobile app for iOS and Android
+- Design decisions should support eventual mobile app conversion
+- Touch-friendly interfaces, mobile UX patterns, responsive layouts required
+
 # System Architecture
 
 ## UI/UX Decisions
