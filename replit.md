@@ -43,7 +43,7 @@ The UI is built with React 19, TypeScript, and Vite 7. Styling utilizes Tailwind
 - **Request Offers**: Full support for both free and paid offers with delivery options when responding to requests. OfferModal validates price against requester's max price.
 - **Gamification**: Badge system for achievements and a user rating/review system.
 - **Safety & Privacy**: Addresses are hidden by default, requiring mutual consent for revealing, and a pickup confirmation workflow.
-- **Analytics**: Community Impact dashboard showing total users, items shared, and food saved, integrated with a `/api/v1/analytics/impact` endpoint.
+- **Analytics**: Community Impact dashboard (`/analytics` page) displaying 6 key metrics: Total Members, Items Shared, Requests Fulfilled, Food Saved (lbs), Active Communities, and Open Requests. Backend endpoint `/api/v1/analytics/impact` returns real-time data from MongoDB. Frontend includes smart fallback to demo data if backend is unavailable. Metrics calculated from User, Item, and ItemRequest collections.
 
 ## System Design Choices
 
@@ -63,4 +63,6 @@ The UI is built with React 19, TypeScript, and Vite 7. Styling utilizes Tailwind
 ## Backend API
 
 - **Base URL**: `https://grocery-share-backend.onrender.com`.
-- A RESTful API requiring JWT authentication for protected endpoints, using JSON for requests and responses. The backend supports user management, item listings, chat, notifications, item requests (with price preferences), and admin functionalities. The API follows a `/api/v1` versioned endpoint structure with a standardized response format: `{ success, data, message, error }`.
+- A RESTful API requiring JWT authentication for protected endpoints, using JSON for requests and responses. The backend supports user management, item listings, chat, notifications, item requests (with price preferences), admin functionalities, and analytics. The API follows a `/api/v1` versioned endpoint structure with a standardized response format: `{ success, data, message, error }`.
+- **Backend Structure**: Backend repository uses root-level `controllers/`, `routes/`, `models/`, and `services/` folders. Main entry point is `index.js` at root level (NOT in src/). Files: `controllers/analyticsController.js`, `routes/analytics.js`.
+- **Deployment Status**: Backend deployed on Render with auto-deploy from GitHub. Latest commit: `039263d` (Analytics endpoint implementation). Frontend deployed on Vercel, latest push includes analytics API path fix (`184440d`).
