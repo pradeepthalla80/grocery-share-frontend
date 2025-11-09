@@ -1,5 +1,6 @@
-import React, { createContext, useState, useCallback, type ReactNode } from 'react';
+import React, { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { Toast, type ToastType } from '../components/Toast';
+import { setToastCallback } from '../api/config';
 
 interface ToastContextType {
   showToast: (message: string, type: ToastType) => void;
@@ -18,6 +19,11 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const removeToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
+
+  // Register toast callback with API client for global error handling
+  useEffect(() => {
+    setToastCallback(showToast);
+  }, [showToast]);
 
   return (
     <ToastContext.Provider value={{ showToast }}>

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './context/ToastContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -20,15 +21,18 @@ import { ContactUs } from './pages/ContactUs';
 import { ItemDetail } from './pages/ItemDetail';
 import { RequestDetail } from './pages/RequestDetail';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { Analytics } from './pages/Analytics';
+import { NotFound } from './pages/NotFound';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
 function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <ToastProvider>
-          <BrowserRouter>
+    <ErrorBoundary>
+      <AuthProvider>
+        <NotificationProvider>
+          <ToastProvider>
+            <BrowserRouter>
         <div className="min-h-screen bg-gray-50">
           <Navbar />
           <Routes>
@@ -120,13 +124,23 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />
         </div>
       </BrowserRouter>
-        </ToastProvider>
-      </NotificationProvider>
-    </AuthProvider>
+          </ToastProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
