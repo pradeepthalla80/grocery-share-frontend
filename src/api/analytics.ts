@@ -12,7 +12,7 @@ export interface AnalyticsData {
 export const getImpactAnalytics = async (): Promise<AnalyticsData> => {
   try {
     // Call the backend /api/v1/analytics/impact endpoint
-    const response = await apiClient.get('/v1/analytics/impact');
+    const response = await apiClient.get('/api/v1/analytics/impact');
     
     // Handle standardized response format: { success, data, message }
     if (response.data && typeof response.data === 'object') {
