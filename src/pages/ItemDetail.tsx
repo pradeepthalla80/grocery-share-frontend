@@ -660,6 +660,8 @@ export const ItemDetail = () => {
           itemId={item.id}
           itemName={item.name}
           itemPrice={item.price}
+          offerDelivery={item.offerDelivery}
+          deliveryFee={item.deliveryFee}
           onSuccess={async () => {
             const data = await itemsAPI.getById(id!);
             setItem(data);

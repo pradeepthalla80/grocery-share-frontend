@@ -11,25 +11,36 @@ interface PaymentModalProps {
   itemId: string;
   itemName: string;
   itemPrice: number;
+  offerDelivery?: boolean;
+  deliveryFee?: number;
   onSuccess: () => void;
 }
 
 const CheckoutForm = ({ 
   itemName, 
-  itemPrice, 
+  itemPrice,
+  offerDelivery,
+  deliveryFee,
   onSuccess, 
-  onClose 
+  onClose,
+  onDeliveryChange
 }: { 
   itemName: string; 
-  itemPrice: number; 
+  itemPrice: number;
+  offerDelivery?: boolean;
+  deliveryFee?: number;
   onSuccess: () => void;
   onClose: () => void;
+  onDeliveryChange: (includeDelivery: boolean) => void;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [includeDelivery, setIncludeDelivery] = useState(false);
+
+  const totalPrice = includeDelivery && deliveryFee ? itemPrice + deliveryFee : itemPrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,13 +90,48 @@ const CheckoutForm = ({
     }
   };
 
+  const handleDeliveryToggle = (checked: boolean) => {
+    setIncludeDelivery(checked);
+    onDeliveryChange(checked);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-gray-900 mb-2">Purchase Summary</h3>
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">{itemName}</span>
-          <span className="text-lg font-bold text-green-600">${itemPrice.toFixed(2)}</span>
+        <h3 className="font-semibold text-gray-900 mb-3">Purchase Summary</h3>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-sm sm:text-base">
+            <span className="text-gray-600">{itemName}</span>
+            <span className="font-medium text-gray-900">${itemPrice.toFixed(2)}</span>
+          </div>
+          
+          {offerDelivery && (
+            <>
+              <div className="border-t pt-2">
+                <label className="flex items-center justify-between cursor-pointer group">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={includeDelivery}
+                      onChange={(e) => handleDeliveryToggle(e.target.checked)}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm sm:text-base text-gray-700 group-hover:text-gray-900">
+                      🚚 Add Delivery
+                    </span>
+                  </div>
+                  <span className="text-sm sm:text-base font-medium text-gray-900">
+                    {deliveryFee && deliveryFee > 0 ? `$${deliveryFee.toFixed(2)}` : 'FREE'}
+                  </span>
+                </label>
+              </div>
+            </>
+          )}
+          
+          <div className="border-t pt-2 flex justify-between items-center">
+            <span className="font-semibold text-gray-900">Total</span>
+            <span className="text-xl sm:text-2xl font-bold text-green-600">${totalPrice.toFixed(2)}</span>
+          </div>
         </div>
       </div>
 
@@ -122,7 +168,7 @@ const CheckoutForm = ({
           ) : (
             <>
               <CreditCard className="h-5 w-5" />
-              Pay ${itemPrice.toFixed(2)}
+              Pay ${totalPrice.toFixed(2)}
             </>
           )}
         </button>
@@ -137,12 +183,15 @@ export const PaymentModal = ({
   itemId,
   itemName,
   itemPrice,
+  offerDelivery,
+  deliveryFee,
   onSuccess,
 }: PaymentModalProps) => {
   const [stripePromise, setStripePromise] = useState<any>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [includeDelivery, setIncludeDelivery] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -173,7 +222,7 @@ export const PaymentModal = ({
       setError(null);
 
       try {
-        const { clientSecret: secret } = await createPaymentIntent(itemId);
+        const { clientSecret: secret } = await createPaymentIntent(itemId, includeDelivery);
         setClientSecret(secret);
       } catch (err: any) {
         console.error('Failed to create payment intent:', err);
@@ -185,7 +234,11 @@ export const PaymentModal = ({
     };
 
     createIntent();
-  }, [isOpen, itemId, stripePromise, showToast]);
+  }, [isOpen, itemId, includeDelivery, stripePromise, showToast]);
+
+  const handleDeliveryChange = (newIncludeDelivery: boolean) => {
+    setIncludeDelivery(newIncludeDelivery);
+  };
 
   if (!isOpen) return null;
 
@@ -240,8 +293,11 @@ export const PaymentModal = ({
             <CheckoutForm
               itemName={itemName}
               itemPrice={itemPrice}
+              offerDelivery={offerDelivery}
+              deliveryFee={deliveryFee}
               onSuccess={onSuccess}
               onClose={onClose}
+              onDeliveryChange={handleDeliveryChange}
             />
           </Elements>
         )}

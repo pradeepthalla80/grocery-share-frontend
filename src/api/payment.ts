@@ -1,7 +1,7 @@
 import { apiClient } from './config';
 
-export const createPaymentIntent = async (itemId: string) => {
-  const response = await apiClient.post('/payment/create-payment-intent', { itemId });
+export const createPaymentIntent = async (itemId: string, includeDelivery: boolean = false) => {
+  const response = await apiClient.post('/payment/create-payment-intent', { itemId, includeDelivery });
   return response.data;
 };
 
