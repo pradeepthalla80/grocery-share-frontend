@@ -15,6 +15,7 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000, // 30 second timeout
+  withCredentials: true, // Send cookies with every request
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -22,6 +23,7 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Cookies are now sent automatically via withCredentials: true
   return config;
 });
 
