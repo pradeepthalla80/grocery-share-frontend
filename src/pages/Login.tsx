@@ -117,7 +117,7 @@ export const Login = () => {
 
           <div className="mt-6">
             <a
-              href={`${import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com'}/auth/google`}
+              href={`${import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com'}/api/v1/auth/google`}
               className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
