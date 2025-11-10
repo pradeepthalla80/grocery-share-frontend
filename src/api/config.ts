@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com';
+export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com') + '/api/v1';
 
 let toastCallback: ((message: string, type: 'success' | 'error' | 'info') => void) | null = null;
 

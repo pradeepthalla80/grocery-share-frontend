@@ -11,8 +11,8 @@ export interface AnalyticsData {
 
 export const getImpactAnalytics = async (): Promise<AnalyticsData> => {
   try {
-    // Call the backend /api/v1/analytics/impact endpoint
-    const response = await apiClient.get('/api/v1/analytics/impact');
+    // Call the backend analytics/impact endpoint
+    const response = await apiClient.get('/analytics/impact');
     
     // Handle standardized response format: { success, data, message }
     if (response.data && typeof response.data === 'object') {
