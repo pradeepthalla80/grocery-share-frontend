@@ -31,6 +31,10 @@ export interface Item {
   buyerId?: string;
   offerDelivery?: boolean;
   deliveryFee?: number;
+  isStoreItem?: boolean;
+  quantity?: number | null;
+  stockStatus?: 'in_stock' | 'out_of_stock' | 'low_stock' | 'unlimited' | null;
+  originalQuantity?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +66,7 @@ export interface SearchParams {
   keyword?: string;
   category?: string;
   tags?: string;
+  onlyStoreItems?: string;
 }
 
 export interface ItemsResponse {

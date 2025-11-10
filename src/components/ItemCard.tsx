@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Item } from '../api/items';
-import { Calendar, DollarSign, MapPin, Tag, User, ChevronLeft, ChevronRight, Clock, MessageCircle } from 'lucide-react';
+import { Calendar, DollarSign, MapPin, Tag, User, ChevronLeft, ChevronRight, Clock, MessageCircle, ShoppingCart, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 
@@ -47,7 +47,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+    <div className={`rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${
+      item.isStoreItem ? 'bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200' : 'bg-white'
+    }`}>
       <div className="relative w-full h-48 bg-gray-200">
         {allImages.length > 0 ? (
           <>
@@ -83,6 +85,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
                 </div>
               </>
             )}
+            
+            {/* Store Item Badge */}
+            {item.isStoreItem && (
+              <div className="absolute top-2 left-2 bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
+                <ShoppingCart className="h-3 w-3" />
+                <span>Store Item</span>
+              </div>
+            )}
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400">
@@ -103,16 +113,26 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         )}
 
         <div className="space-y-2 text-sm text-gray-600">
-          <div className="flex items-center space-x-2">
-            {item.isFree ? (
-              <span className="bg-green-100 text-green-700 font-semibold px-2 py-1 rounded text-sm">
-                🆓 FREE
-              </span>
-            ) : (
-              <>
-                <DollarSign className="h-4 w-4" />
-                <span className="font-semibold text-green-600">${item.price.toFixed(2)}</span>
-              </>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {item.isFree ? (
+                <span className="bg-green-100 text-green-700 font-semibold px-2 py-1 rounded text-sm">
+                  🆓 FREE
+                </span>
+              ) : (
+                <>
+                  <DollarSign className="h-4 w-4" />
+                  <span className="font-semibold text-green-600">${item.price.toFixed(2)}</span>
+                </>
+              )}
+            </div>
+            
+            {/* Stock Info for Store Items */}
+            {item.isStoreItem && item.quantity !== null && item.quantity !== undefined && (
+              <div className="flex items-center space-x-1.5 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                <Package className="h-3 w-3" />
+                <span>Stock: {item.quantity}</span>
+              </div>
             )}
           </div>
           

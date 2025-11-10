@@ -1,0 +1,66 @@
+Please enhance the Grocery Share web app with an Uber-style Store Owner Mode while keeping the existing architecture intact, and add a complete Store Owner Terms & Agreement system for legal compliance and recordkeeping.
+
+🔹 Main Goals
+
+Add a Store Owner Mode so verified users can create and manage their own mini-stores inside the app.
+
+Display store items together with community-shared items in the same dashboard and search pages—no separate section.
+
+Clearly mark store items with a visible “Store Item” badge, a small 🛒 icon, and show quantity and price.
+
+Add a filter toggle — “Show Only Store Items.”
+
+Let store owners switch modes with a “Switch to Store Mode” button, manage inventory (add / edit / delete items, adjust stock, review Stripe transactions), and automatically tag their listings as store items.
+
+Keep existing chat, payment, location, and request features fully compatible with store items.
+
+Ensure all store listings appear naturally in the main feed but remain visually distinct from regular community items.
+
+🔹 Legal Compliance and Terms Integration
+
+Before a user activates Store Mode, show a Store Owner Terms & Agreement modal explaining responsibilities and compliance requirements.
+
+The agreement should cover:
+• Seller responsibility for following local business / food laws
+• Platform not liable for product quality or fulfillment
+• Accurate stock / price maintenance required
+• Fraud or illegal activity = suspension
+• Consent to Stripe Terms of Service
+• Agreement may be updated → continued use means acceptance
+• Seller responsible for applicable taxes
+
+Once accepted, save the user’s agreement details (including date and IP address) and enable Store Mode.
+
+Add a Legal → Agreements section in the profile where owners can review what they accepted.
+
+🔹 Design and Experience
+
+Maintain the existing Grocery Share look and feel.
+
+Use a soft blue tint or badge for store items.
+
+Display “Stock: [x] | $[price]” below each store listing.
+
+Keep layout responsive and mobile-friendly.
+
+Add a Store Mode management area under profile or dashboard for store owners.
+
+🔹 Behavior and Search Logic
+
+Default feed shows nearby items first, mixing both community and store items.
+
+Priority: closest → available → others (by distance).
+
+Exclude out-of-stock store items automatically.
+
+Hide store listings if the owner disables Store Mode.
+
+🔹 Testing and Deployment
+
+Ensure all current features remain fully functional after enhancement.
+
+Show the Terms & Agreement modal only the first time a user activates Store Mode.
+
+Verify tagging, filtering, and search all behave consistently.
+
+When complete, push changes to GitHub so Render (back-end) and Vercel (front-end) redeploy automatically.

@@ -22,6 +22,8 @@ import { ItemDetail } from './pages/ItemDetail';
 import { RequestDetail } from './pages/RequestDetail';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { Analytics } from './pages/Analytics';
+import { StoreDashboard } from './pages/StoreDashboard';
+import { LegalAgreements } from './pages/LegalAgreements';
 import { NotFound } from './pages/NotFound';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
@@ -129,6 +131,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Analytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/store-dashboard"
+              element={
+                <ProtectedRoute>
+                  <StoreDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/legal/agreements"
+              element={
+                <ProtectedRoute>
+                  <LegalAgreements />
                 </ProtectedRoute>
               }
             />

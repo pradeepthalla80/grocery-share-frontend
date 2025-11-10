@@ -8,6 +8,7 @@ import { getUserBadges, type UserBadge } from '../api/gamification';
 import { User, Mail, Calendar, Package, Lock, ArrowLeft, Trash2, AlertTriangle, Star, Award, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
+import { StoreActivationSection } from '../components/StoreActivationSection';
 import { useToast } from '../hooks/useToast';
 
 export const Profile = () => {
@@ -273,6 +274,10 @@ export const Profile = () => {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-8 border-t pt-8">
+              <StoreActivationSection />
             </div>
 
             <div className="mt-8 border-t pt-8">

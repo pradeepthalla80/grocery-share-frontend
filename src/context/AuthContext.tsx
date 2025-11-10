@@ -8,6 +8,11 @@ interface User {
   role?: 'user' | 'admin' | 'super_admin';
   createdAt?: string;
   googleId?: string;
+  isStoreOwner?: boolean;
+  storeMode?: boolean;
+  storeName?: string;
+  storeAgreementAccepted?: boolean;
+  storeActivatedAt?: string;
 }
 
 interface AuthContextType {

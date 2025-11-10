@@ -4,6 +4,7 @@ import { itemsAPI, type Item } from '../api/items';
 import { getNearbyRequests, type ItemRequest } from '../api/itemRequests';
 import { getRecommendations } from '../api/recommendations';
 import { AddressInput } from '../components/AddressInput';
+import { StoreFilterToggle } from '../components/StoreFilterToggle';
 import { Search, Plus, Sparkles, Calendar, DollarSign, MapPin, Package, MessageCircle, ArrowUpDown, X } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -19,6 +20,7 @@ export const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('distance');
+  const [showOnlyStoreItems, setShowOnlyStoreItems] = useState(false);
   
   // Search location state (address-based, not coordinates)
   const [searchLocation, setSearchLocation] = useState<{ address: string; lat: number; lng: number } | null>(null);
@@ -44,6 +46,7 @@ export const Dashboard = () => {
           keyword: keyword || undefined,
           category: category || undefined,
           tags: tags || undefined,
+          onlyStoreItems: showOnlyStoreItems ? 'true' : undefined,
         }),
         getNearbyRequests(searchLocation.lat, searchLocation.lng, 50)
       ]);
@@ -77,6 +80,7 @@ export const Dashboard = () => {
             keyword: undefined,
             category: undefined,
             tags: undefined,
+            onlyStoreItems: showOnlyStoreItems ? 'true' : undefined,
           }),
           getNearbyRequests(searchLocation.lat, searchLocation.lng, parseFloat(radius))
         ]);
@@ -90,6 +94,7 @@ export const Dashboard = () => {
           keyword: keyword || undefined,
           category: category || undefined,
           tags: tags || undefined,
+          onlyStoreItems: showOnlyStoreItems ? 'true' : undefined,
         });
         setItems(response.items);
       } else {
@@ -180,7 +185,7 @@ export const Dashboard = () => {
         fetchRecommendations();
       }
     }
-  }, [searchLocation, activeTab]);
+  }, [searchLocation, activeTab, showOnlyStoreItems]);
 
   // Auto-load items on page load using browser geolocation
   useEffect(() => {
@@ -318,6 +323,18 @@ export const Dashboard = () => {
               </select>
             </div>
           </div>
+          
+          {/* Store Items Filter */}
+          {activeTab === 'available' && (
+            <div className="mt-4">
+              <StoreFilterToggle
+                enabled={showOnlyStoreItems}
+                onChange={setShowOnlyStoreItems}
+                count={showOnlyStoreItems ? items.length : undefined}
+              />
+            </div>
+          )}
+          
           <div className="mt-4">
             <button
               onClick={handleSearch}
