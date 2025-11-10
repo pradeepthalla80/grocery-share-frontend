@@ -25,7 +25,7 @@ The UI is built with React 19, TypeScript, and Vite 7. Styling utilizes Tailwind
 
 - **State Management**: Primarily uses React Context API for global state (Authentication, Notifications, Toast messages) and React hooks for local component state.
 - **Form Handling**: React Hook Form v7 integrated with Zod v4 for validation.
-- **Authentication**: JWT-based authentication supporting email/password and Google OAuth, with tokens stored in `localStorage`. Includes a robust role-based access control system (`user`, `admin`, `super_admin`) with an Admin Dashboard.
+- **Authentication**: JWT-based authentication supporting email/password and Google OAuth, with tokens stored in `localStorage`. Includes a robust role-based access control system (`user`, `admin`, `super_admin`) with an Admin Dashboard. **Enhanced for App Stores**: Strong password requirements (8+ chars, mixed case, numbers, special characters), real-time password strength indicator, password confirmation field, strict email validation, and mobile-optimized design ready for iOS/Android submission.
 - **Real-time Features**: Achieved through polling for chat messages (3-second intervals) and notifications (5-second intervals), with unread counts and toast notifications.
 - **Image Management**: Multi-image uploads (up to 5 per item) with Cloudinary integration.
 - **API Communication**: Axios for HTTP requests, configured with automatic JWT token injection, 30-second timeout, and global error handling including toast notifications for network errors, timeouts, server errors, and session expiry.
