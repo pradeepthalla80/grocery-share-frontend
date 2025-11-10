@@ -106,11 +106,11 @@ export const Register = () => {
     try {
       setLoading(true);
       setError('');
-      // acceptedTerms is validated by Zod but not sent to backend
       const response = await authAPI.register({
         name: data.name,
         email: data.email,
-        password: data.password
+        password: data.password,
+        acceptedTerms: data.acceptedTerms
       });
       login(response.token, response.user);
       navigate('/dashboard');
