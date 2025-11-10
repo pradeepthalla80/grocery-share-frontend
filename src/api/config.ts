@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getToken } from '../utils/token';
 
 export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com';
 
@@ -15,16 +14,7 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000, // 30 second timeout
-  withCredentials: true, // Send cookies with every request
-});
-
-apiClient.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  // Cookies are now sent automatically via withCredentials: true
-  return config;
+  withCredentials: true, // Send HttpOnly cookies automatically with every request
 });
 
 apiClient.interceptors.response.use(
