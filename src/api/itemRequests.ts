@@ -60,7 +60,7 @@ export const getNearbyRequests = async (latitude: number, longitude: number, rad
 };
 
 export const getMyRequests = async () => {
-  const response = await apiClient.post('/item-requests/my-requests');
+  const response = await apiClient.get('/item-requests/my-requests');
   return response.data;
 };
 
