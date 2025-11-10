@@ -199,7 +199,9 @@ const createItem = async (req, res) => {
 // Get items within radius with enhanced search filters
 const getItemsByLocation = async (req, res) => {
   try {
-    const { lat, lng, radius, keyword, category, tags } = req.query;
+    // ========== ADDED FOR STORE MODE - START ==========
+    const { lat, lng, radius, keyword, category, tags, onlyStoreItems } = req.query;
+    // ========== ADDED FOR STORE MODE - END ==========
     
     // Validation
     if (!lat || !lng) {
@@ -245,6 +247,22 @@ const getItemsByLocation = async (req, res) => {
       status: { $in: ['available', 'pending', 'picked_up'] }
     };
     
+    // ========== ADDED FOR STORE MODE - START ==========
+    // Filter by store items if requested
+    if (onlyStoreItems === 'true') {
+      query.isStoreItem = true;
+      query.stockStatus = { $ne: 'out_of_stock' }; // Exclude out-of-stock store items
+    } else {
+      // Mix both community and store items
+      // Exclude out-of-stock store items from mixed results
+      query.$or = [
+        { isStoreItem: false },
+        { isStoreItem: { $exists: false } }, // For backward compatibility
+        { isStoreItem: true, stockStatus: { $ne: 'out_of_stock' } }
+      ];
+    }
+    // ========== ADDED FOR STORE MODE - END ==========
+    
     // Add category filter
     if (category) {
       query.category = category;
@@ -268,7 +286,8 @@ const getItemsByLocation = async (req, res) => {
     
     // Find items within radius using MongoDB geospatial query
     // Note: Cannot use .sort() with $near query, so we'll sort in application code
-    const items = await Item.find(query).populate('user', 'name email');
+    // ========== ADDED FOR STORE MODE - UPDATED populate to include storeName ==========
+    const items = await Item.find(query).populate('user', 'name email storeName');
     
     // Sort by newest first (createdAt descending) in application code
     items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -314,6 +333,11 @@ const getItemsByLocation = async (req, res) => {
         offerDelivery: item.offerDelivery,
         deliveryFee: item.deliveryFee,
         distance: distance, // ADDED: Distance in miles
+        // ========== ADDED FOR STORE MODE - START ==========
+        isStoreItem: item.isStoreItem || false,
+        quantity: item.quantity,
+        stockStatus: item.stockStatus,
+        // ========== ADDED FOR STORE MODE - END ==========
         location: {
           lat: item.location.coordinates[1],
           lng: item.location.coordinates[0],
@@ -322,7 +346,10 @@ const getItemsByLocation = async (req, res) => {
         user: {
           id: item.user._id,
           name: item.user.name,
-          email: item.user.email
+          email: item.user.email,
+          // ========== ADDED FOR STORE MODE - START ==========
+          storeName: item.user.storeName || null
+          // ========== ADDED FOR STORE MODE - END ==========
         },
         notified: item.notified,
         createdAt: item.createdAt,
@@ -349,7 +376,8 @@ const getItemById = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const item = await Item.findById(id).populate('user', 'name email');
+    // ========== ADDED FOR STORE MODE - UPDATED populate to include storeName ==========
+    const item = await Item.findById(id).populate('user', 'name email storeName');
     
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
@@ -371,6 +399,11 @@ const getItemById = async (req, res) => {
       flexiblePickup: item.flexiblePickup,
       offerDelivery: item.offerDelivery,
       deliveryFee: item.deliveryFee,
+      // ========== ADDED FOR STORE MODE - START ==========
+      isStoreItem: item.isStoreItem || false,
+      quantity: item.quantity,
+      stockStatus: item.stockStatus,
+      // ========== ADDED FOR STORE MODE - END ==========
       location: {
         lat: item.location.coordinates[1],
         lng: item.location.coordinates[0],
@@ -379,7 +412,10 @@ const getItemById = async (req, res) => {
       user: item.user ? {
         id: item.user._id,
         name: item.user.name,
-        email: item.user.email
+        email: item.user.email,
+        // ========== ADDED FOR STORE MODE - START ==========
+        storeName: item.user.storeName || null
+        // ========== ADDED FOR STORE MODE - END ==========
       } : null,
       notified: item.notified,
       createdAt: item.createdAt,
@@ -418,6 +454,11 @@ const getMyItems = async (req, res) => {
       flexiblePickup: item.flexiblePickup,
       offerDelivery: item.offerDelivery,
       deliveryFee: item.deliveryFee,
+      // ========== ADDED FOR STORE MODE - START ==========
+      isStoreItem: item.isStoreItem || false,
+      quantity: item.quantity,
+      stockStatus: item.stockStatus,
+      // ========== ADDED FOR STORE MODE - END ==========
       location: {
         lat: item.location.coordinates[1],
         lng: item.location.coordinates[0],

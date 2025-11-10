@@ -116,6 +116,22 @@ const itemSchema = new mongoose.Schema({
     default: 'item'
   },
   
+  // ========== ADDED FOR STORE MODE - START ==========
+  isStoreItem: {
+    type: Boolean,
+    default: false
+  },
+  stockStatus: {
+    type: String,
+    enum: ['in_stock', 'out_of_stock', 'low_stock', 'unlimited'],
+    default: null // null for regular community items
+  },
+  originalQuantity: {
+    type: Number,
+    default: null
+  },
+  // ========== ADDED FOR STORE MODE - END ==========
+  
   // Owner/User
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -202,6 +218,9 @@ itemSchema.index({ category: 1 }); // Category filtering
 itemSchema.index({ expiryDate: 1 }); // Expiry sorting
 itemSchema.index({ createdAt: -1 }); // Recent items
 itemSchema.index({ buyerId: 1 }); // Buyer's purchases
+// ========== ADDED FOR STORE MODE - START ==========
+itemSchema.index({ isStoreItem: 1, stockStatus: 1 }); // Store item filtering
+// ========== ADDED FOR STORE MODE - END ==========
 
 // Virtual for distance (used in queries)
 itemSchema.virtual('distance').get(function() {

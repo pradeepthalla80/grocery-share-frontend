@@ -51,6 +51,9 @@ const adminRoutes = require('./routes/admin');
 const analyticsRoutes = require('./routes/analytics');
 const contactRoutes = require('./routes/contact');
 const addressRoutes = require('./routes/address');
+// ========== ADDED FOR STORE MODE - START ==========
+const storeRoutes = require('./routes/store');
+// ========== ADDED FOR STORE MODE - END ==========
 
 // Use Routes
 app.use('/api/v1/auth', authRoutes);
@@ -65,6 +68,9 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/address', addressRoutes);
+// ========== ADDED FOR STORE MODE - START ==========
+app.use('/api/v1/store', storeRoutes);
+// ========== ADDED FOR STORE MODE - END ==========
 
 // Health check
 app.get('/health', (req, res) => {

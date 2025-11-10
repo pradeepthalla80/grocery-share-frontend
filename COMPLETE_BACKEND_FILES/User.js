@@ -38,10 +38,10 @@ const userSchema = new mongoose.Schema({
     }
   },
   role: {
-  type: String,
-  enum: ['user', 'admin', 'super_admin'],
-  default: 'user'
-},
+    type: String,
+    enum: ['user', 'admin', 'super_admin'],
+    default: 'user'
+  },
   googleId: {
     type: String,
     unique: true,
@@ -54,6 +54,31 @@ const userSchema = new mongoose.Schema({
   termsAcceptedAt: {
     type: Date
   },
+  
+  // ========== ADDED FOR STORE MODE - START ==========
+  isStoreOwner: {
+    type: Boolean,
+    default: false
+  },
+  storeMode: {
+    type: Boolean,
+    default: false
+  },
+  storeName: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  storeAgreementAccepted: {
+    type: Boolean,
+    default: false
+  },
+  storeActivatedAt: {
+    type: Date,
+    default: null
+  },
+  // ========== ADDED FOR STORE MODE - END ==========
+  
   notificationSettings: {
     inApp: {
       type: Boolean,
