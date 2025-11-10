@@ -122,7 +122,7 @@ exports.getItems = async (req, res) => {
     // Location-based search
     if (lat && lng) {
       const items = await Item.find(query)
-        .populate('user', 'name email')
+        .populate('user', 'name email storeName') // Include storeName for mini stores
         .lean();
 
       // Calculate distances and sort
@@ -150,7 +150,7 @@ exports.getItems = async (req, res) => {
 
     // Non-location based search
     const items = await Item.find(query)
-      .populate('user', 'name email')
+      .populate('user', 'name email storeName') // Include storeName for mini stores
       .lean();
 
     res.json({

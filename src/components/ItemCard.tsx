@@ -86,11 +86,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
               </>
             )}
             
-            {/* Store Item Badge */}
+            {/* Store Item Badge - Prominent for immediate differentiation */}
             {item.isStoreItem && (
-              <div className="absolute top-2 left-2 bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
-                <ShoppingCart className="h-3 w-3" />
-                <span>Store Item</span>
+              <div className="absolute top-2 left-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold flex items-center space-x-1.5 shadow-xl border-2 border-white">
+                <ShoppingCart className="h-4 w-4" />
+                <span>🛒 MINI STORE</span>
               </div>
             )}
           </>
@@ -113,6 +113,17 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         )}
 
         <div className="space-y-2 text-sm text-gray-600">
+          {/* Store Name - Prominent Display for Mini Stores */}
+          {item.isStoreItem && item.user?.storeName && (
+            <div className="bg-blue-100 border-l-4 border-blue-600 px-3 py-2 rounded flex items-center space-x-2">
+              <ShoppingCart className="h-5 w-5 text-blue-700" />
+              <div>
+                <p className="text-xs text-blue-600 font-medium">Mini Store</p>
+                <p className="text-sm font-bold text-blue-900">{item.user.storeName}</p>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               {item.isFree ? (
@@ -162,10 +173,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
             <span className="text-xs">{item.location.address || `${item.location.lat.toFixed(4)}, ${item.location.lng.toFixed(4)}`}</span>
           </div>
 
-          {item.user && (
+          {item.user && !item.isStoreItem && (
             <div className="flex items-center space-x-2">
               <User className="h-4 w-4" />
-              <span>{item.user.name}</span>
+              <span className="text-gray-700">Seller: {item.user.name}</span>
             </div>
           )}
         </div>

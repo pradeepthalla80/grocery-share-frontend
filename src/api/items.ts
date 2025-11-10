@@ -24,6 +24,7 @@ export interface Item {
     id: string;
     name: string;
     email: string;
+    storeName?: string;
   };
   notified: boolean;
   distance?: number;
