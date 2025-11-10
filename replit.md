@@ -41,15 +41,16 @@ The UI is built with React 19, TypeScript, and Vite 7. Styling utilizes Tailwind
 - **Communication**: One-on-one messaging via modal popup interface, conversation threads with visual RED unread badges, real-time polling, URL-driven chat entry, pre-filled messages, and an address reveal mechanism.
 - **Request Management**: Full request creation with price preferences ("Free Only" or "Willing to Pay up to $X"), quantity, category, location, and validity period. Backend supports `pricePreference` and `maxPrice` fields.
 - **Request Offers**: Full support for both free and paid offers with delivery options when responding to requests. OfferModal validates price against requester's max price.
+- **Store Owner Mode**: Uber-style business model allowing verified users to sell items as micro-stores. **Legal Framework**: Users must accept comprehensive Terms & Conditions covering compliance, tax obligations, fees, and liability before activation. **UI Components**: StoreActivationSection (Profile page), StoreTermsModal (scrollable legal agreement with IP tracking), StoreDashboard (inventory management), StoreFilterToggle (Dashboard filter). **Visual Distinction**: Store items display 🛒 badge, "Store Item" label, stock count, blue gradient background (mobile-optimized). **Search Integration**: Enhanced search logic mixes community + store items, supports "Show Only Store Items" filter toggle with useEffect pattern to prevent race conditions. **Mobile-First**: All components responsive ≤400px with touch-friendly buttons and scrollable modals. **Backend Models**: User (isStoreOwner, storeMode, storeName), Item (isStoreItem, quantity, stockStatus), StoreAgreement (userId, agreedAt, ipAddress, version). **API Endpoints**: `/api/v1/store/activate`, `/api/v1/store/toggle`, `/api/v1/store/my-store`, `/api/v1/store/transactions`. **Deployment**: Frontend complete and deployed; backend files prepared in BACKEND_FILES/ folder awaiting Render deployment.
 - **Gamification**: Badge system for achievements and a user rating/review system.
 - **Safety & Privacy**: Addresses are hidden by default, requiring mutual consent for revealing, and a pickup confirmation workflow.
 - **Analytics**: Community Impact dashboard (`/analytics` page) displaying 6 key metrics: Total Members, Items Shared, Requests Fulfilled, Food Saved (lbs), Active Communities, and Open Requests. Backend endpoint `/api/v1/analytics/impact` returns real-time data from MongoDB. Frontend includes smart fallback to demo data if backend is unavailable. Metrics calculated from User, Item, and ItemRequest collections.
 
 ## System Design Choices
 
-- **Routing**: React Router v7 handles client-side navigation with public and protected routes managed by a `ProtectedRoute` component.
-- **Data Models**: Core entities include User, Item, Message, Conversation (with unreadCount), Notification, ItemRequest (with pricePreference and maxPrice), Rating, and Badge.
-- **Deployment**: Frontend is deployed on Vercel, and the backend is deployed on Render, both with auto-deployment from GitHub.
+- **Routing**: React Router v7 handles client-side navigation with public and protected routes managed by a `ProtectedRoute` component. Store routes: `/store-dashboard` (protected), `/legal/agreements` (protected).
+- **Data Models**: Core entities include User (with isStoreOwner, storeMode, storeName), Item (with isStoreItem, quantity, stockStatus), Message, Conversation (with unreadCount), Notification, ItemRequest (with pricePreference and maxPrice), Rating, Badge, and StoreAgreement (userId, agreedAt, ipAddress, version).
+- **Deployment**: Frontend is deployed on Vercel, and the backend is deployed on Render, both with auto-deployment from GitHub. **Store Owner Backend Status**: Models, controllers, and routes created in BACKEND_FILES/ folder; requires manual deployment to Render (see STORE_OWNER_MODE_DEPLOYMENT.md).
 
 # External Dependencies
 
