@@ -24,11 +24,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+// MongoDB Connection (FIXED: Removed deprecated options)
+mongoose.connect(process.env.MONGODB_URI)
 .then(() => {
   console.log('✅ MongoDB connected successfully');
   console.log('📦 Database:', mongoose.connection.db.databaseName);
