@@ -94,6 +94,9 @@ export const Register = () => {
     watch
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      acceptedTerms: false
+    }
   });
 
   const password = watch('password', '');
