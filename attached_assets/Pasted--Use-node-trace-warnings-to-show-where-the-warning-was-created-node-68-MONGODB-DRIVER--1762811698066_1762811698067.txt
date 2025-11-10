@@ -1,0 +1,54 @@
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:68) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+(node:68) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:68) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+(node:68) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:68) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:68) [MONGOOSE] Warning: Duplicate schema index on {"user":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
