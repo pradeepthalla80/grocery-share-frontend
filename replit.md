@@ -35,7 +35,7 @@ The UI is built with React 19, TypeScript, and Vite 7. Styling utilizes Tailwind
 
 ## Feature Specifications
 
-- **Delivery Options**: Integrated delivery/drop-off functionality for items and request offers, allowing users to select free or paid delivery ($1-$5 range).
+- **Delivery Options**: Integrated delivery/drop-off functionality for items and request offers, allowing users to select free or paid delivery ($1-$5 range). **Enhanced Checkout**: Buyers can now toggle delivery during checkout with live price breakdown (item + delivery = total). Payment intent automatically recreates when delivery selection changes, ensuring accurate charges. Mobile-optimized delivery toggle with responsive design ≤400px.
 - **Search & Discovery**: Location-based search with radius filtering, keyword, category, and tag filtering, personalized recommendations, and trending items.
 - **Listing Management**: Multi-image upload, address autocomplete with map preview, flexible pricing (free/paid), pickup time windows, and category/tag organization.
 - **Communication**: One-on-one messaging via modal popup interface, conversation threads with visual RED unread badges, real-time polling, URL-driven chat entry, pre-filled messages, and an address reveal mechanism.
