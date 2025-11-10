@@ -15,20 +15,6 @@ User prefers complete file updates rather than partial edits - always provide en
 - Design decisions should support eventual mobile app conversion
 - Touch-friendly interfaces, mobile UX patterns, responsive layouts required
 
-# Pending Tasks & Reminders
-
-**IMPORTANT: Admin Dashboard Backend Implementation**
-- **Date**: November 10, 2025
-- **Status**: Waiting for user to provide `routes/admin.js` or `src/routes/admin.js` from backend GitHub repo
-- **Purpose**: Review existing admin endpoints to verify platform-wide data access
-- **Current Issue**: Admin Dashboard shows limited data because backend may not have these endpoints:
-  - `GET /api/v1/admin/stats` - Platform-wide statistics
-  - `GET /api/v1/admin/items` - All items (not just admin's items)
-  - `GET /api/v1/admin/requests` - All requests (not just admin's requests)  
-  - `GET /api/v1/admin/users` - All users list
-- **Frontend Fix Applied**: Changed `getMyRequests()` from POST to GET (needs deployment)
-- **Action Needed**: User will provide admin.js tomorrow for review and implementation
-
 # System Architecture
 
 ## UI/UX Decisions

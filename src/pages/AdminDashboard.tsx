@@ -4,7 +4,8 @@ import { Shield, Users, Package, MessageSquare, AlertTriangle, TrendingUp } from
 import { useAdmin } from '../hooks/useAdmin';
 import { useToast } from '../hooks/useToast';
 import { itemsAPI } from '../api/items';
-import { getMyRequests, deleteRequest } from '../api/itemRequests';
+import { deleteRequest } from '../api/itemRequests';
+import { getAdminStats, getAdminItems, getAdminRequests } from '../api/admin';
 
 export const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -14,8 +15,9 @@ export const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalItems: 0,
     totalRequests: 0,
-    activeUsers: 0,
-    recentActivity: 0
+    totalUsers: 0,
+    activeItems: 0,
+    soldItems: 0
   });
   const [recentItems, setRecentItems] = useState<any[]>([]);
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
@@ -35,28 +37,16 @@ export const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      // TODO: Replace with proper admin endpoints once backend is ready
-      // CURRENT LIMITATION: These endpoints only show admin's own data, not platform-wide
-      // REQUIRED BACKEND: 
-      //   - GET /admin/items - returns all items across platform
-      //   - GET /admin/requests - returns all requests across platform
-      //   - GET /admin/stats - returns platform statistics
+      // Fetch platform-wide admin data
+      const [statsData, itemsData, requestsData] = await Promise.all([
+        getAdminStats(),
+        getAdminItems(),
+        getAdminRequests()
+      ]);
       
-      // Fetch items (TEMP: uses location search - needs admin endpoint)
-      const itemsResponse = await itemsAPI.search({ lat: 0, lng: 0, radius: 10000 });
-      
-      // Fetch requests (TEMP: only shows admin's requests - needs admin endpoint) 
-      const requestsResponse = await getMyRequests();
-      
-      setStats({
-        totalItems: itemsResponse.items.length,
-        totalRequests: requestsResponse.length,
-        activeUsers: 0, // Backend would provide this
-        recentActivity: itemsResponse.items.length + requestsResponse.length
-      });
-      
-      setRecentItems(itemsResponse.items.slice(0, 10));
-      setRecentRequests(requestsResponse.slice(0, 10));
+      setStats(statsData);
+      setRecentItems(itemsData.slice(0, 10));
+      setRecentRequests(requestsData.slice(0, 10));
       
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -119,7 +109,17 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Users</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
+              </div>
+              <Users className="h-12 w-12 text-purple-600" />
+            </div>
+          </div>
+
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -133,30 +133,30 @@ export const AdminDashboard = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-gray-600">Active Items</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.activeItems}</p>
+              </div>
+              <TrendingUp className="h-12 w-12 text-green-500" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Sold Items</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.soldItems}</p>
+              </div>
+              <TrendingUp className="h-12 w-12 text-gray-500" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-gray-600">Total Requests</p>
                 <p className="text-3xl font-bold text-gray-900">{stats.totalRequests}</p>
               </div>
               <MessageSquare className="h-12 w-12 text-blue-600" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active Users</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.activeUsers || 'N/A'}</p>
-              </div>
-              <Users className="h-12 w-12 text-purple-600" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Recent Activity</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.recentActivity}</p>
-              </div>
-              <TrendingUp className="h-12 w-12 text-orange-600" />
             </div>
           </div>
         </div>
