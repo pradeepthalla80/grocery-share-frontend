@@ -1,0 +1,6 @@
+=== FILES TO UPLOAD TO GITHUB ===
+
+Upload these 3 files to your grocery-share-frontend repository:
+1. controllers/itemsController.js
+2. grocery-share-frontend/src/pages/Chat.tsx
+3. grocery-share-frontend/src/pages/Dashboard.tsx
