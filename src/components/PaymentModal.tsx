@@ -23,7 +23,8 @@ const CheckoutForm = ({
   deliveryFee,
   onSuccess, 
   onClose,
-  onDeliveryChange
+  onDeliveryChange,
+  onResetDelivery
 }: { 
   itemName: string; 
   itemPrice: number;
@@ -32,6 +33,7 @@ const CheckoutForm = ({
   onSuccess: () => void;
   onClose: () => void;
   onDeliveryChange: (includeDelivery: boolean) => void;
+  onResetDelivery: () => void;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -71,6 +73,7 @@ const CheckoutForm = ({
         try {
           await confirmPayment(paymentIntent.id);
           showToast('Payment successful! Item purchased.', 'success');
+          onResetDelivery();
           onSuccess();
           onClose();
         } catch (confirmError: any) {
@@ -149,7 +152,10 @@ const CheckoutForm = ({
       <div className="flex gap-3">
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => {
+            onResetDelivery();
+            onClose();
+          }}
           className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
           disabled={loading}
         >
@@ -240,6 +246,12 @@ export const PaymentModal = ({
     setIncludeDelivery(newIncludeDelivery);
   };
 
+  // Reset delivery selection when modal closes
+  const handleClose = () => {
+    setIncludeDelivery(false);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const options: StripeElementsOptions = {
@@ -261,7 +273,7 @@ export const PaymentModal = ({
             Secure Checkout
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition"
           >
             <X className="h-6 w-6" />
@@ -280,7 +292,7 @@ export const PaymentModal = ({
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
             <p className="text-red-600 text-center mb-4">{error}</p>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
             >
               Close
@@ -298,6 +310,7 @@ export const PaymentModal = ({
               onSuccess={onSuccess}
               onClose={onClose}
               onDeliveryChange={handleDeliveryChange}
+              onResetDelivery={() => setIncludeDelivery(false)}
             />
           </Elements>
         )}
