@@ -10,7 +10,23 @@ export const StoreActivationSection = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
 
   const handleActivateSuccess = async () => {
-    await checkAuth(); // Refresh user data
+    // Retry checkAuth() with exponential backoff to handle transient backend delays
+    const maxRetries = 3;
+    const baseDelay = 500;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, attempt)));
+        await checkAuth(); // Refresh user data
+        return; // Success - exit the loop
+      } catch (error) {
+        if (attempt === maxRetries - 1) {
+          // Last attempt failed - let it propagate
+          console.error('Failed to refresh user data after activation:', error);
+          // Don't throw - let user stay logged in even if refresh fails
+        }
+      }
+    }
   };
 
   if (!isStoreOwner) {

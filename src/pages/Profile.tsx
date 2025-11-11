@@ -5,7 +5,7 @@ import { itemsAPI } from '../api/items';
 import { deleteAccount } from '../api/users';
 import { getUserRatings, type Rating } from '../api/ratings';
 import { getUserBadges, type UserBadge } from '../api/gamification';
-import { User, Mail, Calendar, Package, Lock, ArrowLeft, Trash2, AlertTriangle, Star, Award, Shield } from 'lucide-react';
+import { User, Mail, Calendar, Package, Lock, ArrowLeft, Trash2, AlertTriangle, Star, Award, Shield, Store } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
 import { StoreActivationSection } from '../components/StoreActivationSection';
@@ -279,6 +279,18 @@ export const Profile = () => {
             <div className="mt-8 border-t pt-8">
               <StoreActivationSection />
             </div>
+
+            {user?.isStoreOwner && user?.storeMode && (
+              <div className="mt-6">
+                <button
+                  onClick={() => navigate('/store-dashboard')}
+                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-medium shadow-md min-h-[44px]"
+                >
+                  <Store className="h-5 w-5" />
+                  <span>Go to Store Dashboard</span>
+                </button>
+              </div>
+            )}
 
             <div className="mt-8 border-t pt-8">
               <button
