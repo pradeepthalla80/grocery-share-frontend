@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { itemsAPI, type Item } from '../api/items';
 import { ItemCard } from '../components/ItemCard';
+import { StoreOwnerPromo } from '../components/StoreOwnerPromo';
 import { Plus, Package, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 type FilterType = 'all' | 'active' | 'expiring' | 'expired';
@@ -108,6 +109,11 @@ export const MyItems = () => {
             <Plus className="h-5 w-5" />
             <span>Add New Item</span>
           </button>
+        </div>
+
+        {/* Store Owner Promotional Banner */}
+        <div className="mb-8">
+          <StoreOwnerPromo />
         </div>
 
         {error && (

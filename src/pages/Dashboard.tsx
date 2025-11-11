@@ -5,6 +5,7 @@ import { getNearbyRequests, type ItemRequest } from '../api/itemRequests';
 import { getRecommendations } from '../api/recommendations';
 import { AddressInput } from '../components/AddressInput';
 import { StoreFilterToggle } from '../components/StoreFilterToggle';
+import { StoreOwnerPromo } from '../components/StoreOwnerPromo';
 import { Search, Plus, Sparkles, Calendar, DollarSign, MapPin, Package, MessageCircle, ArrowUpDown, X } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -228,6 +229,11 @@ export const Dashboard = () => {
             <Plus className="h-5 w-5" />
             <span>Add Item</span>
           </button>
+        </div>
+
+        {/* Store Owner Promotional Banner */}
+        <div className="mb-8">
+          <StoreOwnerPromo />
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -492,10 +498,21 @@ export const Dashboard = () => {
                     {/* Item Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Available
-                        </span>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {item.isStoreItem ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-600 text-white flex items-center gap-1">
+                            🛒 MINI STORE
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Available
+                          </span>
+                        )}
+                        {item.isStoreItem && item.quantity !== null && item.quantity !== undefined && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Qty: {item.quantity}
+                          </span>
+                        )}
                         <span className="text-sm text-gray-600">{item.category || 'Uncategorized'}</span>
                       </div>
                     </div>

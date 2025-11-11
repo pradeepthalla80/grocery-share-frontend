@@ -145,9 +145,12 @@ export const Profile = () => {
           </div>
 
           <div className="px-6 py-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Information</h2>
-            
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column - Main Content (2/3 width on desktop) */}
+              <div className="lg:col-span-2">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Information</h2>
+                
+                <div className="space-y-4">
               <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                 <Mail className="h-6 w-6 text-gray-400 mr-4" />
                 <div>
@@ -251,46 +254,51 @@ export const Profile = () => {
               </div>
             )}
 
-            <div className="mt-8 border-t pt-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-green-600" />
-                Safety & Community Guidelines
-              </h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-3">
-                <p className="font-medium text-blue-900">For a safe sharing experience:</p>
-                <ul className="list-disc list-inside text-blue-800 text-sm space-y-2 ml-2">
-                  <li><strong>Meet in Public:</strong> Choose well-lit, public locations for item exchanges</li>
-                  <li><strong>Verify Items:</strong> Check expiration dates and quality before accepting items</li>
-                  <li><strong>Trust Your Instincts:</strong> If something feels wrong, decline politely</li>
-                  <li><strong>Use In-App Chat:</strong> Keep all communication within the platform for safety</li>
-                  <li><strong>Report Issues:</strong> Contact support if you encounter suspicious behavior</li>
-                  <li><strong>Be Respectful:</strong> Treat all community members with kindness and respect</li>
-                  <li><strong>Food Safety:</strong> Only share items that are properly stored and safe to consume</li>
-                </ul>
-                <div className="mt-4 pt-4 border-t border-blue-300">
-                  <p className="text-sm text-blue-900">
-                    <strong>Remember:</strong> Grocery Share connects neighbors to reduce food waste. 
-                    By following these guidelines, you help keep our community safe and thriving!
-                  </p>
+                <div className="mt-8 border-t pt-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-green-600" />
+                    Safety & Community Guidelines
+                  </h3>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-3">
+                    <p className="font-medium text-blue-900">For a safe sharing experience:</p>
+                    <ul className="list-disc list-inside text-blue-800 text-sm space-y-2 ml-2">
+                      <li><strong>Meet in Public:</strong> Choose well-lit, public locations for item exchanges</li>
+                      <li><strong>Verify Items:</strong> Check expiration dates and quality before accepting items</li>
+                      <li><strong>Trust Your Instincts:</strong> If something feels wrong, decline politely</li>
+                      <li><strong>Use In-App Chat:</strong> Keep all communication within the platform for safety</li>
+                      <li><strong>Report Issues:</strong> Contact support if you encounter suspicious behavior</li>
+                      <li><strong>Be Respectful:</strong> Treat all community members with kindness and respect</li>
+                      <li><strong>Food Safety:</strong> Only share items that are properly stored and safe to consume</li>
+                    </ul>
+                    <div className="mt-4 pt-4 border-t border-blue-300">
+                      <p className="text-sm text-blue-900">
+                        <strong>Remember:</strong> Grocery Share connects neighbors to reduce food waste. 
+                        By following these guidelines, you help keep our community safe and thriving!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Store Activation (1/3 width on desktop) */}
+              <div className="lg:col-span-1">
+                <div className="lg:sticky lg:top-24">
+                  <StoreActivationSection />
+                  
+                  {user?.isStoreOwner && user?.storeMode && (
+                    <div className="mt-6">
+                      <button
+                        onClick={() => navigate('/store-dashboard')}
+                        className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-medium shadow-md min-h-[44px]"
+                      >
+                        <Store className="h-5 w-5" />
+                        <span>Go to Store Dashboard</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
-            <div className="mt-8 border-t pt-8">
-              <StoreActivationSection />
-            </div>
-
-            {user?.isStoreOwner && user?.storeMode && (
-              <div className="mt-6">
-                <button
-                  onClick={() => navigate('/store-dashboard')}
-                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-medium shadow-md min-h-[44px]"
-                >
-                  <Store className="h-5 w-5" />
-                  <span>Go to Store Dashboard</span>
-                </button>
-              </div>
-            )}
 
             <div className="mt-8 border-t pt-8">
               <button

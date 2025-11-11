@@ -189,7 +189,7 @@ export const StoreDashboard = () => {
                       </td>
                       <td className="px-4 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm font-medium flex sm:table-cell space-x-2">
                         <button
-                          onClick={() => navigate(`/items/${item.id}`)}
+                          onClick={() => navigate(`/edit-item/${item.id}`)}
                           className="text-blue-600 hover:text-blue-900 flex items-center space-x-1 flex-1 sm:flex-none justify-center sm:justify-start px-3 py-2 sm:p-0 bg-blue-50 sm:bg-transparent rounded-lg sm:rounded-none"
                         >
                           <Edit className="h-4 w-4" />

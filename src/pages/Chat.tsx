@@ -6,6 +6,7 @@ import { useToast } from '../hooks/useToast';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ConversationCard } from '../components/ConversationCard';
 import { ChatModal } from '../components/ChatModal';
+import { StoreOwnerPromo } from '../components/StoreOwnerPromo';
 import { MessageSquare } from 'lucide-react';
 
 export const Chat = () => {
@@ -106,6 +107,11 @@ export const Chat = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
           <p className="text-gray-600 mt-1">Connect with buyers and sellers in your community</p>
+        </div>
+
+        {/* Store Owner Promotional Banner */}
+        <div className="mb-8">
+          <StoreOwnerPromo />
         </div>
 
         {conversations.length === 0 ? (

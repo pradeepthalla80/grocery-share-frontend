@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X } from 'lucide-react';
+import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X, Store } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { useAdmin } from '../hooks/useAdmin';
+import { useStore } from '../hooks/useStore';
 
 export const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { hasAdminAccess } = useAdmin();
+  const { isStoreOwner } = useStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -57,6 +59,12 @@ export const Navbar = () => {
                 <TrendingUp className="h-4 w-4" />
                 <span>Impact</span>
               </Link>
+              {isStoreOwner && (
+                <Link to="/store-dashboard" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/store-dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'}`}>
+                  <Store className="h-4 w-4" />
+                  <span>My Store</span>
+                </Link>
+              )}
               {hasAdminAccess && (
                 <Link to="/admin" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/admin' ? 'bg-purple-100 text-purple-700' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}>
                   <Shield className="h-4 w-4" />
@@ -125,6 +133,12 @@ export const Navbar = () => {
                   <TrendingUp className="h-5 w-5" />
                   <span>Impact</span>
                 </Link>
+                {isStoreOwner && (
+                  <Link to="/store-dashboard" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/store-dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                    <Store className="h-5 w-5" />
+                    <span>My Store</span>
+                  </Link>
+                )}
                 {hasAdminAccess && (
                   <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/admin' ? 'bg-purple-100 text-purple-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                     <Shield className="h-5 w-5" />
