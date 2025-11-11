@@ -49,8 +49,8 @@ export const StoreActivationSection = () => {
               </p>
 
               {/* Benefits */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <div className="flex items-start space-x-2">
+              <div className="space-y-3 mb-4">
+                <div className="flex items-start space-x-3 bg-white bg-opacity-50 p-3 rounded-lg">
                   <ShoppingBag className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">Inventory Management</p>
@@ -58,7 +58,7 @@ export const StoreActivationSection = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-2">
+                <div className="flex items-start space-x-3 bg-white bg-opacity-50 p-3 rounded-lg">
                   <TrendingUp className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">Sales Dashboard</p>
@@ -66,7 +66,7 @@ export const StoreActivationSection = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-2">
+                <div className="flex items-start space-x-3 bg-white bg-opacity-50 p-3 rounded-lg">
                   <Store className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">Store Branding</p>

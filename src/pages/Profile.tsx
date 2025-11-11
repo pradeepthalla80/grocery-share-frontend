@@ -122,7 +122,7 @@ export const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
           onClick={() => navigate('/dashboard')}
           className="mb-6 flex items-center text-gray-600 hover:text-gray-900"
@@ -145,9 +145,9 @@ export const Profile = () => {
           </div>
 
           <div className="px-6 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column - Main Content (2/3 width on desktop) */}
-              <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column - Main Content */}
+              <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Information</h2>
                 
                 <div className="space-y-4">
@@ -280,8 +280,8 @@ export const Profile = () => {
                 </div>
               </div>
 
-              {/* Right Column - Store Activation (1/3 width on desktop) */}
-              <div className="lg:col-span-1">
+              {/* Right Column - Store Activation */}
+              <div>
                 <div className="lg:sticky lg:top-24">
                   <StoreActivationSection />
                   
