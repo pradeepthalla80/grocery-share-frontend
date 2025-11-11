@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, type ReactNode } from 'react';
 import { apiClient, setAuthCheckCallback } from '../api/config';
+import { saveToken, removeToken } from '../utils/token';
 
 interface User {
   id: string;
@@ -58,9 +59,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAuthCheckCallback(checkAuth);
   }, []);
 
-  const login = (_token: string, userData: User) => {
-    // No need to store token - backend has set HttpOnly cookie
-    // Token param kept for backwards compatibility but not used
+  const login = (token: string, userData: User) => {
+    // Save token to localStorage for mobile browser compatibility
+    // HttpOnly cookie is still used as primary auth, this is fallback for mobile
+    saveToken(token);
     setUser(userData);
     setIsAuthenticated(true);
   };
@@ -72,6 +74,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear localStorage token
+      removeToken();
       setUser(null);
       setIsAuthenticated(false);
     }

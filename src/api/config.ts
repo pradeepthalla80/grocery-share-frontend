@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken } from '../utils/token';
 
 export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com') + '/api/v1';
 
@@ -21,6 +22,19 @@ export const apiClient = axios.create({
   timeout: 30000, // 30 second timeout
   withCredentials: true, // Send HttpOnly cookies automatically with every request
 });
+
+// Request interceptor to add Authorization header for mobile browser compatibility
+apiClient.interceptors.request.use(
+  (config) => {
+    // Get token from localStorage (fallback for mobile browsers that block cookies)
+    const token = getToken();
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 apiClient.interceptors.response.use(
   (response) => response,
