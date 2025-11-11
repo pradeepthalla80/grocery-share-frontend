@@ -149,8 +149,11 @@ export const AddItem = () => {
       if (data.category) {
         formData.append('category', data.category);
       }
-      if (data.customCategory && selectedCategory === 'Other') {
+      // Always send customCategory - empty string clears it when not "Other"
+      if (selectedCategory === 'Other' && data.customCategory) {
         formData.append('customCategory', data.customCategory);
+      } else {
+        formData.append('customCategory', '');
       }
       formData.append('expiryDate', data.expiryDate);
       formData.append('isFree', isFree.toString());

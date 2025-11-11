@@ -12,6 +12,7 @@ export interface Item {
   imageURL: string;
   images: string[];
   category: string | null;
+  customCategory?: string | null;
   tags: string[];
   expiryDate: string;
   price: number;

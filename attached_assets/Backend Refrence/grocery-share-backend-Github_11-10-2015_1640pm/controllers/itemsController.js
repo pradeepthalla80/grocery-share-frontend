@@ -518,7 +518,7 @@ const getMyItems = async (req, res) => {
 const updateItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, imageURL, category, tags, expiryDate, price, location, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, offerDelivery, deliveryFee } = req.body;
+    const { name, imageURL, category, customCategory, tags, expiryDate, price, location, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, offerDelivery, deliveryFee } = req.body;
     
     // Get uploaded images from Cloudinary (use secure HTTPS URLs)
     const uploadedImages = req.files ? req.files
@@ -559,6 +559,10 @@ const updateItem = async (req, res) => {
     if (name !== undefined) item.name = name;
     if (imageURL !== undefined) item.imageURL = imageURL;
     if (category !== undefined) item.category = category;
+    if (customCategory !== undefined) {
+      // Clear customCategory if empty string, otherwise set it
+      item.customCategory = customCategory === '' ? null : customCategory;
+    }
     if (expiryDate !== undefined) item.expiryDate = new Date(expiryDate);
     if (isFree !== undefined) {
       item.isFree = isItemFree;
@@ -630,6 +634,7 @@ const updateItem = async (req, res) => {
         imageURL: item.imageURL,
         images: item.images,
         category: item.category,
+        customCategory: item.customCategory,
         tags: item.tags,
         expiryDate: item.expiryDate,
         price: item.price,
