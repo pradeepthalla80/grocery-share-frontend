@@ -3,9 +3,14 @@ import axios from 'axios';
 export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com') + '/api/v1';
 
 let toastCallback: ((message: string, type: 'success' | 'error' | 'info') => void) | null = null;
+let authCheckCallback: (() => Promise<void>) | null = null;
 
 export const setToastCallback = (callback: (message: string, type: 'success' | 'error' | 'info') => void) => {
   toastCallback = callback;
+};
+
+export const setAuthCheckCallback = (callback: () => Promise<void>) => {
+  authCheckCallback = callback;
 };
 
 export const apiClient = axios.create({
@@ -19,27 +24,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Handle authentication errors
-    if (error.response?.status === 401) {
-      const requestUrl = error.config?.url || '';
-      
-      // Don't auto-logout on /auth/me checks - let AuthContext handle it gracefully
-      if (requestUrl.includes('/auth/me')) {
-        return Promise.reject(error);
-      }
-      
-      // For other 401 errors (like protected endpoints), force logout
-      localStorage.removeItem('grocery_share_token');
-      if (toastCallback) {
-        toastCallback('Session expired. Please login again.', 'error');
-      }
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 1000);
-      return Promise.reject(error);
-    }
-
+  async (error) => {
     // Handle network errors
     if (error.code === 'ERR_NETWORK' || !error.response) {
       if (toastCallback) {
@@ -64,7 +49,39 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // For other errors, let the specific API call handle them
+    // Handle 401 errors (session expiry) intelligently
+    if (error.response?.status === 401) {
+      const requestUrl = error.config?.url || '';
+      const currentPath = window.location.pathname;
+      
+      // Skip 401 handling for OAuth callback flow
+      if (currentPath.includes('/auth/google/callback') || 
+          currentPath.includes('/auth/callback') ||
+          requestUrl.includes('/auth/google')) {
+        return Promise.reject(error);
+      }
+      
+      // Skip 401 handling for /auth/me - let AuthContext handle initial check
+      if (requestUrl.includes('/auth/me')) {
+        return Promise.reject(error);
+      }
+      
+      // Skip 401 handling during login/register flows
+      if (currentPath === '/login' || currentPath === '/register') {
+        return Promise.reject(error);
+      }
+      
+      // For all other 401s (mid-session expiry), trigger re-auth check
+      // This handles cases where backend clears session or cookie expires
+      if (authCheckCallback) {
+        try {
+          await authCheckCallback();
+        } catch {
+          // If checkAuth fails, it will clear auth state and ProtectedRoute will redirect
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );

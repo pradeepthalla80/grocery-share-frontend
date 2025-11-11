@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, type ReactNode } from 'react';
-import { apiClient } from '../api/config';
+import { apiClient, setAuthCheckCallback } from '../api/config';
 
 interface User {
   id: string;
@@ -47,13 +47,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('Auth check failed:', error.response?.status);
       setUser(null);
       setIsAuthenticated(false);
-      
-      // Only redirect to login if it's an actual 401 (not a network error)
-      if (error.response?.status === 401 && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 500);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +54,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     checkAuth();
+    // Register checkAuth callback for interceptor to use on 401 errors
+    setAuthCheckCallback(checkAuth);
   }, []);
 
   const login = (_token: string, userData: User) => {
