@@ -14,6 +14,7 @@ import { useAuth } from '../hooks/useAuth';
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   category: z.string().optional(),
+  customCategory: z.string().optional(),
   tags: z.string().optional(),
   expiryDate: z.string().min(1, 'Expiry date is required'),
   price: z.string().optional(),
@@ -75,6 +76,7 @@ export const AddItem = () => {
   const [deliveryFee, setDeliveryFee] = useState('free');
   const [isStoreItem, setIsStoreItem] = useState(false);
   const [stockStatus, setStockStatus] = useState('in_stock');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   const {
     register,
@@ -146,6 +148,9 @@ export const AddItem = () => {
       formData.append('name', data.name);
       if (data.category) {
         formData.append('category', data.category);
+      }
+      if (data.customCategory && selectedCategory === 'Other') {
+        formData.append('customCategory', data.customCategory);
       }
       formData.append('expiryDate', data.expiryDate);
       formData.append('isFree', isFree.toString());
@@ -251,13 +256,44 @@ export const AddItem = () => {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormInput
-                label="Category (Optional)"
-                type="text"
-                {...register('category')}
-                error={errors.category?.message}
-                placeholder="e.g., Fruits"
-              />
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Category (Optional)
+                </label>
+                <select
+                  {...register('category')}
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedCategory(value);
+                    setValue('category', value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">Select a category</option>
+                  <option value="Fruits">Fruits</option>
+                  <option value="Vegetables">Vegetables</option>
+                  <option value="Dairy">Dairy</option>
+                  <option value="Bakery">Bakery</option>
+                  <option value="Meat">Meat</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Beverages">Beverages</option>
+                  <option value="Pantry">Pantry</option>
+                  <option value="Oils & Spices">Oils & Spices</option>
+                  <option value="Condiments & Sauces">Condiments & Sauces</option>
+                  <option value="Frozen Foods">Frozen Foods</option>
+                  <option value="Canned Goods">Canned Goods</option>
+                  <option value="Grains & Pasta">Grains & Pasta</option>
+                  <option value="Seafood">Seafood</option>
+                  <option value="Desserts">Desserts</option>
+                  <option value="Baby Food">Baby Food</option>
+                  <option value="Pet Food">Pet Food</option>
+                  <option value="Other">Other (Specify Below)</option>
+                </select>
+                {errors.category && (
+                  <p className="text-sm text-red-600">{errors.category.message}</p>
+                )}
+              </div>
 
               <FormInput
                 label="Tags (comma-separated, optional)"
@@ -267,6 +303,16 @@ export const AddItem = () => {
                 placeholder="e.g., organic, fresh, local"
               />
             </div>
+
+            {selectedCategory === 'Other' && (
+              <FormInput
+                label="Custom Category"
+                type="text"
+                {...register('customCategory')}
+                error={errors.customCategory?.message}
+                placeholder="e.g., Cooking Oil, Spices, etc."
+              />
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
