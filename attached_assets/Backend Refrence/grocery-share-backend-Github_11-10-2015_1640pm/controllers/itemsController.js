@@ -19,7 +19,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 // Create new item (protected route)
 const createItem = async (req, res) => {
   try {
-    const { name, imageURL, expiryDate, price, location, address, category, tags, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, validityPeriod, offerDelivery, deliveryFee } = req.body;
+    const { name, imageURL, expiryDate, price, location, address, category, tags, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, validityPeriod, offerDelivery, deliveryFee, isStoreItem, quantity, stockStatus } = req.body;
     
     // Get uploaded images from Cloudinary (use secure HTTPS URLs)
     const uploadedImages = req.files ? req.files
@@ -134,6 +134,28 @@ const createItem = async (req, res) => {
     const isOfferingDelivery = offerDelivery === true || offerDelivery === 'true';
     const parsedDeliveryFee = deliveryFee ? parseFloat(deliveryFee) : 0;
     
+    // Parse store item fields
+    const isStore = isStoreItem === true || isStoreItem === 'true';
+    let parsedQuantity = null;
+    let parsedStockStatus = null;
+    
+    if (isStore) {
+      // Parse quantity
+      parsedQuantity = quantity ? parseInt(quantity, 10) : 1;
+      if (isNaN(parsedQuantity) || parsedQuantity < 0) {
+        return res.status(400).json({ error: 'Quantity must be a non-negative number' });
+      }
+      
+      // Validate stockStatus
+      const validStockStatuses = ['in_stock', 'out_of_stock', 'low_stock', 'unlimited'];
+      parsedStockStatus = stockStatus || 'in_stock';
+      if (!validStockStatuses.includes(parsedStockStatus)) {
+        return res.status(400).json({ 
+          error: `Stock status must be one of: ${validStockStatuses.join(', ')}` 
+        });
+      }
+    }
+    
     // Create item with GeoJSON format (MongoDB expects [longitude, latitude])
     const item = new Item({
       name,
@@ -151,6 +173,10 @@ const createItem = async (req, res) => {
       expiresAt: expiresAt,
       offerDelivery: isOfferingDelivery,
       deliveryFee: parsedDeliveryFee,
+      isStoreItem: isStore,
+      quantity: parsedQuantity,
+      originalQuantity: parsedQuantity,
+      stockStatus: parsedStockStatus,
       location: {
         type: 'Point',
         coordinates: [parseFloat(locationData.lng), parseFloat(locationData.lat)] // [longitude, latitude]
@@ -177,6 +203,10 @@ const createItem = async (req, res) => {
         flexiblePickup: item.flexiblePickup,
         offerDelivery: item.offerDelivery,
         deliveryFee: item.deliveryFee,
+        isStoreItem: item.isStoreItem,
+        quantity: item.quantity,
+        originalQuantity: item.originalQuantity,
+        stockStatus: item.stockStatus,
         location: {
           lat: item.location.coordinates[1],
           lng: item.location.coordinates[0],
