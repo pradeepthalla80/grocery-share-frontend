@@ -19,8 +19,34 @@ const itemSchema = new mongoose.Schema({
   category: {
     type: String,
     trim: true,
-    enum: ['Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Meat', 'Snacks', 'Beverages', 'Other'],
+    enum: [
+      'Fruits', 
+      'Vegetables', 
+      'Dairy', 
+      'Bakery', 
+      'Meat', 
+      'Snacks', 
+      'Beverages',
+      'Pantry',
+      'Oils & Spices',
+      'Condiments & Sauces',
+      'Frozen Foods',
+      'Canned Goods',
+      'Grains & Pasta',
+      'Seafood',
+      'Desserts',
+      'Baby Food',
+      'Pet Food',
+      'Other'
+    ],
     default: 'Other'
+  },
+  
+  customCategory: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'Custom category cannot exceed 50 characters'],
+    default: null
   },
   
   tags: [{

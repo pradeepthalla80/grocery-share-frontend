@@ -19,7 +19,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 // Create new item (protected route)
 const createItem = async (req, res) => {
   try {
-    const { name, imageURL, expiryDate, price, location, address, category, tags, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, validityPeriod, offerDelivery, deliveryFee, isStoreItem, quantity, stockStatus } = req.body;
+    const { name, imageURL, expiryDate, price, location, address, category, customCategory, tags, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, validityPeriod, offerDelivery, deliveryFee, isStoreItem, quantity, stockStatus } = req.body;
     
     // Get uploaded images from Cloudinary (use secure HTTPS URLs)
     const uploadedImages = req.files ? req.files
@@ -163,6 +163,7 @@ const createItem = async (req, res) => {
       images: uploadedImages,
       address: address || null,
       category: category || null,
+      customCategory: customCategory || null,
       tags: tagsArray,
       expiryDate: new Date(expiryDate),
       price: finalPrice,
@@ -194,6 +195,7 @@ const createItem = async (req, res) => {
         imageURL: item.imageURL,
         images: item.images,
         category: item.category,
+        customCategory: item.customCategory,
         tags: item.tags,
         expiryDate: item.expiryDate,
         price: item.price,
