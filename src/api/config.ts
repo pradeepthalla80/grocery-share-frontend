@@ -22,6 +22,14 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle authentication errors
     if (error.response?.status === 401) {
+      const requestUrl = error.config?.url || '';
+      
+      // Don't auto-logout on /auth/me checks - let AuthContext handle it gracefully
+      if (requestUrl.includes('/auth/me')) {
+        return Promise.reject(error);
+      }
+      
+      // For other 401 errors (like protected endpoints), force logout
       localStorage.removeItem('grocery_share_token');
       if (toastCallback) {
         toastCallback('Session expired. Please login again.', 'error');

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,7 +8,8 @@ import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Store } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -17,6 +18,8 @@ const addItemSchema = z.object({
   expiryDate: z.string().min(1, 'Expiry date is required'),
   price: z.string().optional(),
   isFree: z.boolean().optional(),
+  quantity: z.string().optional(),
+  stockStatus: z.string().optional(),
   pickupTimeStart: z.string().optional(),
   pickupTimeEnd: z.string().optional(),
   flexiblePickup: z.boolean().optional(),
@@ -59,6 +62,8 @@ type AddItemFormData = z.infer<typeof addItemSchema>;
 
 export const AddItem = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -68,6 +73,8 @@ export const AddItem = () => {
   const [locationError, setLocationError] = useState('');
   const [offerDelivery, setOfferDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState('free');
+  const [isStoreItem, setIsStoreItem] = useState(false);
+  const [stockStatus, setStockStatus] = useState('in_stock');
 
   const {
     register,
@@ -85,12 +92,21 @@ export const AddItem = () => {
       flexiblePickup: true,
       offerDelivery: false,
       deliveryFee: 'free',
+      quantity: '1',
+      stockStatus: 'in_stock',
     },
   });
 
   const lat = watch('lat');
   const lng = watch('lng');
   const address = watch('address');
+
+  useEffect(() => {
+    const isStoreItemParam = searchParams.get('isStoreItem') === 'true';
+    if (isStoreItemParam && user?.storeMode) {
+      setIsStoreItem(true);
+    }
+  }, [searchParams, user]);
 
   const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
     setValue('address', location.address);
@@ -164,6 +180,13 @@ export const AddItem = () => {
         formData.append('deliveryFee', deliveryFee === 'free' ? '0' : deliveryFee);
       }
 
+      // Add store item fields
+      if (isStoreItem) {
+        formData.append('isStoreItem', 'true');
+        formData.append('quantity', data.quantity || '1');
+        formData.append('stockStatus', stockStatus);
+      }
+
       imageFiles.forEach(file => {
         formData.append('images', file);
       });
@@ -171,8 +194,8 @@ export const AddItem = () => {
       const response = await itemsAPI.create(formData);
       
       console.log('Item created successfully:', response);
-      alert('Item added successfully!');
-      navigate('/dashboard');
+      alert(isStoreItem ? 'Store item added successfully!' : 'Item added successfully!');
+      navigate(isStoreItem ? '/store-dashboard' : '/dashboard');
     } catch (err: any) {
       console.error('Create item error:', err);
       console.error('Error response:', err.response?.data);
@@ -194,8 +217,17 @@ export const AddItem = () => {
           <span>Back</span>
         </button>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Add New Item</h1>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
+          <div className="flex items-center space-x-3 mb-6">
+            {isStoreItem && (
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Store className="h-6 w-6 text-blue-600" />
+              </div>
+            )}
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {isStoreItem ? 'Add Store Item' : 'Add New Item'}
+            </h1>
+          </div>
 
           {error && (
             <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -263,21 +295,22 @@ export const AddItem = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
               <div className="space-y-2">
-                <label className="flex items-center space-x-2 mb-3">
-                  <input
-                    type="checkbox"
-                    {...register('isFree')}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setIsFree(checked);
-                      setValue('isFree', checked);
-                    }}
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm font-medium text-gray-700">Give away for free</span>
-                </label>
+                {!isStoreItem && (
+                  <label className="flex items-center space-x-2 mb-3">
+                    <input
+                      type="checkbox"
+                      {...register('isFree')}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setIsFree(checked);
+                        setValue('isFree', checked);
+                      }}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Give away for free</span>
+                  </label>
+                )}
 
                 {!isFree && (
                   <FormInput
@@ -290,7 +323,43 @@ export const AddItem = () => {
                   />
                 )}
               </div>
+
+              {isStoreItem && (
+                <FormInput
+                  label="Quantity in Stock"
+                  type="number"
+                  min="0"
+                  {...register('quantity')}
+                  error={errors.quantity?.message}
+                  placeholder="100"
+                />
+              )}
             </div>
+
+            {isStoreItem && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Stock Status
+                </label>
+                <select
+                  {...register('stockStatus')}
+                  value={stockStatus}
+                  onChange={(e) => {
+                    setStockStatus(e.target.value);
+                    setValue('stockStatus', e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="in_stock">✅ In Stock</option>
+                  <option value="low_stock">⚠️ Low Stock</option>
+                  <option value="out_of_stock">❌ Out of Stock</option>
+                  <option value="unlimited">♾️ Unlimited Stock</option>
+                </select>
+                <p className="text-xs text-gray-500">
+                  Customers will see this status when viewing your item
+                </p>
+              </div>
+            )}
 
             <div className="space-y-4">
               <label className="flex items-center space-x-2">

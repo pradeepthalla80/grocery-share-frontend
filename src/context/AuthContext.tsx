@@ -43,9 +43,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
         setIsAuthenticated(false);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.log('Auth check failed:', error.response?.status);
       setUser(null);
       setIsAuthenticated(false);
+      
+      // Only redirect to login if it's an actual 401 (not a network error)
+      if (error.response?.status === 401 && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 500);
+      }
     } finally {
       setIsLoading(false);
     }
