@@ -1,0 +1,54 @@
+ ==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+(node:68) [MONGOOSE] Warning: Duplicate schema index on {"user":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+(node:68) [MONGOOSE] Warning: Duplicate schema index on {"user":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+(node:68) [MONGOOSE] Warning: Duplicate schema index on {"user":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
