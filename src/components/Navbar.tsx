@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X, Store } from 'lucide-react';
+import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X, Store, Truck } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { useAdmin } from '../hooks/useAdmin';
 import { useStore } from '../hooks/useStore';
@@ -54,6 +54,10 @@ export const Navbar = () => {
               <Link to="/item-requests" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/item-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <HandHeart className="h-4 w-4" />
                 <span>Requests</span>
+              </Link>
+              <Link to="/pickup-requests" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/pickup-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
+                <Truck className="h-4 w-4" />
+                <span>Pickups</span>
               </Link>
               <Link to="/analytics" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/analytics' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <TrendingUp className="h-4 w-4" />
@@ -128,6 +132,10 @@ export const Navbar = () => {
                 <Link to="/item-requests" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/item-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                   <HandHeart className="h-5 w-5" />
                   <span>Requests</span>
+                </Link>
+                <Link to="/pickup-requests" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/pickup-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  <Truck className="h-5 w-5" />
+                  <span>Pickup Requests</span>
                 </Link>
                 <Link to="/analytics" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/analytics' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                   <TrendingUp className="h-5 w-5" />
