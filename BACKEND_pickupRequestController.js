@@ -162,38 +162,40 @@ const getPickupRequests = async (req, res) => {
       .populate('seller', 'name email')
       .sort({ createdAt: -1 });
     
-    // Format response
-    const formattedRequests = requests.map(req => ({
-      id: req._id,
-      item: {
-        id: req.item._id,
-        name: req.item.name,
-        imageURL: req.item.imageURL,
-        price: req.item.price,
-        isFree: req.item.isFree
-      },
-      requester: {
-        id: req.requester._id,
-        name: req.requester.name,
-        email: req.requester.email
-      },
-      seller: {
-        id: req.seller._id,
-        name: req.seller.name,
-        email: req.seller.email
-      },
-      requestType: req.requestType,
-      status: req.status,
-      deliveryMode: req.deliveryMode,
-      sellerAddress: req.sellerAddress,
-      sellerInstructions: req.sellerInstructions,
-      buyerConfirmed: req.buyerConfirmed,
-      sellerConfirmed: req.sellerConfirmed,
-      amountPaid: req.amountPaid,
-      createdAt: req.createdAt,
-      acceptedAt: req.acceptedAt,
-      completedAt: req.completedAt
-    }));
+    // Format response - filter out requests with missing data (deleted items/users)
+    const formattedRequests = requests
+      .filter(req => req.item && req.requester && req.seller) // Skip if any critical data is null
+      .map(req => ({
+        id: req._id,
+        item: {
+          id: req.item._id,
+          name: req.item.name,
+          imageURL: req.item.imageURL,
+          price: req.item.price,
+          isFree: req.item.isFree
+        },
+        requester: {
+          id: req.requester._id,
+          name: req.requester.name,
+          email: req.requester.email
+        },
+        seller: {
+          id: req.seller._id,
+          name: req.seller.name,
+          email: req.seller.email
+        },
+        requestType: req.requestType,
+        status: req.status,
+        deliveryMode: req.deliveryMode,
+        sellerAddress: req.sellerAddress,
+        sellerInstructions: req.sellerInstructions,
+        buyerConfirmed: req.buyerConfirmed,
+        sellerConfirmed: req.sellerConfirmed,
+        amountPaid: req.amountPaid,
+        createdAt: req.createdAt,
+        acceptedAt: req.acceptedAt,
+        completedAt: req.completedAt
+      }));
     
     res.json({
       success: true,

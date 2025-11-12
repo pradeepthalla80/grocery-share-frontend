@@ -1,0 +1,30 @@
+==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+    at /opt/render/project/src/controllers/pickupRequestController.js:169:22
+    at Array.map (<anonymous>)
+    at getPickupRequests (/opt/render/project/src/controllers/pickupRequestController.js:166:40)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Get pickup requests error: TypeError: Cannot read properties of null (reading '_id')
+    at /opt/render/project/src/controllers/pickupRequestController.js:169:22
+    at Array.map (<anonymous>)
+    at getPickupRequests (/opt/render/project/src/controllers/pickupRequestController.js:166:40)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Get pickup requests error: TypeError: Cannot read properties of null (reading '_id')
+    at /opt/render/project/src/controllers/pickupRequestController.js:169:22
+    at Array.map (<anonymous>)
+    at getPickupRequests (/opt/render/project/src/controllers/pickupRequestController.js:166:40)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Get pickup requests error: TypeError: Cannot read properties of null (reading '_id')
+    at /opt/render/project/src/controllers/pickupRequestController.js:169:22
+    at Array.map (<anonymous>)
+    at getPickupRequests (/opt/render/project/src/controllers/pickupRequestController.js:166:40)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Get pickup requests error: TypeError: Cannot read properties of null (reading '_id')
+    at /opt/render/project/src/controllers/pickupRequestController.js:169:22
+    at Array.map (<anonymous>)
+    at getPickupRequests (/opt/render/project/src/controllers/pickupRequestController.js:166:40)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+     ==> Detected service running on port 10000
+     ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+Authentication error: jwt malformed
