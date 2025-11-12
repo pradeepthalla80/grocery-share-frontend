@@ -2,7 +2,7 @@ import { apiClient } from './config';
 
 export interface Notification {
   id: string;
-  type: 'nearby_free' | 'nearby_discounted' | 'expiring_soon' | 'new_match' | 'pickup_request' | 'request_accepted' | 'request_declined' | 'exchange_completed';
+  type: 'nearby_free' | 'nearby_discounted' | 'expiring_soon' | 'new_match';
   message: string;
   read: boolean;
   item: {
@@ -30,12 +30,4 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
 
 export const deleteNotification = async (id: string): Promise<void> => {
   await apiClient.delete(`/notifications/${id}`);
-};
-
-export const sendInterestNotification = async (itemId: string, itemName: string, type: 'item' | 'request'): Promise<void> => {
-  await apiClient.post('/notifications/interest', { itemId, itemName, type });
-};
-
-export const requestPickup = async (itemId: string): Promise<void> => {
-  await apiClient.post('/notifications/pickup-request', { itemId });
 };

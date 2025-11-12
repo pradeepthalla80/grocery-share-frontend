@@ -2,12 +2,10 @@ import { Bell } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
 
 export function NotificationBell() {
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
 
   return (
     <div className="relative">
@@ -50,15 +48,6 @@ export function NotificationBell() {
                     }`}
                     onClick={() => {
                       if (!notif.read) markAsRead(notif.id);
-                      setIsOpen(false);
-                      
-                      // Route based on notification type
-                      const pickupRequestTypes = ['pickup_request', 'request_accepted', 'request_declined', 'exchange_completed'];
-                      if (pickupRequestTypes.includes(notif.type)) {
-                        navigate('/pickup-requests');
-                      } else {
-                        navigate('/chat');
-                      }
                     }}
                   >
                     <div className="flex justify-between items-start">

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { itemsAPI } from '../api/items';
+import { itemsAPI, type Item } from '../api/items';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
@@ -12,8 +12,8 @@ import { ArrowLeft } from 'lucide-react';
 
 const editItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
+  imageURL: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   category: z.string().optional(),
-  customCategory: z.string().optional(),
   tags: z.string().optional(),
   expiryDate: z.string().min(1, 'Expiry date is required'),
   price: z.string().optional(),
@@ -62,7 +62,6 @@ export const EditItem = () => {
   const [flexiblePickup, setFlexiblePickup] = useState(true);
   const [currentLat, setCurrentLat] = useState(0);
   const [currentLng, setCurrentLng] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState('');
 
   const {
     register,
@@ -80,22 +79,13 @@ export const EditItem = () => {
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        if (!id) {
-          setError('Item ID is required');
-          setFetchLoading(false);
-          return;
-        }
-
-        const item = await itemsAPI.getById(id);
+        const response = await itemsAPI.getMyItems();
+        const item = response.items.find((item: Item) => item.id === id);
         
         if (item) {
           setValue('name', item.name);
-          const cat = item.category || '';
-          setValue('category', cat);
-          setSelectedCategory(cat);
-          if (item.customCategory) {
-            setValue('customCategory', item.customCategory);
-          }
+          setValue('imageURL', item.imageURL || '');
+          setValue('category', item.category || '');
           setValue('tags', item.tags.join(', '));
           setValue('expiryDate', item.expiryDate.split('T')[0]);
           setValue('price', item.price.toString());
@@ -143,14 +133,11 @@ export const EditItem = () => {
 
       const formData = new FormData();
       formData.append('name', data.name);
+      if (data.imageURL) {
+        formData.append('imageURL', data.imageURL);
+      }
       if (data.category) {
         formData.append('category', data.category);
-      }
-      // Always send customCategory - empty string clears it when not "Other"
-      if (selectedCategory === 'Other' && data.customCategory) {
-        formData.append('customCategory', data.customCategory);
-      } else {
-        formData.append('customCategory', '');
       }
       formData.append('expiryDate', data.expiryDate);
       formData.append('isFree', isFree.toString());
@@ -232,45 +219,22 @@ export const EditItem = () => {
               onChange={handleImageChange}
             />
 
+            <FormInput
+              label="Image URL (Optional - only if not uploading files)"
+              type="url"
+              {...register('imageURL')}
+              error={errors.imageURL?.message}
+              placeholder="https://example.com/image.jpg"
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Category (Optional)
-                </label>
-                <select
-                  {...register('category')}
-                  value={selectedCategory}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedCategory(value);
-                    setValue('category', value);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Select a category</option>
-                  <option value="Fruits">Fruits</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Dairy">Dairy</option>
-                  <option value="Bakery">Bakery</option>
-                  <option value="Meat">Meat</option>
-                  <option value="Snacks">Snacks</option>
-                  <option value="Beverages">Beverages</option>
-                  <option value="Pantry">Pantry</option>
-                  <option value="Oils & Spices">Oils & Spices</option>
-                  <option value="Condiments & Sauces">Condiments & Sauces</option>
-                  <option value="Frozen Foods">Frozen Foods</option>
-                  <option value="Canned Goods">Canned Goods</option>
-                  <option value="Grains & Pasta">Grains & Pasta</option>
-                  <option value="Seafood">Seafood</option>
-                  <option value="Desserts">Desserts</option>
-                  <option value="Baby Food">Baby Food</option>
-                  <option value="Pet Food">Pet Food</option>
-                  <option value="Other">Other (Specify Below)</option>
-                </select>
-                {errors.category && (
-                  <p className="text-sm text-red-600">{errors.category.message}</p>
-                )}
-              </div>
+              <FormInput
+                label="Category (Optional)"
+                type="text"
+                {...register('category')}
+                error={errors.category?.message}
+                placeholder="e.g., Fruits"
+              />
 
               <FormInput
                 label="Tags (comma-separated, optional)"
@@ -280,16 +244,6 @@ export const EditItem = () => {
                 placeholder="e.g., organic, fresh, local"
               />
             </div>
-
-            {selectedCategory === 'Other' && (
-              <FormInput
-                label="Custom Category"
-                type="text"
-                {...register('customCategory')}
-                error={errors.customCategory?.message}
-                placeholder="e.g., Cooking Oil, Spices, etc."
-              />
-            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
@@ -362,9 +316,6 @@ export const EditItem = () => {
             </div>
 
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pickup Location *
-              </label>
               <AddressInput
                 onLocationSelect={(location) => {
                   setValue('lat', location.lat.toString());
@@ -374,16 +325,32 @@ export const EditItem = () => {
                 }}
               />
               
-              {errors.lat && (
-                <p className="text-sm text-red-600">{errors.lat.message}</p>
-              )}
-              
               {currentLat !== 0 && currentLng !== 0 && (
                 <LocationMap
                   lat={currentLat}
                   lng={currentLng}
                 />
               )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput
+                label="Latitude"
+                type="number"
+                step="0.0001"
+                {...register('lat')}
+                error={errors.lat?.message}
+                placeholder="37.7749"
+              />
+
+              <FormInput
+                label="Longitude"
+                type="number"
+                step="0.0001"
+                {...register('lng')}
+                error={errors.lng?.message}
+                placeholder="-122.4194"
+              />
             </div>
 
             <div className="flex space-x-4">
