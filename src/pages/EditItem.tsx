@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { itemsAPI, type Item } from '../api/items';
+import { itemsAPI } from '../api/items';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
@@ -80,8 +80,13 @@ export const EditItem = () => {
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const response = await itemsAPI.getMyItems();
-        const item = response.items.find((item: Item) => item.id === id);
+        if (!id) {
+          setError('Item ID is required');
+          setFetchLoading(false);
+          return;
+        }
+
+        const item = await itemsAPI.getById(id);
         
         if (item) {
           setValue('name', item.name);
