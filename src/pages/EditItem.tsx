@@ -62,6 +62,7 @@ export const EditItem = () => {
   const [flexiblePickup, setFlexiblePickup] = useState(true);
   const [currentLat, setCurrentLat] = useState(0);
   const [currentLng, setCurrentLng] = useState(0);
+  const [currentAddress, setCurrentAddress] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
 
   const {
@@ -103,6 +104,9 @@ export const EditItem = () => {
           setValue('lng', item.location.lng.toString());
           setCurrentLat(item.location.lat);
           setCurrentLng(item.location.lng);
+          if (item.location.address) {
+            setCurrentAddress(item.location.address);
+          }
           const itemIsFree = item.isFree || false;
           setIsFree(itemIsFree);
           setValue('isFree', itemIsFree);
@@ -366,17 +370,22 @@ export const EditItem = () => {
                 Pickup Location *
               </label>
               <AddressInput
+                defaultAddress={currentAddress}
+                defaultLat={currentLat}
+                defaultLng={currentLng}
                 onLocationSelect={(location) => {
                   setValue('lat', location.lat.toString());
                   setValue('lng', location.lng.toString());
                   setCurrentLat(location.lat);
                   setCurrentLng(location.lng);
+                  setCurrentAddress(location.address);
                 }}
+                error={errors.lat?.message}
               />
               
-              {errors.lat && (
-                <p className="text-sm text-red-600">{errors.lat.message}</p>
-              )}
+              {/* Hidden inputs to keep lat/lng registered with form */}
+              <input type="hidden" {...register('lat')} />
+              <input type="hidden" {...register('lng')} />
               
               {currentLat !== 0 && currentLng !== 0 && (
                 <LocationMap
