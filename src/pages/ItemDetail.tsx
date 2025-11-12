@@ -8,7 +8,8 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
-import { requestPickup, sendInterestNotification } from '../api/notifications';
+import { sendInterestNotification } from '../api/notifications';
+import { pickupRequestsAPI } from '../api/pickupRequests';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -104,10 +105,12 @@ export const ItemDetail = () => {
     if (!item) return;
     
     try {
-      await requestPickup(item.id);
-      showToast('✅ Pickup request sent to the seller! They will contact you soon.', 'success');
-    } catch (error) {
-      showToast('Failed to send pickup request', 'error');
+      await pickupRequestsAPI.create({ itemId: item.id });
+      showToast('✅ Pickup request sent! Seller will respond soon.', 'success');
+      navigate('/pickup-requests');
+    } catch (error: any) {
+      console.error('Request pickup error:', error);
+      showToast(error.response?.data?.error || 'Failed to send pickup request', 'error');
     }
   };
 

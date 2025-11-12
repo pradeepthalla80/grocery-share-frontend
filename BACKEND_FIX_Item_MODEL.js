@@ -168,7 +168,7 @@ const itemSchema = new mongoose.Schema({
   // Status & Payment
   status: {
     type: String,
-    enum: ['available', 'sold', 'refunded', 'expired'],
+    enum: ['available', 'sold', 'refunded', 'expired', 'awaiting_pickup', 'completed'],
     default: 'available'
   },
   

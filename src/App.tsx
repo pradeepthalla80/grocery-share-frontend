@@ -24,6 +24,7 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { Analytics } from './pages/Analytics';
 import { StoreDashboard } from './pages/StoreDashboard';
 import { LegalAgreements } from './pages/LegalAgreements';
+import { PickupRequests } from './pages/PickupRequests';
 import { NotFound } from './pages/NotFound';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
@@ -99,6 +100,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ItemRequests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pickup-requests"
+              element={
+                <ProtectedRoute>
+                  <PickupRequests />
                 </ProtectedRoute>
               }
             />
