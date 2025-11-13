@@ -1,0 +1,100 @@
+      properties: [Object],
+      kind: 'enum',
+      path: 'status',
+      value: 'picked_up',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Item validation failed'
+}
+Update item error: Error: Item validation failed: category: `Spices` is not a valid enum value for path `category`.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2897:40)
+    at formatWithOptions (node:internal/util/inspect:2759:10)
+    at console.value (node:internal/console/constructor:377:14)
+    at console.error (node:internal/console/constructor:444:61)
+    at updateItem (/opt/render/project/src/controllers/itemsController.js:658:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    category: ValidatorError: `Spices` is not a valid enum value for path `category`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'category',
+      value: 'Spices',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Item validation failed'
+}
+Confirm pickup error: Error: Notification validation failed: type: `pickup_confirmed` is not a valid enum value for path `type`.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2897:40)
+    at formatWithOptions (node:internal/util/inspect:2759:10)
+    at console.value (node:internal/console/constructor:377:14)
+    at console.error (node:internal/console/constructor:444:61)
+    at confirmPickupCompletion (/opt/render/project/src/controllers/pickupRequestController.js:511:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    type: ValidatorError: `pickup_confirmed` is not a valid enum value for path `type`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'type',
+      value: 'pickup_confirmed',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Notification validation failed'
+}
+Update item error: Error: Item validation failed: category: `milk` is not a valid enum value for path `category`., status: `picked_up` is not a valid enum value for path `status`.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2897:40)
+    at formatWithOptions (node:internal/util/inspect:2759:10)
+    at console.value (node:internal/console/constructor:377:14)
+    at console.error (node:internal/console/constructor:444:61)
+    at updateItem (/opt/render/project/src/controllers/itemsController.js:658:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    category: ValidatorError: `milk` is not a valid enum value for path `category`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'category',
+      value: 'milk',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    },
+    status: ValidatorError: `picked_up` is not a valid enum value for path `status`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'status',
+      value: 'picked_up',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Item validation failed'
+}
