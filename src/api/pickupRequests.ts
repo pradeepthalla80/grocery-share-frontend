@@ -27,6 +27,8 @@ export interface PickupRequest {
   buyerConfirmed: boolean;
   sellerConfirmed: boolean;
   amountPaid: number;
+  hasSellerRatedBuyer: boolean;
+  hasBuyerRatedSeller: boolean;
   declineReason?: string | null;
   createdAt: string;
   acceptedAt?: string | null;

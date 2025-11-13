@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Clock, Package, CheckCircle, XCircle, Truck, MapPin } from 'lucide-react';
+import { Clock, Package, CheckCircle, XCircle, Truck, MapPin, Star } from 'lucide-react';
 import { pickupRequestsAPI, type PickupRequest } from '../api/pickupRequests';
 import { RequestActionModal } from '../components/RequestActionModal';
+import { RatingModal } from '../components/RatingModal';
 import { useToast } from '../hooks/useToast';
 import { format } from 'date-fns';
 
@@ -12,6 +13,12 @@ export const PickupRequests = () => {
   const [buyerRequests, setBuyerRequests] = useState<PickupRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<PickupRequest | null>(null);
   const [activeTab, setActiveTab] = useState<'selling' | 'buying'>('selling');
+  const [ratingModal, setRatingModal] = useState<{
+    isOpen: boolean;
+    rateeId: string;
+    rateeName: string;
+    itemId: string;
+  } | null>(null);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -175,9 +182,41 @@ export const PickupRequests = () => {
           )}
 
           {request.status === 'completed' && (
-            <div className="flex-1 bg-purple-100 text-purple-800 py-2 px-4 rounded-lg text-center text-sm font-medium">
-              🎉 Exchange Completed!
-            </div>
+            <>
+              {/* Check if current user needs to rate the other party */}
+              {(() => {
+                // isSeller is true when role='seller', false when role='buyer'
+                const needsToRate = isSeller 
+                  ? !request.hasSellerRatedBuyer   // Seller rating buyer
+                  : !request.hasBuyerRatedSeller;  // Buyer rating seller
+                
+                if (needsToRate) {
+                  const otherPartyId = isSeller ? request.requester.id : request.seller.id;
+                  const otherPartyName = isSeller ? request.requester.name : request.seller.name;
+                  
+                  return (
+                    <button
+                      onClick={() => setRatingModal({
+                        isOpen: true,
+                        rateeId: otherPartyId,
+                        rateeName: otherPartyName,
+                        itemId: request.item.id
+                      })}
+                      className="flex-1 bg-amber-500 text-white py-2 px-4 rounded-lg hover:bg-amber-600 transition text-sm font-medium flex items-center justify-center space-x-2"
+                    >
+                      <Star className="h-4 w-4" />
+                      <span>Rate {otherPartyName}</span>
+                    </button>
+                  );
+                } else {
+                  return (
+                    <div className="flex-1 bg-purple-100 text-purple-800 py-2 px-4 rounded-lg text-center text-sm font-medium">
+                      🎉 Exchange Completed!
+                    </div>
+                  );
+                }
+              })()}
+            </>
           )}
         </div>
       </div>
@@ -256,6 +295,21 @@ export const PickupRequests = () => {
             request={selectedRequest}
             onClose={() => setSelectedRequest(null)}
             onSuccess={fetchRequests}
+          />
+        )}
+
+        {/* Rating Modal */}
+        {ratingModal && (
+          <RatingModal
+            isOpen={ratingModal.isOpen}
+            onClose={() => setRatingModal(null)}
+            rateeId={ratingModal.rateeId}
+            rateeName={ratingModal.rateeName}
+            itemId={ratingModal.itemId}
+            onSuccess={() => {
+              setRatingModal(null);
+              fetchRequests(); // Refresh to update rating status
+            }}
           />
         )}
       </div>
