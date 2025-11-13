@@ -240,10 +240,24 @@ const acceptPickupRequest = async (req, res) => {
       return res.status(404).json({ error: 'Pickup request not found' });
     }
     
+    // DEBUG: Log seller comparison
+    console.log('===== ACCEPT REQUEST DEBUG =====');
+    console.log('Request ID:', requestId);
+    console.log('Auth userId:', userId);
+    console.log('Pickup Request seller:', pickupRequest.seller);
+    console.log('Seller toString():', pickupRequest.seller.toString());
+    console.log('Match:', pickupRequest.seller.toString() === userId);
+    console.log('================================');
+    
     // Verify user is the seller
     if (pickupRequest.seller.toString() !== userId) {
+      console.error('AUTHORIZATION FAILED - Seller mismatch!');
       return res.status(403).json({ 
-        error: 'You are not authorized to accept this request' 
+        error: 'You are not authorized to accept this request',
+        debug: {
+          yourUserId: userId,
+          requiredSellerId: pickupRequest.seller.toString()
+        }
       });
     }
     
