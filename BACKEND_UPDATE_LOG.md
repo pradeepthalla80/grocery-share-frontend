@@ -21,5 +21,18 @@
 2. Run migration script to update old database records with invalid enum values
 
 ### Files Ready for GitHub:
-- ✅ `BACKEND_FIXED_Notification.js` → Copy to `models/Notification.js`
-- ✅ `BACKEND_migrate_legacy_data.js` → Copy to backend root directory (run once, then delete)
+- ✅ `BACKEND_FIXED_Notification.js` → Copy to `models/Notification.js` (DEPLOYED ✅)
+- ✅ `BACKEND_migrate_legacy_data.js` → Copy to backend root directory (DEPLOYED ✅ - but can't run via SSH on free tier)
+
+## November 13, 2025 - 5:30 PM
+**Alternative Solution:** Created migration endpoint for free Render users
+
+### New File Created:
+- ✅ `BACKEND_migration_route.js` → Copy to `routes/migration.js`
+
+### Setup Instructions:
+1. Copy `BACKEND_migration_route.js` to `routes/migration.js`
+2. Add to `index.js`: `app.use('/api/v1/admin', require('./routes/migration'));`
+3. Deploy to Render
+4. Visit: `https://grocery-share-backend.onrender.com/api/v1/admin/migrate-legacy-data`
+5. Delete route after successful migration
