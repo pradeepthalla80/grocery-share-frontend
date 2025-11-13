@@ -1,0 +1,128 @@
+=> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+(node:69) [MONGOOSE] Warning: Duplicate schema index on {"user":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+(node:68) [MONGOOSE] Warning: Duplicate schema index on {"user":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Server running on port 10000
+🌍 Environment: production
+🔒 CORS enabled for: https://grocery-share-frontend.vercel.app, http://localhost:5000, http://localhost:3000, http://localhost:5173
+📡 Ready to receive requests!
+✅ MongoDB connected successfully
+📦 Database: test
+     ==> Your service is live 🎉
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+     ==> 
+     ==> Available at your primary URL https://grocery-share-backend.onrender.com
+     ==> 
+     ==> ///////////////////////////////////////////////////////////
+Update item error: Error: Item validation failed: category: `milk` is not a valid enum value for path `category`., status: `picked_up` is not a valid enum value for path `status`.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2897:40)
+    at formatWithOptions (node:internal/util/inspect:2759:10)
+    at console.value (node:internal/console/constructor:377:14)
+    at console.error (node:internal/console/constructor:444:61)
+    at updateItem (/opt/render/project/src/controllers/itemsController.js:658:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    category: ValidatorError: `milk` is not a valid enum value for path `category`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'category',
+      value: 'milk',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    },
+    status: ValidatorError: `picked_up` is not a valid enum value for path `status`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'status',
+      value: 'picked_up',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Item validation failed'
+}
+     ==> Detected service running on port 10000
+     ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+Update item error: Error: Item validation failed: category: `Spice` is not a valid enum value for path `category`.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2897:40)
+    at formatWithOptions (node:internal/util/inspect:2759:10)
+    at console.value (node:internal/console/constructor:377:14)
+    at console.error (node:internal/console/constructor:444:61)
+    at updateItem (/opt/render/project/src/controllers/itemsController.js:658:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    category: ValidatorError: `Spice` is not a valid enum value for path `category`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'category',
+      value: 'Spice',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Item validation failed'
+}
+Update item error: Error: Item validation failed: status: `picked_up` is not a valid enum value for path `status`.
+    at ValidationError.inspect (/opt/render/project/src/node_modules/mongoose/lib/error/validation.js:52:26)
+    at formatValue (node:internal/util/inspect:1148:19)
+    at inspect (node:internal/util/inspect:409:10)
+    at formatWithOptionsInternal (node:internal/util/inspect:2897:40)
+    at formatWithOptions (node:internal/util/inspect:2759:10)
+    at console.value (node:internal/console/constructor:377:14)
+    at console.error (node:internal/console/constructor:444:61)
+    at updateItem (/opt/render/project/src/controllers/itemsController.js:658:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  errors: {
+    status: ValidatorError: `picked_up` is not a valid enum value for path `status`.
+        at validate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1417:13)
+        at SchemaType.doValidate (/opt/render/project/src/node_modules/mongoose/lib/schemaType.js:1401:7)
+        at /opt/render/project/src/node_modules/mongoose/lib/document.js:3115:18
+        at process.processTicksAndRejections (node:internal/process/task_queues:84:11) {
+      properties: [Object],
+      kind: 'enum',
+      path: 'status',
+      value: 'picked_up',
+      reason: undefined,
+      Symbol(mongoose#validatorError): true
+    }
+  },
+  _message: 'Item validation failed'
+}
