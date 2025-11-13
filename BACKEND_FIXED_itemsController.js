@@ -536,8 +536,8 @@ const updateItem = async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    // ✅ FIXED: Check ownership using .equals() method
-    if (!item.user.equals(req.user._id)) {
+    // Check ownership (convert both to strings for comparison)
+    if (item.user.toString() !== req.user.userId.toString()) {
       return res.status(403).json({ error: 'Not authorized to update this item' });
     }
     
@@ -675,8 +675,8 @@ const deleteItem = async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    // ✅ FIXED: Check ownership using .equals() method
-    if (!item.user.equals(req.user._id)) {
+    // Check ownership (convert both to strings for comparison)
+    if (item.user.toString() !== req.user.userId.toString()) {
       return res.status(403).json({ error: 'You can only delete your own items' });
     }
     
@@ -709,14 +709,14 @@ const schedulePickup = async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    // Validation: user cannot schedule pickup for their own item
-    if (item.user.toString() === req.user.userId) {
+    // Validation: user cannot schedule pickup for their own item (convert both to strings)
+    if (item.user.toString() === req.user.userId.toString()) {
       return res.status(400).json({ error: 'You cannot schedule a pickup for your own item' });
     }
     
-    // Check if user already has a pending/confirmed pickup for this item
+    // Check if user already has a pending/confirmed pickup for this item (convert both to strings)
     const existingPickup = item.scheduledPickups.find(
-      p => p.user.toString() === req.user.userId && (p.status === 'pending' || p.status === 'confirmed')
+      p => p.user.toString() === req.user.userId.toString() && (p.status === 'pending' || p.status === 'confirmed')
     );
     if (existingPickup) {
       return res.status(400).json({ error: 'You already have a scheduled pickup for this item' });
@@ -759,9 +759,9 @@ const updatePickupStatus = async (req, res) => {
       return res.status(404).json({ error: 'Pickup not found' });
     }
     
-    // Authorization: only owner or requester can update status
-    const isOwner = item.user.toString() === req.user.userId;
-    const isRequester = pickup.user.toString() === req.user.userId;
+    // Authorization: only owner or requester can update status (convert both to strings)
+    const isOwner = item.user.toString() === req.user.userId.toString();
+    const isRequester = pickup.user.toString() === req.user.userId.toString();
     
     if (!isOwner && !isRequester) {
       return res.status(403).json({ error: 'You are not authorized to update this pickup' });
