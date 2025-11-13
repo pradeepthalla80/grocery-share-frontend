@@ -240,24 +240,10 @@ const acceptPickupRequest = async (req, res) => {
       return res.status(404).json({ error: 'Pickup request not found' });
     }
     
-    // DEBUG: Log seller comparison
-    console.log('===== ACCEPT REQUEST DEBUG =====');
-    console.log('Request ID:', requestId);
-    console.log('Auth userId:', userId);
-    console.log('Pickup Request seller:', pickupRequest.seller);
-    console.log('Seller toString():', pickupRequest.seller.toString());
-    console.log('Match:', pickupRequest.seller.toString() === userId);
-    console.log('================================');
-    
-    // Verify user is the seller
-    if (pickupRequest.seller.toString() !== userId) {
-      console.error('AUTHORIZATION FAILED - Seller mismatch!');
+    // Verify user is the seller (convert both to strings for comparison)
+    if (pickupRequest.seller.toString() !== userId.toString()) {
       return res.status(403).json({ 
-        error: 'You are not authorized to accept this request',
-        debug: {
-          yourUserId: userId,
-          requiredSellerId: pickupRequest.seller.toString()
-        }
+        error: 'You are not authorized to accept this request'
       });
     }
     
@@ -332,8 +318,8 @@ const declinePickupRequest = async (req, res) => {
       return res.status(404).json({ error: 'Pickup request not found' });
     }
     
-    // Verify user is the seller
-    if (pickupRequest.seller.toString() !== userId) {
+    // Verify user is the seller (convert both to strings for comparison)
+    if (pickupRequest.seller.toString() !== userId.toString()) {
       return res.status(403).json({ 
         error: 'You are not authorized to decline this request' 
       });
@@ -401,9 +387,9 @@ const confirmPickupCompletion = async (req, res) => {
       return res.status(404).json({ error: 'Pickup request not found' });
     }
     
-    // Check if user is buyer or seller
-    const isBuyer = pickupRequest.requester._id.toString() === userId;
-    const isSeller = pickupRequest.seller._id.toString() === userId;
+    // Check if user is buyer or seller (convert both to strings for comparison)
+    const isBuyer = pickupRequest.requester._id.toString() === userId.toString();
+    const isSeller = pickupRequest.seller._id.toString() === userId.toString();
     
     if (!isBuyer && !isSeller) {
       return res.status(403).json({ 
@@ -544,8 +530,8 @@ const cancelPickupRequest = async (req, res) => {
       return res.status(404).json({ error: 'Pickup request not found' });
     }
     
-    // Verify user is the requester
-    if (pickupRequest.requester.toString() !== userId) {
+    // Verify user is the requester (convert both to strings for comparison)
+    if (pickupRequest.requester.toString() !== userId.toString()) {
       return res.status(403).json({ 
         error: 'You are not authorized to cancel this request' 
       });
@@ -620,9 +606,9 @@ const getPickupRequestById = async (req, res) => {
       return res.status(404).json({ error: 'Pickup request not found' });
     }
     
-    // Verify user is involved in this request
-    const isRequester = pickupRequest.requester._id.toString() === userId;
-    const isSeller = pickupRequest.seller._id.toString() === userId;
+    // Verify user is involved in this request (convert both to strings for comparison)
+    const isRequester = pickupRequest.requester._id.toString() === userId.toString();
+    const isSeller = pickupRequest.seller._id.toString() === userId.toString();
     
     if (!isRequester && !isSeller) {
       return res.status(403).json({ 
