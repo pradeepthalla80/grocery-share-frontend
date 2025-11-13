@@ -53,7 +53,7 @@ export function NotificationBell() {
                       setIsOpen(false);
                       
                       // Route based on notification type
-                      const pickupRequestTypes = ['pickup_request', 'request_accepted', 'request_declined', 'exchange_completed'];
+                      const pickupRequestTypes = ['pickup_request', 'request_accepted', 'request_declined', 'request_canceled', 'exchange_completed', 'pickup_confirmed'];
                       if (pickupRequestTypes.includes(notif.type)) {
                         navigate('/pickup-requests');
                       } else {
