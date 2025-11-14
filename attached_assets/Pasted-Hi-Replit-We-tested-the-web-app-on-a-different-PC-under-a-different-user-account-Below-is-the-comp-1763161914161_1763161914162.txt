@@ -1,0 +1,136 @@
+Hi Replit,
+We tested the web app on a different PC under a different user account.
+Below is the complete and updated bug list.
+Please let me know if you prefer to fix everything together or one-by-one.
+
+⸻
+
+1️⃣ Search – “No Items Found” Message Too Low on Page
+
+When searching and no items match, the “item not found” message appears only at the bottom after scrolling.
+
+➡️ Please move this message to the middle of the results area, so users see it immediately.
+
+⸻
+
+2️⃣ “Use Current Location” Works on My Devices but Not on Another PC
+
+On my PC and phone, current location works.
+On another test PC, nothing happens and no address is filled.
+
+➡️ Please review:
+	•	Permission handling across browsers
+	•	Fallback logic
+	•	Proper error prompt if location is denied or blocked
+
+⸻
+
+3️⃣ Add Item – Image Preview Shows as Black Box
+
+When adding an item:
+	•	The image preview box displays as a black box during upload
+	•	After saving, the image displays correctly everywhere (dashboard, search results, My Items)
+
+➡️ Only fix the preview rendering on the Add Item page.
+(Screenshots available if needed.)
+
+⸻
+
+4️⃣ Add Item – Internal Server Error
+
+On the test PC, submitting a new item sometimes results in “Internal server error.”
+
+➡️ Please log and identify the backend cause, and handle gracefully in UI.
+
+⸻
+
+5️⃣ Address Formatting Issues in Request Posting
+
+This issue happens for all manually entered addresses.
+
+When posting a request with an address like:
+“3572 Hidden Fawn Drive, Elgin, Illinois, 60124, United States”
+
+The app:
+	1.	Shows “Failed to find address”
+	2.	Auto-fills with something like:
+
+“3572 Hidden Fawn Drive, Elgin, Plato Township, Kane County, Illinois, 60124, United States”
+
+Problems:
+	•	“Plato Township” is inserted automatically
+	•	House number disappears in some cases
+	•	Address format becomes too long / inconsistent
+
+➡️ Please ensure:
+	•	House number always preserved
+	•	No unnecessary administrative regions inserted
+	•	Address normalization is consistent and predictable
+
+⸻
+
+6️⃣ Request Section – Cannot See Others’ Requests Without Posting One
+
+Currently, users cannot view other users’ requests unless they first create their own request.
+
+➡️ All public requests should be visible by default.
+
+⸻
+
+7️⃣ Messages – Failed to Send
+
+Messages fail to send on the test PC.
+Users type → click send → message does not send and fails.
+
+➡️ Please debug:
+	•	API or websocket sending
+	•	Messaging permissions for new accounts
+	•	Error handling on frontend
+
+⸻
+
+8️⃣ Adding an Item Logs the User Out
+
+After submitting an item, the app sometimes logs out the user.
+
+➡️ Possibly related to:
+	•	Token refresh
+	•	Auth middleware
+	•	Error response handling
+
+Please ensure item submission never triggers logout.
+
+⸻
+
+9️⃣ Ratings Not Updating on Search Results
+
+When a user receives a rating:
+	•	The rating updates correctly in the user’s profile
+	•	But the rating does NOT update on search results / dashboard listings
+
+Expected:
+	•	Ratings should appear consistently wherever the item or store appears.
+
+➡️ Please sync ratings across:
+	•	Dashboard
+	•	Search results
+	•	Item details
+	•	Store items view
+
+⸻
+
+📎 Screenshots Available
+
+I can provide visual references for:
+	•	Black image preview
+	•	Address auto-fill behavior
+	•	Any error screens
+
+⸻
+
+❓ Question
+
+Do you prefer:
+	1.	Fix all bugs in one batch (then I perform full regression)
+or
+	2.	Fix one-by-one with validation after each?
