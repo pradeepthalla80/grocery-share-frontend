@@ -71,7 +71,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({
       setShowSuggestions(true);
     } catch (error) {
       console.error('Geocoding error:', error);
-      alert('Failed to search address. Please try again.');
+      showToast('Failed to search address. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
