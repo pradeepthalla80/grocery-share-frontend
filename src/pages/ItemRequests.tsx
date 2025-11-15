@@ -31,6 +31,8 @@ export const ItemRequests = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
   const [editingRequest, setEditingRequest] = useState<ItemRequest | null>(null);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [searchAddress, setSearchAddress] = useState('');
 
   const {
     register,
@@ -58,10 +60,15 @@ export const ItemRequests = () => {
           fetchRequests(lat, lng);
         },
         () => {
-          setLocation({ lat: 40.7128, lng: -74.0060 });
-          fetchRequests(40.7128, -74.0060);
+          showToast('Could not get your location. Please enter it manually.', 'error');
+          setShowLocationPicker(true);
+          setLoading(false);
         }
       );
+    } else {
+      showToast('Location services not available. Please enter your location.', 'error');
+      setShowLocationPicker(true);
+      setLoading(false);
     }
   }, []);
 
@@ -157,14 +164,25 @@ export const ItemRequests = () => {
 
   const handleRespond = async (requestId: string, requesterId: string) => {
     try {
+      // First, send the initial response
       await respondToRequest(requestId, 'I can help with this!');
-      showToast('Response sent! Redirecting to chat...', 'success');
+      showToast('Response sent! Opening chat...', 'success');
+      
+      // Wait a moment for the backend to create the conversation
+      // Then navigate with the receiverId so Chat page can fetch and display it
       setTimeout(() => {
-        navigate(`/chat?receiverId=${requesterId}`);
-      }, 1000);
+        navigate(`/chat?receiverId=${requesterId}&requestId=${requestId}`);
+      }, 800);
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Failed to respond', 'error');
     }
+  };
+
+  const handleSearchLocationSelect = (loc: { address: string; lat: number; lng: number }) => {
+    setSearchAddress(loc.address);
+    setLocation({ lat: loc.lat, lng: loc.lng });
+    setShowLocationPicker(false);
+    fetchRequests(loc.lat, loc.lng);
   };
 
   return (
@@ -183,6 +201,21 @@ export const ItemRequests = () => {
             {showCreateForm ? 'Cancel' : 'Post Request'}
           </button>
         </div>
+
+        {showLocationPicker && (
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-8">
+            <h3 className="text-lg font-semibold text-yellow-900 mb-4">
+              📍 Set Your Location to See Nearby Requests
+            </h3>
+            <p className="text-sm text-yellow-800 mb-4">
+              Enter your address to find item requests in your area
+            </p>
+            <AddressInput
+              onLocationSelect={handleSearchLocationSelect}
+              defaultAddress={searchAddress}
+            />
+          </div>
+        )}
 
         {showCreateForm && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">

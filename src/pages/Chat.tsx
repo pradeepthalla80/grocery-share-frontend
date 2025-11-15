@@ -21,6 +21,7 @@ export const Chat = () => {
 
   const receiverId = searchParams.get('receiverId');
   const itemId = searchParams.get('itemId');
+  const requestId = searchParams.get('requestId');
   const prefilledMessage = searchParams.get('message');
 
   useEffect(() => {
@@ -37,18 +38,26 @@ export const Chat = () => {
 
   useEffect(() => {
     if (receiverId) {
+      // If coming from a request response, refetch conversations to get the new one
+      if (requestId && conversations.length === 0) {
+        fetchConversations();
+      }
+      
       const matchingConv = conversations.find(conv => 
         conv.participants.some(p => p.id === receiverId)
       );
       
       if (matchingConv) {
         setSelectedConversation(matchingConv);
-      } else {
+        setShowModal(true);
+      } else if (!requestId) {
+        // Only show modal for new conversation if not coming from request
         setSelectedConversation(null);
+        setShowModal(true);
       }
-      setShowModal(true);
+      // If from request but no conversation yet, wait for next fetch
     }
-  }, [receiverId, conversations]);
+  }, [receiverId, conversations, requestId]);
 
   const fetchConversations = async () => {
     try {
