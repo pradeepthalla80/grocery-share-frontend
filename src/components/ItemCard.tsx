@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Item } from '../api/items';
-import { Calendar, DollarSign, MapPin, Tag, User, ChevronLeft, ChevronRight, Clock, MessageCircle, ShoppingCart, Package } from 'lucide-react';
+import { Calendar, DollarSign, MapPin, Tag, User, ChevronLeft, ChevronRight, Clock, MessageCircle, ShoppingCart, Package, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 
@@ -115,12 +115,25 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         <div className="space-y-2 text-sm text-gray-600">
           {/* Store Name - Prominent Display for Mini Stores */}
           {item.isStoreItem && item.user?.storeName && (
-            <div className="bg-blue-100 border-l-4 border-blue-600 px-3 py-2 rounded flex items-center space-x-2">
-              <ShoppingCart className="h-5 w-5 text-blue-700" />
-              <div>
-                <p className="text-xs text-blue-600 font-medium">Mini Store</p>
-                <p className="text-sm font-bold text-blue-900">{item.user.storeName}</p>
+            <div className="bg-blue-100 border-l-4 border-blue-600 px-3 py-2 rounded flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <ShoppingCart className="h-5 w-5 text-blue-700" />
+                <div>
+                  <p className="text-xs text-blue-600 font-medium">Mini Store</p>
+                  <p className="text-sm font-bold text-blue-900">{item.user.storeName}</p>
+                </div>
               </div>
+              {item.user.averageRating !== undefined && item.user.ratingCount !== undefined && item.user.ratingCount > 0 && (
+                <div className="flex items-center space-x-1">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-semibold text-gray-800">
+                    {item.user.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-gray-600">
+                    ({item.user.ratingCount})
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
@@ -174,9 +187,22 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           </div>
 
           {item.user && !item.isStoreItem && (
-            <div className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
-              <span className="text-gray-700">Seller: {item.user.name}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span className="text-gray-700">Seller: {item.user.name}</span>
+              </div>
+              {item.user.averageRating !== undefined && item.user.ratingCount !== undefined && item.user.ratingCount > 0 && (
+                <div className="flex items-center space-x-1">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-semibold text-gray-800">
+                    {item.user.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-gray-600">
+                    ({item.user.ratingCount})
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

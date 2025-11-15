@@ -26,6 +26,8 @@ export interface Item {
     name: string;
     email: string;
     storeName?: string;
+    averageRating?: number;
+    ratingCount?: number;
   };
   notified: boolean;
   distance?: number;
