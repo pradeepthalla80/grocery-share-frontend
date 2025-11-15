@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { type Conversation, type Message, sendMessage, getMessages, markMessagesAsRead, confirmPickup } from '../api/chat';
 import { revealAddress } from '../api/address';
 import { useToast } from '../hooks/useToast';
+import { useAuth } from '../hooks/useAuth';
 import { RatingModal } from './RatingModal';
 
 interface ChatModalProps {
@@ -28,6 +29,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
   onConversationCreated
 }) => {
   const { showToast } = useToast();
+  const { checkAuth } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState(prefilledMessage || '');
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -287,6 +289,13 @@ export const ChatModal: React.FC<ChatModalProps> = ({
           rateeId={ratingUserId}
           rateeName={ratingUserName}
           onClose={() => setShowRatingModal(false)}
+          onSuccess={async () => {
+            await checkAuth(); // Refresh user profile data (averageRating, ratingCount)
+            if (conversation) {
+              await fetchMessages(); // Refresh messages to update any rating-related UI
+            }
+            setShowRatingModal(false);
+          }}
         />
       )}
     </>

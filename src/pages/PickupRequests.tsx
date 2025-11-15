@@ -4,10 +4,12 @@ import { pickupRequestsAPI, type PickupRequest } from '../api/pickupRequests';
 import { RequestActionModal } from '../components/RequestActionModal';
 import { RatingModal } from '../components/RatingModal';
 import { useToast } from '../hooks/useToast';
+import { useAuth } from '../hooks/useAuth';
 import { format } from 'date-fns';
 
 export const PickupRequests = () => {
   const { showToast } = useToast();
+  const { checkAuth } = useAuth();
   const [loading, setLoading] = useState(true);
   const [sellerRequests, setSellerRequests] = useState<PickupRequest[]>([]);
   const [buyerRequests, setBuyerRequests] = useState<PickupRequest[]>([]);
@@ -306,9 +308,10 @@ export const PickupRequests = () => {
             rateeId={ratingModal.rateeId}
             rateeName={ratingModal.rateeName}
             itemId={ratingModal.itemId}
-            onSuccess={() => {
+            onSuccess={async () => {
               setRatingModal(null);
-              fetchRequests(); // Refresh to update rating status
+              fetchRequests(); // Refresh to update rating flags
+              await checkAuth(); // Refresh user profile data (averageRating, ratingCount)
             }}
           />
         )}

@@ -537,9 +537,10 @@ export const Dashboard = () => {
             </div>
 
             {items.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No items found in this area</p>
-                <p className="text-gray-400 mt-2">Try expanding your search radius</p>
+              <div className={`bg-white rounded-lg shadow-md p-8 text-center ${recommendations.length > 0 ? 'mb-8' : ''}`}>
+                <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-700 font-medium text-lg mb-2">No items found in this area</p>
+                <p className="text-gray-500 text-sm">Try expanding your search radius or adjusting your filters</p>
               </div>
             )}
 
@@ -670,10 +671,10 @@ export const Dashboard = () => {
             </div>
 
             {requests.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No requests found in this area</p>
-                <p className="text-gray-400 mt-2">Try expanding your search radius</p>
+              <div className="bg-white rounded-lg shadow-md p-8 text-center">
+                <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-700 font-medium text-lg mb-2">No requests found in this area</p>
+                <p className="text-gray-500 text-sm">Try expanding your search radius or check back later</p>
               </div>
             )}
           </>
