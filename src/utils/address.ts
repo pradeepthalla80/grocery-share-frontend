@@ -19,24 +19,42 @@ export interface AddressComponents {
 
 /**
  * Format address for short display (cards, chips)
- * Returns: "Street, City, State" or similar compact format
+ * Returns: "Street, City, State, Zipcode" format
+ * Filters out township, county, neighbourhood, and other unnecessary details
  */
 export const formatAddressShort = (
   displayName: string,
   addressDetails?: AddressComponents
 ): string => {
+  // Keywords to filter out (township, county, etc.)
+  const filterKeywords = [
+    'township',
+    'county',
+    'neighbourhood',
+    'suburb',
+    'borough',
+    'district',
+    'parish',
+    'united states',
+    'usa'
+  ];
+
   if (!addressDetails) {
-    // Fallback: truncate the display_name intelligently
+    // Fallback: parse display_name intelligently, filtering unwanted parts
     const parts = displayName.split(',').map(p => p.trim());
     
     if (parts.length <= 2) {
       return displayName;
     }
     
-    // Take first part (street) and last 2 parts (city, state/country)
-    const street = parts[0];
-    const location = parts.slice(-2).join(', ');
-    return `${street}, ${location}`;
+    // Filter out parts containing unwanted keywords
+    const filteredParts = parts.filter(part => {
+      const lowerPart = part.toLowerCase();
+      return !filterKeywords.some(keyword => lowerPart.includes(keyword));
+    });
+    
+    // Take up to first 4 meaningful parts (street, city, state, zipcode)
+    return filteredParts.slice(0, 4).join(', ');
   }
 
   // Use structured address details for better formatting
@@ -50,7 +68,7 @@ export const formatAddressShort = (
     components.push(street);
   }
 
-  // Add city/town
+  // Add city/town (skip suburb, neighbourhood, county, township)
   const locality = addressDetails.city || addressDetails.town || addressDetails.village;
   if (locality) {
     components.push(locality);
@@ -66,7 +84,19 @@ export const formatAddressShort = (
     components.push(addressDetails.postcode);
   }
 
-  return components.length > 0 ? components.join(', ') : displayName;
+  // If we got components, use them; otherwise fall back to filtered display_name
+  if (components.length > 0) {
+    return components.join(', ');
+  }
+
+  // Last resort: filter the display_name
+  const parts = displayName.split(',').map(p => p.trim());
+  const filteredParts = parts.filter(part => {
+    const lowerPart = part.toLowerCase();
+    return !filterKeywords.some(keyword => lowerPart.includes(keyword));
+  });
+  
+  return filteredParts.slice(0, 4).join(', ');
 };
 
 /**
