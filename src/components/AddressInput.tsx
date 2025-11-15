@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { MapPin, Loader2, Search, AlertCircle } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
+import { formatAddressShort } from '../utils/address';
 
 interface AddressInputProps {
   onLocationSelect: (location: { address: string; lat: number; lng: number }) => void;
@@ -93,13 +94,16 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   };
 
   const selectSuggestion = (result: GeocodingResult) => {
+    // Use formatAddressShort to clean up the address (removes unnecessary details like "Plato Township")
+    const formattedAddress = formatAddressShort(result.display_name, result.address);
+    
     const location = {
-      address: result.display_name,
+      address: formattedAddress,
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
     };
 
-    setAddress(result.display_name);
+    setAddress(formattedAddress);
     setSelectedLocation({ lat: location.lat, lng: location.lng });
     setSuggestions([]);
     setShowSuggestions(false);
@@ -183,13 +187,16 @@ export const AddressInput: React.FC<AddressInputProps> = ({
         if (!response.ok) throw new Error('Reverse geocoding failed');
 
         const data = await response.json();
+        // Use formatAddressShort to clean up the reverse geocoded address
+        const formattedAddress = formatAddressShort(data.display_name, data.address);
+        
         const location = {
-          address: data.display_name,
+          address: formattedAddress,
           lat: latitude,
           lng: longitude,
         };
 
-        setAddress(data.display_name);
+        setAddress(formattedAddress);
         setSelectedLocation({ lat: latitude, lng: longitude });
         onLocationSelect(location);
         showToast('Location set successfully!', 'success');
