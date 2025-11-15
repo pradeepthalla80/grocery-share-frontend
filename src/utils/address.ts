@@ -61,6 +61,11 @@ export const formatAddressShort = (
     components.push(addressDetails.state);
   }
 
+  // Add zipcode/postcode
+  if (addressDetails.postcode) {
+    components.push(addressDetails.postcode);
+  }
+
   return components.length > 0 ? components.join(', ') : displayName;
 };
 
