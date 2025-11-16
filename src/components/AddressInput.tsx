@@ -273,19 +273,22 @@ export const AddressInput: React.FC<AddressInputProps> = ({
 
         {showSuggestions && suggestions.length > 0 && (
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-            {suggestions.map((result, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => selectSuggestion(result)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0 transition-colors"
-              >
-                <div className="flex items-start space-x-2">
-                  <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
-                  <span className="text-sm text-gray-900">{result.display_name}</span>
-                </div>
-              </button>
-            ))}
+            {suggestions.map((result, index) => {
+              const displayText = formatAddressShort(result.display_name, result.address);
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => selectSuggestion(result)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0 transition-colors"
+                >
+                  <div className="flex items-start space-x-2">
+                    <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
+                    <span className="text-sm text-gray-900">{displayText}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

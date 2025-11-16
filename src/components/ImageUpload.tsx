@@ -130,17 +130,18 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {totalImages > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {displayedExisting.map((url, index) => (
-            <div key={`existing-${index}`} className="relative group" style={{ paddingBottom: '100%' }}>
+            <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg" style={{ aspectRatio: '1/1' }}>
               <img
                 src={url}
                 alt={`Existing ${index + 1}`}
-                className="absolute inset-0 w-full h-full object-cover rounded-lg border-2 border-green-500 bg-gray-100"
+                className="w-full h-full object-cover border-2 border-green-500 bg-gray-100"
+                style={{ display: 'block' }}
                 onError={(e) => {
                   e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
                 }}
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
                 <button
                   type="button"
                   onClick={() => removeExistingImage(url)}
@@ -156,17 +157,18 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           ))}
 
           {previews.map((preview, index) => (
-            <div key={`new-${index}`} className="relative group" style={{ paddingBottom: '100%' }}>
+            <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg" style={{ aspectRatio: '1/1' }}>
               <img
                 src={preview}
                 alt={`Preview ${index + 1}`}
-                className="absolute inset-0 w-full h-full object-cover rounded-lg border-2 border-blue-500 bg-gray-100"
+                className="w-full h-full object-cover border-2 border-blue-500 bg-gray-100"
+                style={{ display: 'block' }}
                 onError={(e) => {
                   e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
                 }}
                 loading="eager"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
                 <button
                   type="button"
                   onClick={() => removeNewImage(index)}
