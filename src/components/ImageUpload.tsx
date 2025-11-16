@@ -162,30 +162,33 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           ))}
 
           {previews.map((preview, index) => (
-            <div key={`new-${index}`} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-200">
-              <img
-                src={preview}
-                alt={`Preview ${index + 1}`}
-                className="w-full h-full object-cover border-2 border-blue-500"
-                onLoad={() => console.log('Image loaded successfully:', preview)}
-                onError={(e) => {
-                  console.error('Image failed to load:', preview);
-                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EError%3C/text%3E%3C/svg%3E';
-                }}
-                loading="eager"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={() => removeNewImage(index)}
-                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+            <div key={`new-${index}`}>
+              <div className="relative group aspect-square rounded-lg overflow-hidden bg-gray-200">
+                <img
+                  src={preview}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-full object-cover border-2 border-blue-500"
+                  onLoad={() => console.log('Image loaded successfully:', preview)}
+                  onError={(e) => {
+                    console.error('Image failed to load:', preview);
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EError%3C/text%3E%3C/svg%3E';
+                  }}
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => removeNewImage(index)}
+                    className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <span className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+                  New
+                </span>
               </div>
-              <span className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded">
-                New
-              </span>
+              <p className="text-xs text-gray-600 mt-1 break-all">DEBUG: {preview}</p>
             </div>
           ))}
         </div>
