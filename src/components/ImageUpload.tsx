@@ -146,11 +146,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 }}
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+              <div className="absolute inset-0 group-hover:bg-black group-hover:bg-opacity-30 transition-all flex items-center justify-center pointer-events-none">
                 <button
                   type="button"
                   onClick={() => removeExistingImage(url)}
-                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all pointer-events-auto"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -175,11 +175,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                   }}
                   loading="eager"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                <div className="absolute inset-0 group-hover:bg-black group-hover:bg-opacity-30 transition-all flex items-center justify-center pointer-events-none">
                   <button
                     type="button"
                     onClick={() => removeNewImage(index)}
-                    className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
+                    className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all pointer-events-auto"
                   >
                     <X className="h-5 w-5" />
                   </button>
