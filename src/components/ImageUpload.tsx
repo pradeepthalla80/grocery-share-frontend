@@ -130,25 +130,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {totalImages > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {displayedExisting.map((url, index) => (
-            <div key={`existing-${index}`} className="relative group overflow-hidden rounded-lg" style={{ width: '100%' }}>
-              <div style={{ paddingBottom: '100%' }}></div>
+            <div key={`existing-${index}`} className="relative group rounded-lg bg-gray-100" style={{ width: '100%', height: 0, paddingBottom: '100%' }}>
               <img
                 src={url}
                 alt={`Existing ${index + 1}`}
-                className="border-2 border-green-500 bg-gray-100"
-                style={{ 
-                  position: 'absolute', 
-                  inset: 0, 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover' 
-                }}
+                className="absolute top-0 left-0 w-full h-full object-cover border-2 border-green-500 rounded-lg"
                 onError={(e) => {
                   e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
                 }}
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-lg">
                 <button
                   type="button"
                   onClick={() => removeExistingImage(url)}
@@ -164,25 +156,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           ))}
 
           {previews.map((preview, index) => (
-            <div key={`new-${index}`} className="relative group overflow-hidden rounded-lg" style={{ width: '100%' }}>
-              <div style={{ paddingBottom: '100%' }}></div>
+            <div key={`new-${index}`} className="relative group rounded-lg bg-gray-100" style={{ width: '100%', height: 0, paddingBottom: '100%' }}>
               <img
                 src={preview}
                 alt={`Preview ${index + 1}`}
-                className="border-2 border-blue-500 bg-gray-100"
-                style={{ 
-                  position: 'absolute', 
-                  inset: 0, 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'cover' 
-                }}
+                className="absolute top-0 left-0 w-full h-full object-cover border-2 border-blue-500 rounded-lg"
                 onError={(e) => {
                   e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
                 }}
                 loading="eager"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-lg">
                 <button
                   type="button"
                   onClick={() => removeNewImage(index)}
