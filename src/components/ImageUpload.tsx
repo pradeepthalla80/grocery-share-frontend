@@ -45,7 +45,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     const newFiles = [...files, ...validFiles];
     setFiles(newFiles);
 
-    const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+    const newPreviews = validFiles.map(file => {
+      const objectUrl = URL.createObjectURL(file);
+      console.log('Created blob URL:', objectUrl, 'for file:', file.name);
+      return objectUrl;
+    });
     setPreviews([...previews, ...newPreviews]);
 
     onChange(newFiles, deletedPublicIds);
@@ -130,13 +134,15 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {totalImages > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {displayedExisting.map((url, index) => (
-            <div key={`existing-${index}`} className="relative group rounded-lg bg-gray-100" style={{ width: '100%', height: 0, paddingBottom: '100%' }}>
+            <div key={`existing-${index}`} className="relative group rounded-lg" style={{ width: '100%', height: 0, paddingBottom: '100%', backgroundColor: '#f3f4f6' }}>
               <img
                 src={url}
                 alt={`Existing ${index + 1}`}
                 className="absolute top-0 left-0 w-full h-full object-cover border-2 border-green-500 rounded-lg"
+                onLoad={() => console.log('Existing image loaded:', url)}
                 onError={(e) => {
-                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
+                  console.error('Existing image failed to load:', url);
+                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EError%3C/text%3E%3C/svg%3E';
                 }}
                 loading="lazy"
               />
@@ -156,13 +162,15 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           ))}
 
           {previews.map((preview, index) => (
-            <div key={`new-${index}`} className="relative group rounded-lg bg-gray-100" style={{ width: '100%', height: 0, paddingBottom: '100%' }}>
+            <div key={`new-${index}`} className="relative group rounded-lg" style={{ width: '100%', height: 0, paddingBottom: '100%', backgroundColor: '#f3f4f6' }}>
               <img
                 src={preview}
                 alt={`Preview ${index + 1}`}
                 className="absolute top-0 left-0 w-full h-full object-cover border-2 border-blue-500 rounded-lg"
+                onLoad={() => console.log('Image loaded successfully:', preview)}
                 onError={(e) => {
-                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
+                  console.error('Image failed to load:', preview);
+                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EError%3C/text%3E%3C/svg%3E';
                 }}
                 loading="eager"
               />
