@@ -134,11 +134,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {totalImages > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {displayedExisting.map((url, index) => (
-            <div key={`existing-${index}`} className="relative group rounded-lg" style={{ width: '100%', height: 0, paddingBottom: '100%', backgroundColor: '#f3f4f6' }}>
+            <div key={`existing-${index}`} className="relative group rounded-lg bg-gray-100" style={{ width: '100%', height: 0, paddingBottom: '100%' }}>
               <img
                 src={url}
                 alt={`Existing ${index + 1}`}
-                className="absolute top-0 left-0 w-full h-full object-cover border-2 border-green-500 rounded-lg"
+                className="absolute top-0 left-0 w-full h-full object-cover border-2 border-green-500 rounded-lg z-0"
                 onLoad={() => console.log('Existing image loaded:', url)}
                 onError={(e) => {
                   console.error('Existing image failed to load:', url);
@@ -146,27 +146,27 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 }}
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-lg">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-lg z-10 pointer-events-none">
                 <button
                   type="button"
                   onClick={() => removeExistingImage(url)}
-                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all pointer-events-auto"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <span className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded z-10">
+              <span className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded z-20">
                 Existing
               </span>
             </div>
           ))}
 
           {previews.map((preview, index) => (
-            <div key={`new-${index}`} className="relative group rounded-lg" style={{ width: '100%', height: 0, paddingBottom: '100%', backgroundColor: '#f3f4f6' }}>
+            <div key={`new-${index}`} className="relative group rounded-lg bg-gray-100" style={{ width: '100%', height: 0, paddingBottom: '100%' }}>
               <img
                 src={preview}
                 alt={`Preview ${index + 1}`}
-                className="absolute top-0 left-0 w-full h-full object-cover border-2 border-blue-500 rounded-lg"
+                className="absolute top-0 left-0 w-full h-full object-cover border-2 border-blue-500 rounded-lg z-0"
                 onLoad={() => console.log('Image loaded successfully:', preview)}
                 onError={(e) => {
                   console.error('Image failed to load:', preview);
@@ -174,16 +174,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 }}
                 loading="eager"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-lg">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center rounded-lg z-10 pointer-events-none">
                 <button
                   type="button"
                   onClick={() => removeNewImage(index)}
-                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
+                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all pointer-events-auto"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <span className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded z-10">
+              <span className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded z-20">
                 New
               </span>
             </div>
