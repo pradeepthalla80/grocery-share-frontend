@@ -130,17 +130,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {totalImages > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {displayedExisting.map((url, index) => (
-            <div key={`existing-${index}`} className="relative group aspect-square">
+            <div key={`existing-${index}`} className="relative group" style={{ paddingBottom: '100%' }}>
               <img
                 src={url}
                 alt={`Existing ${index + 1}`}
-                className="w-full h-full object-cover rounded-lg border-2 border-green-500 bg-gray-100"
+                className="absolute inset-0 w-full h-full object-cover rounded-lg border-2 border-green-500 bg-gray-100"
                 onError={(e) => {
                   e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
                 }}
                 loading="lazy"
               />
-              <div className="absolute top-0 right-0 left-0 bottom-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
                 <button
                   type="button"
                   onClick={() => removeExistingImage(url)}
@@ -149,24 +149,24 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <span className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded">
+              <span className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded z-10">
                 Existing
               </span>
             </div>
           ))}
 
           {previews.map((preview, index) => (
-            <div key={`new-${index}`} className="relative group aspect-square">
+            <div key={`new-${index}`} className="relative group" style={{ paddingBottom: '100%' }}>
               <img
                 src={preview}
                 alt={`Preview ${index + 1}`}
-                className="w-full h-full object-cover rounded-lg border-2 border-blue-500 bg-gray-100"
+                className="absolute inset-0 w-full h-full object-cover rounded-lg border-2 border-blue-500 bg-gray-100"
                 onError={(e) => {
                   e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
                 }}
                 loading="eager"
               />
-              <div className="absolute top-0 right-0 left-0 bottom-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
                 <button
                   type="button"
                   onClick={() => removeNewImage(index)}
@@ -175,7 +175,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <span className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+              <span className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded z-10">
                 New
               </span>
             </div>
