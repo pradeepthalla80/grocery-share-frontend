@@ -70,4 +70,4 @@ The UI is built with React 19, TypeScript, and Vite 7. Styling uses Tailwind CSS
 - A RESTful API requiring JWT authentication for protected endpoints, using JSON for requests and responses. The backend supports user management, item listings, chat, notifications, item requests, admin functionalities, analytics, and store owner mode. The API follows a `/api/v1` versioned endpoint structure with a standardized response format: `{ success, data, message, error }`.
 - **Backend Structure**: The backend repository uses root-level `controllers/`, `routes/`, `models/`, and `services/` folders. The main entry point is `index.js`.
 - **Deployment Status**: Backend deployed on Render with auto-deploy from GitHub. Frontend deployed on Vercel.
-- **Backend Reference Files**: The complete backend snapshot is stored in the `grocery-share-backend-main_11-13-2025_10-58am/` folder.
+- **Backend Reference Files**: The complete backend snapshot is stored in the `grocery-share-backend-main_11-19-2025_time_10-05am/` folder. This is the latest production-ready backend code with all recent bug fixes (admin panel populate error, requested items distance calculation).
