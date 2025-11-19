@@ -172,16 +172,25 @@ export const UserManagement = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Sort By
               </label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="createdAt">Join Date</option>
-                <option value="name">Name</option>
-                <option value="email">Email</option>
-                <option value="averageRating">Rating</option>
-              </select>
+              <div className="flex gap-2">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="createdAt">Join Date</option>
+                  <option value="name">Name</option>
+                  <option value="email">Email</option>
+                  <option value="averageRating">Rating</option>
+                </select>
+                <button
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+                  title={sortOrder === 'asc' ? 'Sort Descending' : 'Sort Ascending'}
+                >
+                  {sortOrder === 'asc' ? '↑' : '↓'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
