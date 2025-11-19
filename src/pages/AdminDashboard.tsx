@@ -97,20 +97,32 @@ export const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg p-6 mb-8">
-          <div className="flex items-center space-x-3">
-            <Shield className="h-8 w-8 text-white" />
-            <div>
-              <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-              <p className="text-purple-100">
-                {isSuperAdmin ? 'Super Admin Access' : 'Admin Access'}
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Shield className="h-8 w-8 text-white" />
+              <div>
+                <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+                <p className="text-purple-100">
+                  {isSuperAdmin ? 'Super Admin Access' : 'Admin Access'}
+                </p>
+              </div>
             </div>
+            <button
+              onClick={() => navigate('/admin/users')}
+              className="flex items-center gap-2 bg-white text-purple-600 px-4 py-2 rounded-md hover:bg-purple-50 transition font-medium"
+            >
+              <Users className="h-5 w-5" />
+              Manage Users
+            </button>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div
+            className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+            onClick={() => navigate('/admin/users')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Users</p>
@@ -118,6 +130,7 @@ export const AdminDashboard = () => {
               </div>
               <Users className="h-12 w-12 text-purple-600" />
             </div>
+            <p className="text-xs text-purple-600 mt-2 font-medium">Click to manage →</p>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">

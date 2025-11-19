@@ -21,6 +21,7 @@ import { ContactUs } from './pages/ContactUs';
 import { ItemDetail } from './pages/ItemDetail';
 import { RequestDetail } from './pages/RequestDetail';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { UserManagement } from './pages/UserManagement';
 import { Analytics } from './pages/Analytics';
 import { StoreDashboard } from './pages/StoreDashboard';
 import { LegalAgreements } from './pages/LegalAgreements';
@@ -132,6 +133,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute>
+                  <UserManagement />
                 </ProtectedRoute>
               }
             />

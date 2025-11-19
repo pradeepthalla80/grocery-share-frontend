@@ -47,3 +47,63 @@ export const getAdminRequests = async (): Promise<AdminRequest[]> => {
   const response = await apiClient.get('/admin/requests');
   return response.data;
 };
+
+// User Management Types
+export interface AdminUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: 'user' | 'admin' | 'super_admin';
+  isStoreOwner?: boolean;
+  storeMode?: boolean;
+  storeName?: string | null;
+  averageRating?: number;
+  ratingCount?: number;
+  createdAt: string;
+  updatedAt: string;
+  activityCounts?: {
+    items: number;
+    requests: number;
+  };
+}
+
+export interface AdminUserDetail extends AdminUser {
+  activity?: {
+    recentItems: any[];
+    recentRequests: any[];
+    totalItems: number;
+    totalRequests: number;
+  };
+}
+
+// User Management Functions
+export const getAdminUsers = async (params?: {
+  search?: string;
+  role?: string;
+  status?: string;
+  sortBy?: string;
+  order?: string;
+}): Promise<{ users: AdminUser[]; total: number }> => {
+  const response = await apiClient.get('/admin/users', { params });
+  return response.data;
+};
+
+export const getAdminUserDetails = async (userId: string): Promise<AdminUserDetail> => {
+  const response = await apiClient.get(`/admin/users/${userId}`);
+  return response.data;
+};
+
+export const updateUserRole = async (userId: string, role: string) => {
+  const response = await apiClient.put(`/admin/users/${userId}/role`, { role });
+  return response.data;
+};
+
+export const deleteUser = async (userId: string) => {
+  const response = await apiClient.delete(`/admin/users/${userId}`);
+  return response.data;
+};
+
+export const toggleStoreOwner = async (userId: string, isStoreOwner: boolean) => {
+  const response = await apiClient.put(`/admin/users/${userId}/store-status`, { isStoreOwner });
+  return response.data;
+};
