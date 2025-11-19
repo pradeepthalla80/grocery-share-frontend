@@ -1,6 +1,6 @@
 // ============================================
-// VERSION 2: If your backend uses 'isAdmin'
-// COPY THIS TO: routes/admin.js
+// FINAL CORRECTED VERSION
+// COPY THIS TO YOUR BACKEND: routes/admin.js
 // ============================================
 
 const express = require('express');
