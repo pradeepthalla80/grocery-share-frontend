@@ -1,20 +1,23 @@
 // ============================================
-// FINAL CORRECTED VERSION
-// COPY THIS TO YOUR BACKEND: routes/admin.js
+// CORRECT VERSION - COPY TO: routes/admin.js
 // ============================================
 
 const express = require('express');
 const router = express.Router();
-const { protect, isAdmin } = require('../middleware/auth');
 const Item = require('../models/Item');
 const ItemRequest = require('../models/ItemRequest');
 const User = require('../models/User');
 const PickupRequest = require('../models/PickupRequest');
 const Message = require('../models/Message');
 const Rating = require('../models/Rating');
+const { protect } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/admin');
+
+// Apply middleware to all admin routes
+router.use(protect, requireAdmin);
 
 // Get platform-wide statistics
-router.get('/stats', protect, isAdmin, async (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
     const [totalUsers, totalItems, totalRequests, activeItems, soldItems] = await Promise.all([
       User.countDocuments(),
@@ -38,7 +41,7 @@ router.get('/stats', protect, isAdmin, async (req, res) => {
 });
 
 // Get all items (admin view)
-router.get('/items', protect, isAdmin, async (req, res) => {
+router.get('/items', async (req, res) => {
   try {
     const items = await Item.find()
       .populate('user', 'name email')
@@ -61,7 +64,7 @@ router.get('/items', protect, isAdmin, async (req, res) => {
 });
 
 // Get all requests (admin view)
-router.get('/requests', protect, isAdmin, async (req, res) => {
+router.get('/requests', async (req, res) => {
   try {
     const requests = await ItemRequest.find()
       .populate('user', 'name email')
@@ -78,7 +81,7 @@ router.get('/requests', protect, isAdmin, async (req, res) => {
 // ============ USER MANAGEMENT ENDPOINTS ============
 
 // Get all users with search, filter, and sort
-router.get('/users', protect, isAdmin, async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
     const { search, role, status, sortBy = 'createdAt', order = 'desc' } = req.query;
     
@@ -130,7 +133,7 @@ router.get('/users', protect, isAdmin, async (req, res) => {
 });
 
 // Get detailed user information
-router.get('/users/:userId', protect, isAdmin, async (req, res) => {
+router.get('/users/:userId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId).select('-password');
     
@@ -169,7 +172,7 @@ router.get('/users/:userId', protect, isAdmin, async (req, res) => {
 });
 
 // Update user role
-router.put('/users/:userId/role', protect, isAdmin, async (req, res) => {
+router.put('/users/:userId/role', async (req, res) => {
   try {
     const { role } = req.body;
     
@@ -207,7 +210,7 @@ router.put('/users/:userId/role', protect, isAdmin, async (req, res) => {
 });
 
 // Delete user
-router.delete('/users/:userId', protect, isAdmin, async (req, res) => {
+router.delete('/users/:userId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     
@@ -240,7 +243,7 @@ router.delete('/users/:userId', protect, isAdmin, async (req, res) => {
 });
 
 // Toggle store owner status
-router.put('/users/:userId/store-status', protect, isAdmin, async (req, res) => {
+router.put('/users/:userId/store-status', async (req, res) => {
   try {
     const { isStoreOwner } = req.body;
     
