@@ -1,6 +1,7 @@
-// File: routes/admin.js
-// This file contains all admin routes including the new user management endpoints
-// Copy this entire file to your backend at: routes/admin.js
+// ============================================
+// COPY THIS ENTIRE FILE TO YOUR BACKEND AT:
+// routes/admin.js
+// ============================================
 
 const express = require('express');
 const router = express.Router();
