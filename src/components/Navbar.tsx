@@ -38,7 +38,7 @@ export const Navbar = () => {
               <img 
                 src={BRANDING.LOGO_PATH} 
                 alt={BRANDING.APP_NAME}
-                className="h-28 sm:h-36 lg:h-44 w-auto object-contain"
+                className="h-12 sm:h-14 lg:h-16 w-auto object-contain"
               />
             </Link>
           )}
