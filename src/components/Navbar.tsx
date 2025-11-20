@@ -31,14 +31,14 @@ export const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center min-h-16 py-2">
+        <div className="flex justify-between items-center min-h-16 py-3">
           {/* Logo - Hidden on login/register pages */}
           {!hideNavLogo && (
             <Link to="/" className="flex-shrink-0">
               <img 
                 src={BRANDING.LOGO_PATH} 
                 alt={BRANDING.APP_NAME}
-                className="h-20 sm:h-24 lg:h-28 w-auto object-contain"
+                className="h-28 sm:h-36 lg:h-44 w-auto object-contain"
               />
             </Link>
           )}
