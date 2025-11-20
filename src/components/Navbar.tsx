@@ -28,17 +28,15 @@ export const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 sm:h-24 lg:h-28">
+        <div className="flex justify-between items-center h-24 sm:h-28 lg:h-32">
           {/* Logo */}
-          <div className="flex items-center py-2">
-            <Link to="/" className="flex items-center">
-              <img 
-                src={BRANDING.LOGO_PATH} 
-                alt={BRANDING.APP_NAME}
-                className="h-16 sm:h-20 lg:h-24 w-auto object-contain"
-              />
-            </Link>
-          </div>
+          <Link to="/" className="flex-shrink-0 py-3">
+            <img 
+              src={BRANDING.LOGO_PATH} 
+              alt={BRANDING.APP_NAME}
+              className="h-20 sm:h-24 lg:h-28 w-auto object-contain"
+            />
+          </Link>
 
           {/* Desktop Menu */}
           {isAuthenticated && (
