@@ -241,21 +241,21 @@ export const Dashboard = () => {
             Search
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
-            <div>
+          <div className="flex flex-wrap gap-2 mb-2">
+            <div className="w-24">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Type
               </label>
               <select
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value as TabType)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                className="w-full px-1.5 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
               >
                 <option value="available">Available</option>
                 <option value="requested">Requested</option>
               </select>
             </div>
-            <div>
+            <div className="flex-1 min-w-[120px]">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Keyword
               </label>
@@ -264,38 +264,38 @@ export const Dashboard = () => {
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               />
             </div>
-            <div>
+            <div className="w-28">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full px-1.5 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               >
                 <option value="">All</option>
                 <option value="Fruits">Fruits</option>
-                <option value="Vegetables">Vegetables</option>
+                <option value="Vegetables">Veg</option>
                 <option value="Dairy">Dairy</option>
                 <option value="Meat">Meat</option>
                 <option value="Bakery">Bakery</option>
                 <option value="Canned Goods">Canned</option>
-                <option value="Beverages">Beverages</option>
+                <option value="Beverages">Drinks</option>
                 <option value="Snacks">Snacks</option>
                 <option value="Other">Other</option>
               </select>
             </div>
-            <div>
+            <div className="w-20">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Radius
               </label>
               <select
                 value={radius}
                 onChange={(e) => setRadius(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full px-1.5 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               >
                 <option value="5">5 mi</option>
                 <option value="10">10 mi</option>
@@ -306,8 +306,8 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-            <div>
+          <div className="flex flex-wrap gap-2 mb-2">
+            <div className="flex-1 min-w-[180px]">
               <AddressInput
                 onLocationSelect={handleLocationSelect}
                 defaultAddress={searchLocation?.address}
@@ -315,7 +315,7 @@ export const Dashboard = () => {
                 defaultLng={searchLocation?.lng}
               />
             </div>
-            <div>
+            <div className="w-32">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Tags
               </label>
@@ -323,8 +323,8 @@ export const Dashboard = () => {
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
-                placeholder="organic, fresh..."
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+                placeholder="organic..."
+                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               />
             </div>
           </div>
