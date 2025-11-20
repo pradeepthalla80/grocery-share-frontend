@@ -216,27 +216,26 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Discover Items Nearby</h1>
-            <p className="text-gray-600 mt-2">Find great deals on groceries expiring soon</p>
+            <h1 className="text-2xl font-bold text-gray-900">Discover Items Nearby</h1>
           </div>
           <button
             onClick={() => navigate('/add-item')}
-            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+            className="flex items-center space-x-2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition text-sm"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
             <span>Add Item</span>
           </button>
         </div>
 
         {/* Store Owner Promotional Banner */}
-        <div className="mb-8">
+        <div className="mb-4">
           <StoreOwnerPromo />
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-4 mb-4">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Search className="h-5 w-5 mr-2 text-green-600" />
             Search Filters
