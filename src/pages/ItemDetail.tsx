@@ -185,7 +185,7 @@ export const ItemDetail = () => {
   const isExpired = timeUntilExpiry <= 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
           onClick={() => navigate(-1)}
@@ -279,7 +279,7 @@ export const ItemDetail = () => {
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{item.name}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{item.name}</h1>
                   {item.category && (
                     <span className="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
                       <Tag className="h-4 w-4 mr-1" />
@@ -293,7 +293,7 @@ export const ItemDetail = () => {
                       🆓 FREE
                     </span>
                   ) : (
-                    <span className="text-3xl font-bold text-green-600">
+                    <span className="text-2xl font-bold text-green-600">
                       ${item.price.toFixed(2)}
                     </span>
                   )}
@@ -420,7 +420,7 @@ export const ItemDetail = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500">Price</p>
-                        <p className="text-3xl font-bold text-green-600">${item.price.toFixed(2)}</p>
+                        <p className="text-2xl font-bold text-green-600">${item.price.toFixed(2)}</p>
                       </div>
                     </div>
                     <button

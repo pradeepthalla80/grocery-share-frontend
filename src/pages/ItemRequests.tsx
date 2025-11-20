@@ -186,11 +186,11 @@ export const ItemRequests = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Item Requests</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Item Requests</h1>
             <p className="text-gray-600 mt-2">Help others by fulfilling their grocery requests</p>
           </div>
           <button
@@ -203,7 +203,7 @@ export const ItemRequests = () => {
         </div>
 
         {showLocationPicker && (
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-8">
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-4">
             <h3 className="text-lg font-semibold text-yellow-900 mb-4">
               📍 Set Your Location to See Nearby Requests
             </h3>
@@ -218,7 +218,7 @@ export const ItemRequests = () => {
         )}
 
         {showCreateForm && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {editingRequest ? 'Edit Item Request' : 'Create Item Request'}
             </h2>

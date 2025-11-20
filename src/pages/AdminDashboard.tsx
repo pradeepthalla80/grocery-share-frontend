@@ -93,10 +93,10 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg p-6 mb-8">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg p-6 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Shield className="h-8 w-8 text-white" />
@@ -118,7 +118,7 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-4">
           <div
             className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
             onClick={() => navigate('/admin/users')}
@@ -126,7 +126,7 @@ export const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
               </div>
               <Users className="h-12 w-12 text-purple-600" />
             </div>
@@ -137,7 +137,7 @@ export const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Items</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalItems}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
               </div>
               <Package className="h-12 w-12 text-green-600" />
             </div>
@@ -147,7 +147,7 @@ export const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Active Items</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.activeItems}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.activeItems}</p>
               </div>
               <TrendingUp className="h-12 w-12 text-green-500" />
             </div>
@@ -157,7 +157,7 @@ export const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Sold Items</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.soldItems}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.soldItems}</p>
               </div>
               <TrendingUp className="h-12 w-12 text-gray-500" />
             </div>
@@ -167,7 +167,7 @@ export const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Requests</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalRequests}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalRequests}</p>
               </div>
               <MessageSquare className="h-12 w-12 text-blue-600" />
             </div>
@@ -175,7 +175,7 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Recent Items */}
-        <div className="bg-white rounded-lg shadow mb-8">
+        <div className="bg-white rounded-lg shadow mb-4">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
               <Package className="h-6 w-6 text-green-600" />

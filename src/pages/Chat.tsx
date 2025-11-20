@@ -112,14 +112,14 @@ export const Chat = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
           <p className="text-gray-600 mt-1">Connect with buyers and sellers in your community</p>
         </div>
 
         {/* Store Owner Promotional Banner */}
-        <div className="mb-8">
+        <div className="mb-4">
           <StoreOwnerPromo />
         </div>
 

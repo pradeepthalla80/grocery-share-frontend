@@ -52,7 +52,7 @@ export const Analytics = () => {
         </div>
         <TrendingUp className="h-5 w-5 text-green-500" />
       </div>
-      <h3 className="text-3xl font-bold text-gray-900 mb-1">{value.toLocaleString()}</h3>
+      <h3 className="text-2xl font-bold text-gray-900 mb-1">{value.toLocaleString()}</h3>
       <p className="text-gray-600 font-medium">{label}</p>
       {sublabel && (
         <p className="text-sm text-gray-500 mt-1">{sublabel}</p>
@@ -69,7 +69,7 @@ export const Analytics = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
           onClick={() => navigate('/dashboard')}
@@ -80,20 +80,20 @@ export const Analytics = () => {
         </button>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg shadow-lg p-8 mb-8">
+        <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg shadow-lg p-8 mb-4">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-white/20 rounded-full">
               <TrendingUp className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Community Impact</h1>
+              <h1 className="text-2xl font-bold text-white">Community Impact</h1>
               <p className="text-green-100 mt-1">See the difference we're making together</p>
             </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
           <StatCard
             icon={Users}
             label="Total Members"
@@ -157,15 +157,15 @@ export const Analytics = () => {
           <div className="mt-8 pt-8 border-t border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
-                <p className="text-3xl font-bold text-green-600">100%</p>
+                <p className="text-2xl font-bold text-green-600">100%</p>
                 <p className="text-gray-600 mt-1">Free to Use</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-green-600">24/7</p>
+                <p className="text-2xl font-bold text-green-600">24/7</p>
                 <p className="text-gray-600 mt-1">Always Available</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-green-600">Local</p>
+                <p className="text-2xl font-bold text-green-600">Local</p>
                 <p className="text-gray-600 mt-1">Your Neighborhood</p>
               </div>
             </div>

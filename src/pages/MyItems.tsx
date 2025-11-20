@@ -96,72 +96,71 @@ export const MyItems = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Listed Items</h1>
-            <p className="text-gray-600 mt-2">Manage your grocery listings</p>
+            <h1 className="text-2xl font-bold text-gray-900">My Listed Items</h1>
           </div>
           <button
             onClick={() => navigate('/add-item')}
-            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+            className="flex items-center space-x-2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition text-sm"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
             <span>Add New Item</span>
           </button>
         </div>
 
         {/* Store Owner Promotional Banner */}
-        <div className="mb-8">
+        <div className="mb-4">
           <StoreOwnerPromo />
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+          <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Items</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-xs text-gray-600">Total</p>
+                <p className="text-xl font-bold text-gray-900">{stats.total}</p>
               </div>
-              <Package className="h-10 w-10 text-blue-600" />
+              <Package className="h-6 w-6 text-blue-600" />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4">
+          <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                <p className="text-xs text-gray-600">Active</p>
+                <p className="text-xl font-bold text-green-600">{stats.active}</p>
               </div>
-              <CheckCircle className="h-10 w-10 text-green-600" />
+              <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4">
+          <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Expiring Soon</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.expiring}</p>
+                <p className="text-xs text-gray-600">Expiring</p>
+                <p className="text-xl font-bold text-orange-600">{stats.expiring}</p>
               </div>
-              <Clock className="h-10 w-10 text-orange-600" />
+              <Clock className="h-6 w-6 text-orange-600" />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4">
+          <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Expired</p>
-                <p className="text-2xl font-bold text-red-600">{stats.expired}</p>
+                <p className="text-xs text-gray-600">Expired</p>
+                <p className="text-xl font-bold text-red-600">{stats.expired}</p>
               </div>
-              <AlertCircle className="h-10 w-10 text-red-600" />
+              <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
           </div>
         </div>
 
-        <div className="mb-6 border-b border-gray-200">
+        <div className="mb-3 border-b border-gray-200">
           <div className="flex space-x-8">
             <button
               onClick={() => setFilter('all')}

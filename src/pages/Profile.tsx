@@ -122,70 +122,70 @@ export const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="min-h-screen bg-gray-100 py-4">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
           onClick={() => navigate('/dashboard')}
-          className="mb-6 flex items-center text-gray-600 hover:text-gray-900"
+          className="mb-4 flex items-center text-gray-600 hover:text-gray-900 text-sm"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-1.5" />
           Back to Dashboard
         </button>
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-8">
+          <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-4">
             <div className="flex items-center">
-              <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center">
-                <User className="h-10 w-10 text-green-600" />
+              <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center">
+                <User className="h-7 w-7 text-green-600" />
               </div>
-              <div className="ml-6">
-                <h1 className="text-3xl font-bold text-white">{user?.name}</h1>
-                <p className="text-green-100 mt-1">{BRANDING.APP_NAME} Member</p>
+              <div className="ml-4">
+                <h1 className="text-xl font-bold text-white">{user?.name}</h1>
+                <p className="text-green-100 text-sm">{BRANDING.APP_NAME} Member</p>
               </div>
             </div>
           </div>
 
-          <div className="px-6 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="px-4 py-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Left Column - Main Content */}
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Account Information</h2>
+                <h2 className="text-base font-semibold text-gray-900 mb-3">Account Information</h2>
                 
-                <div className="space-y-4">
-              <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                <Mail className="h-6 w-6 text-gray-400 mr-4" />
+                <div className="space-y-2">
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <Mail className="h-5 w-5 text-gray-400 mr-3" />
                 <div>
-                  <p className="text-sm text-gray-500">Email Address</p>
-                  <p className="text-gray-900 font-medium">{user?.email}</p>
+                  <p className="text-xs text-gray-500">Email Address</p>
+                  <p className="text-sm text-gray-900 font-medium">{user?.email}</p>
                 </div>
               </div>
 
-              <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                <Calendar className="h-6 w-6 text-gray-400 mr-4" />
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <Calendar className="h-5 w-5 text-gray-400 mr-3" />
                 <div>
-                  <p className="text-sm text-gray-500">Member Since</p>
-                  <p className="text-gray-900 font-medium">{formatDate(user?.createdAt)}</p>
+                  <p className="text-xs text-gray-500">Member Since</p>
+                  <p className="text-sm text-gray-900 font-medium">{formatDate(user?.createdAt)}</p>
                 </div>
               </div>
 
-              <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                <Package className="h-6 w-6 text-gray-400 mr-4" />
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <Package className="h-5 w-5 text-gray-400 mr-3" />
                 <div>
-                  <p className="text-sm text-gray-500">Items Posted</p>
-                  <p className="text-gray-900 font-medium">{itemsCount} items</p>
+                  <p className="text-xs text-gray-500">Items Posted</p>
+                  <p className="text-sm text-gray-900 font-medium">{itemsCount} items</p>
                 </div>
               </div>
 
-              <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                <Star className="h-6 w-6 text-yellow-400 mr-4" />
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <Star className="h-5 w-5 text-yellow-400 mr-3" />
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500">Community Rating</p>
+                  <p className="text-xs text-gray-500">Community Rating</p>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          className={`h-4 w-4 ${
+                          className={`h-3 w-3 ${
                             star <= Math.round(averageRating)
                               ? 'fill-yellow-400 text-yellow-400'
                               : 'text-gray-300'
@@ -193,11 +193,11 @@ export const Profile = () => {
                         />
                       ))}
                     </div>
-                    <span className="text-gray-900 font-medium">
-                      {averageRating > 0 ? averageRating.toFixed(1) : 'No ratings yet'}
+                    <span className="text-sm text-gray-900 font-medium">
+                      {averageRating > 0 ? averageRating.toFixed(1) : 'No ratings'}
                     </span>
                     {ratingCount > 0 && (
-                      <span className="text-sm text-gray-500">({ratingCount} {ratingCount === 1 ? 'rating' : 'ratings'})</span>
+                      <span className="text-xs text-gray-500">({ratingCount})</span>
                     )}
                   </div>
                 </div>
@@ -205,17 +205,17 @@ export const Profile = () => {
             </div>
 
             {badges.length > 0 && (
-              <div className="mt-8 border-t pt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Award className="h-5 w-5 text-yellow-500" />
+              <div className="mt-4 border-t pt-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Award className="h-4 w-4 text-yellow-500" />
                   Achievements
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {badges.map((userBadge) => (
-                    <div key={userBadge.badge._id} className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg text-center border border-yellow-200">
-                      <div className="text-4xl mb-2">{userBadge.badge.icon}</div>
-                      <p className="font-semibold text-sm text-gray-900">{userBadge.badge.name}</p>
-                      <p className="text-xs text-gray-600 mt-1">{userBadge.badge.description}</p>
+                    <div key={userBadge.badge._id} className="p-3 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg text-center border border-yellow-200">
+                      <div className="text-3xl mb-1">{userBadge.badge.icon}</div>
+                      <p className="font-semibold text-xs text-gray-900">{userBadge.badge.name}</p>
+                      <p className="text-xs text-gray-600 mt-0.5">{userBadge.badge.description}</p>
                     </div>
                   ))}
                 </div>
@@ -223,18 +223,18 @@ export const Profile = () => {
             )}
 
             {ratings.length > 0 && (
-              <div className="mt-8 border-t pt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Reviews</h3>
-                <div className="space-y-4">
+              <div className="mt-4 border-t pt-4">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Recent Reviews</h3>
+                <div className="space-y-2">
                   {ratings.map((rating) => (
-                    <div key={rating._id} className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">{rating.rater.name}</span>
+                    <div key={rating._id} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-sm text-gray-900">{rating.rater.name}</span>
                         <div className="flex items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                               key={star}
-                              className={`h-4 w-4 ${
+                              className={`h-3 w-3 ${
                                 star <= rating.rating
                                   ? 'fill-yellow-400 text-yellow-400'
                                   : 'text-gray-300'
@@ -244,9 +244,9 @@ export const Profile = () => {
                         </div>
                       </div>
                       {rating.review && (
-                        <p className="text-gray-700 text-sm">{rating.review}</p>
+                        <p className="text-gray-700 text-xs">{rating.review}</p>
                       )}
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-gray-500 mt-1">
                         {new Date(rating.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -255,28 +255,20 @@ export const Profile = () => {
               </div>
             )}
 
-                <div className="mt-8 border-t pt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-green-600" />
-                    Safety & Community Guidelines
+                <div className="mt-4 border-t pt-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-green-600" />
+                    Safety Guidelines
                   </h3>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-3">
-                    <p className="font-medium text-blue-900">For a safe sharing experience:</p>
-                    <ul className="list-disc list-inside text-blue-800 text-sm space-y-2 ml-2">
-                      <li><strong>Meet in Public:</strong> Choose well-lit, public locations for item exchanges</li>
-                      <li><strong>Verify Items:</strong> Check expiration dates and quality before accepting items</li>
-                      <li><strong>Trust Your Instincts:</strong> If something feels wrong, decline politely</li>
-                      <li><strong>Use In-App Chat:</strong> Keep all communication within the platform for safety</li>
-                      <li><strong>Report Issues:</strong> Contact support if you encounter suspicious behavior</li>
-                      <li><strong>Be Respectful:</strong> Treat all community members with kindness and respect</li>
-                      <li><strong>Food Safety:</strong> Only share items that are properly stored and safe to consume</li>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+                    <p className="font-medium text-blue-900 text-xs">Safe sharing tips:</p>
+                    <ul className="list-disc list-inside text-blue-800 text-xs space-y-1 ml-2">
+                      <li>Meet in public locations</li>
+                      <li>Verify expiration dates</li>
+                      <li>Trust your instincts</li>
+                      <li>Use in-app chat</li>
+                      <li>Report suspicious behavior</li>
                     </ul>
-                    <div className="mt-4 pt-4 border-t border-blue-300">
-                      <p className="text-sm text-blue-900">
-                        <strong>Remember:</strong> {BRANDING.APP_NAME} connects neighbors to reduce food waste. 
-                        By following these guidelines, you help keep our community safe and thriving!
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -287,13 +279,13 @@ export const Profile = () => {
                   <StoreActivationSection />
                   
                   {user?.isStoreOwner && user?.storeMode && (
-                    <div className="mt-6">
+                    <div className="mt-4">
                       <button
                         onClick={() => navigate('/store-dashboard')}
-                        className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-medium shadow-md min-h-[44px]"
+                        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition font-medium shadow-md text-sm"
                       >
-                        <Store className="h-5 w-5" />
-                        <span>Go to Store Dashboard</span>
+                        <Store className="h-4 w-4" />
+                        <span>Store Dashboard</span>
                       </button>
                     </div>
                   )}

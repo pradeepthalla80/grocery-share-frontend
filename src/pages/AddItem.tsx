@@ -216,7 +216,7 @@ export const AddItem = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -232,7 +232,7 @@ export const AddItem = () => {
                 <Store className="h-6 w-6 text-blue-600" />
               </div>
             )}
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-2xl font-bold text-gray-900">
               {isStoreItem ? 'Add Store Item' : 'Add New Item'}
             </h1>
           </div>
