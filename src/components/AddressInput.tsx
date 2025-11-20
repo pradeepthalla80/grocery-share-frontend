@@ -236,23 +236,23 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
-          Address / Location
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-xs font-medium text-gray-700">
+          Location
         </label>
         <button
           type="button"
           onClick={getCurrentLocation}
           disabled={loading}
-          className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-sm disabled:opacity-50"
+          className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-xs disabled:opacity-50"
         >
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3 w-3 animate-spin" />
           ) : (
-            <MapPin className="h-4 w-4" />
+            <MapPin className="h-3 w-3" />
           )}
-          <span>Use Current Location</span>
+          <span className="hidden sm:inline">Use Current</span>
         </button>
       </div>
 
@@ -262,17 +262,17 @@ export const AddressInput: React.FC<AddressInputProps> = ({
             type="text"
             value={address}
             onChange={handleAddressChange}
-            placeholder="Enter address (e.g., 123 Main St, Naperville, IL)"
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            placeholder="Enter address..."
+            className="w-full px-2 py-1.5 pl-7 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-transparent h-[30px]"
           />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
           {loading && (
-            <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 animate-spin" />
+            <Loader2 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400 animate-spin" />
           )}
         </div>
 
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-auto">
             {suggestions.map((result, index) => {
               const displayText = formatAddressShort(result.display_name, result.address);
               return (
@@ -280,11 +280,11 @@ export const AddressInput: React.FC<AddressInputProps> = ({
                   key={index}
                   type="button"
                   onClick={() => selectSuggestion(result)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0 transition-colors"
+                  className="w-full px-2 py-2 text-left hover:bg-gray-100 border-b border-gray-100 last:border-b-0 transition-colors"
                 >
-                  <div className="flex items-start space-x-2">
-                    <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
-                    <span className="text-sm text-gray-900">{displayText}</span>
+                  <div className="flex items-start space-x-1">
+                    <MapPin className="h-3 w-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-gray-900">{displayText}</span>
                   </div>
                 </button>
               );
@@ -294,29 +294,21 @@ export const AddressInput: React.FC<AddressInputProps> = ({
       </div>
 
       {selectedLocation && (
-        <div className="text-xs text-green-600 flex items-center space-x-2 bg-green-50 px-3 py-2 rounded-md">
-          <MapPin className="h-4 w-4" />
-          <span className="font-medium">
-            ✓ Location set successfully
-          </span>
+        <div className="text-xs text-green-600 flex items-center space-x-1 bg-green-50 px-2 py-1 rounded-md mt-1">
+          <MapPin className="h-3 w-3" />
+          <span className="font-medium">✓ Set</span>
         </div>
       )}
 
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-xs text-red-600 mt-1">{error}</p>
       )}
 
       {locationHint && (
-        <div className="flex items-start space-x-2 bg-yellow-50 border border-yellow-200 rounded-md p-3">
-          <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start space-x-1 bg-yellow-50 border border-yellow-200 rounded-md p-2 mt-1">
+          <AlertCircle className="h-3 w-3 text-yellow-600 mt-0.5 flex-shrink-0" />
           <p className="text-xs text-yellow-800">{locationHint}</p>
         </div>
-      )}
-
-      {!selectedLocation && !locationHint && (
-        <p className="text-xs text-gray-500">
-          Start typing an address or use your current location
-        </p>
       )}
     </div>
   );
