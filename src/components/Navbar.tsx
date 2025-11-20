@@ -28,14 +28,14 @@ export const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-16 sm:h-20">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <img 
                 src={BRANDING.LOGO_PATH} 
                 alt={BRANDING.APP_NAME}
-                className="h-8 sm:h-10 w-auto object-contain"
+                className="h-12 sm:h-14 lg:h-16 w-auto object-contain"
               />
             </Link>
           </div>
