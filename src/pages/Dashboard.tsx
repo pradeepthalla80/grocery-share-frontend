@@ -235,74 +235,78 @@ export const Dashboard = () => {
           <StoreOwnerPromo />
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
-            <Search className="h-5 w-5 mr-2 text-green-600" />
-            Search Filters
+        <div className="bg-white rounded-lg shadow-md p-3 mb-4">
+          <h2 className="text-sm font-semibold mb-3 flex items-center">
+            <Search className="h-4 w-4 mr-1.5 text-green-600" />
+            Search
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Item Type
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Type
               </label>
               <select
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value as TabType)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
               >
-                <option value="available">Available Items</option>
-                <option value="requested">Requested Items</option>
+                <option value="available">Available</option>
+                <option value="requested">Requested</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search Keyword
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Keyword
               </label>
               <input
                 type="text"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search items by name..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Search..."
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               >
-                <option value="">All Categories</option>
+                <option value="">All</option>
                 <option value="Fruits">Fruits</option>
                 <option value="Vegetables">Vegetables</option>
                 <option value="Dairy">Dairy</option>
                 <option value="Meat">Meat</option>
                 <option value="Bakery">Bakery</option>
-                <option value="Canned Goods">Canned Goods</option>
+                <option value="Canned Goods">Canned</option>
                 <option value="Beverages">Beverages</option>
                 <option value="Snacks">Snacks</option>
                 <option value="Other">Other</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tags
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Radius
               </label>
-              <input
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="organic, fresh, gluten-free..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
+              <select
+                value={radius}
+                onChange={(e) => setRadius(e.target.value)}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+              >
+                <option value="5">5 mi</option>
+                <option value="10">10 mi</option>
+                <option value="25">25 mi</option>
+                <option value="50">50 mi</option>
+                <option value="100">100 mi</option>
+              </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
             <div>
               <AddressInput
                 onLocationSelect={handleLocationSelect}
@@ -312,26 +316,22 @@ export const Dashboard = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search Radius
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Tags
               </label>
-              <select
-                value={radius}
-                onChange={(e) => setRadius(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="5">5 miles</option>
-                <option value="10">10 miles</option>
-                <option value="25">25 miles</option>
-                <option value="50">50 miles</option>
-                <option value="100">100 miles</option>
-              </select>
+              <input
+                type="text"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="organic, fresh..."
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
             </div>
           </div>
           
           {/* Store Items Filter */}
           {activeTab === 'available' && (
-            <div className="mt-4">
+            <div className="mb-2">
               <StoreFilterToggle
                 enabled={showOnlyStoreItems}
                 onChange={setShowOnlyStoreItems}
@@ -340,52 +340,50 @@ export const Dashboard = () => {
             </div>
           )}
           
-          <div className="mt-4">
-            <button
-              onClick={handleSearch}
-              disabled={loading || !searchLocation}
-              className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition disabled:opacity-50"
-            >
-              <Search className="h-5 w-5" />
-              <span>{loading ? 'Searching...' : 'Search'}</span>
-            </button>
-          </div>
+          <button
+            onClick={handleSearch}
+            disabled={loading || !searchLocation}
+            className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition disabled:opacity-50 text-sm font-medium"
+          >
+            <Search className="h-4 w-4" />
+            <span>{loading ? 'Searching...' : 'Search'}</span>
+          </button>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
             {error}
           </div>
         )}
 
         {(keyword || category || tags) && (
-          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center flex-wrap gap-2">
-              <span className="text-sm text-gray-700 font-medium">Active Filters:</span>
+              <span className="text-xs text-gray-700 font-medium">Filters:</span>
               {keyword && (
                 <button
                   onClick={() => setKeyword('')}
-                  className="flex items-center gap-1 bg-white px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-50 transition"
+                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-xs border border-gray-300 hover:bg-gray-50 transition"
                 >
-                  <span>Keyword: {keyword}</span>
+                  <span>{keyword}</span>
                   <X className="h-3 w-3" />
                 </button>
               )}
               {category && (
                 <button
                   onClick={() => setCategory('')}
-                  className="flex items-center gap-1 bg-white px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-50 transition"
+                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-xs border border-gray-300 hover:bg-gray-50 transition"
                 >
-                  <span>Category: {category}</span>
+                  <span>{category}</span>
                   <X className="h-3 w-3" />
                 </button>
               )}
               {tags && (
                 <button
                   onClick={() => setTags('')}
-                  className="flex items-center gap-1 bg-white px-3 py-1 rounded-full text-sm border border-gray-300 hover:bg-gray-50 transition"
+                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-xs border border-gray-300 hover:bg-gray-50 transition"
                 >
-                  <span>Tags: {tags}</span>
+                  <span>{tags}</span>
                   <X className="h-3 w-3" />
                 </button>
               )}
@@ -395,7 +393,7 @@ export const Dashboard = () => {
                   setCategory('');
                   setTags('');
                 }}
-                className="ml-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                className="ml-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
               >
                 Clear All
               </button>
