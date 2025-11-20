@@ -245,14 +245,14 @@ export const AddressInput: React.FC<AddressInputProps> = ({
           type="button"
           onClick={getCurrentLocation}
           disabled={loading}
-          className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-xs disabled:opacity-50"
+          className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-xs disabled:opacity-50 whitespace-nowrap"
         >
           {loading ? (
             <Loader2 className="h-3 w-3 animate-spin" />
           ) : (
             <MapPin className="h-3 w-3" />
           )}
-          <span className="hidden sm:inline">Use Current</span>
+          <span>Use Current Location</span>
         </button>
       </div>
 
