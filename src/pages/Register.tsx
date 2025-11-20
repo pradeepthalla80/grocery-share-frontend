@@ -139,7 +139,7 @@ export const Register = () => {
           <img 
             src={BRANDING.LOGO_PATH} 
             alt={BRANDING.APP_NAME}
-            className="h-16 sm:h-20 md:h-24 w-auto object-contain mb-6"
+            className="h-12 sm:h-16 md:h-20 w-auto object-contain mb-6"
           />
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Join {BRANDING.APP_NAME}</h2>
           <p className="text-gray-600 mt-2 text-sm sm:text-base text-center">Create your account to start sharing</p>
