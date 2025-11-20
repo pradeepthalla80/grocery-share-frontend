@@ -71,7 +71,7 @@ export const Login = () => {
           <img 
             src={BRANDING.LOGO_PATH} 
             alt={BRANDING.APP_NAME}
-            className="h-12 sm:h-16 md:h-20 w-auto object-contain mb-6"
+            className="h-10 sm:h-12 md:h-16 w-auto object-contain mb-6"
           />
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
           <p className="text-gray-600 mt-2">Sign in to your {BRANDING.APP_NAME} account</p>
