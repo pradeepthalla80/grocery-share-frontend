@@ -25,18 +25,26 @@ export const Navbar = () => {
     setMobileMenuOpen(false);
   };
 
+  // Hide logo on login/register pages (form already has logo)
+  const hideNavLogo = ['/login', '/register'].includes(location.pathname);
+
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-32 sm:h-36 lg:h-44">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0 py-2">
-            <img 
-              src={BRANDING.LOGO_PATH} 
-              alt={BRANDING.APP_NAME}
-              className="h-28 sm:h-32 lg:h-40 w-auto object-contain"
-            />
-          </Link>
+        <div className="flex justify-between items-center h-16">
+          {/* Logo - Hidden on login/register pages */}
+          {!hideNavLogo && (
+            <Link to="/" className="flex-shrink-0 py-1">
+              <img 
+                src={BRANDING.LOGO_PATH} 
+                alt={BRANDING.APP_NAME}
+                className="h-14 sm:h-16 lg:h-20 w-auto object-contain"
+              />
+            </Link>
+          )}
+          
+          {/* Spacer for login/register pages */}
+          {hideNavLogo && <div className="flex-shrink-0"></div>}
 
           {/* Desktop Menu */}
           {isAuthenticated && (
