@@ -63,12 +63,12 @@ localPort = 41105
 externalPort = 6000
 
 [[ports]]
-localPort = 44977
-externalPort = 3002
+localPort = 42265
+externalPort = 8000
 
 [[ports]]
-localPort = 46815
-externalPort = 8000
+localPort = 44977
+externalPort = 3002
 
 [nix]
 packages = ["openssh"]
