@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
+import { BRANDING } from '../config/branding';
 
 export const Footer = () => {
   return (
@@ -7,7 +8,7 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="text-gray-600 text-sm mb-4 md:mb-0">
-            © 2025 Grocery Share. All rights reserved.
+            © 2025 {BRANDING.APP_NAME}. All rights reserved.
           </div>
           <div className="flex items-center space-x-6">
             <Link

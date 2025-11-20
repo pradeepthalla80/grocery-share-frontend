@@ -1,6 +1,6 @@
 # Overview
 
-Grocery Share is a peer-to-peer web application designed to reduce food waste by enabling users to share, request, and exchange surplus grocery items within their local community. The platform aims to connect individuals with excess groceries to those in need, facilitating both free and paid item listings. Key capabilities include listing items, searching for nearby groceries, real-time chat, and map-based pickup coordination. The project's vision is to foster community sharing, combat food insecurity, and promote sustainable consumption.
+BaskMate (formerly Grocery Share) is a peer-to-peer web application designed to reduce food waste by enabling users to share, request, and exchange surplus grocery items within their local community. Tagline: "Your Emergency Pantry Next Door". The platform aims to connect individuals with excess groceries to those in need, facilitating both free and paid item listings. Key capabilities include listing items, searching for nearby groceries, real-time chat, and map-based pickup coordination. The project's vision is to foster community sharing, combat food insecurity, and promote sustainable consumption.
 
 # User Preferences
 
@@ -20,6 +20,8 @@ User prefers complete file updates rather than partial edits - always provide en
 ## UI/UX Decisions
 
 The UI is built with React 19, TypeScript, and Vite 7. Styling uses Tailwind CSS v4 with custom design tokens, Lucide React for iconography, and Class Variance Authority (CVA) for component variants. The chat interface features a modern modal-based design with conversation lists in a grid, circular avatars, rounded message bubbles, gradient backgrounds, and unread badges. Notifications use a bell icon and navigate to the `/chat` page. Map integration uses Leaflet v1.9 with React-Leaflet v5 and OpenStreetMap/Nominatim.
+
+**Branding System (Nov 20, 2025)**: Centralized branding configuration implemented in `src/config/branding.ts` for easy logo and app name updates. The BaskMate logo (`/public/logo.png`) is used across all pages (Navbar, Login, Register, Profile). All references pull from the single source configuration file. Logo scales responsively (h-8 to h-16) on mobile and desktop. Meta tags, manifest, and page titles updated to "BaskMate - Your Emergency Pantry Next Door". Theme color updated to #1E9B7B (teal from logo).
 
 ## Technical Implementations
 

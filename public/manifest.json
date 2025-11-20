@@ -1,13 +1,18 @@
 {
-  "name": "Grocery Share",
-  "short_name": "GroceryShare",
-  "description": "Share surplus groceries with your community and reduce food waste",
+  "name": "BaskMate",
+  "short_name": "BaskMate",
+  "description": "Your Emergency Pantry Next Door - Share surplus groceries with your community and reduce food waste",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#059669",
+  "theme_color": "#1E9B7B",
   "orientation": "portrait",
   "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
     {
       "src": "/favicon.svg",
       "sizes": "any",

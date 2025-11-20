@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
 import { StoreActivationSection } from '../components/StoreActivationSection';
 import { useToast } from '../hooks/useToast';
+import { BRANDING } from '../config/branding';
 
 export const Profile = () => {
   const { user, logout } = useAuth();
@@ -139,7 +140,7 @@ export const Profile = () => {
               </div>
               <div className="ml-6">
                 <h1 className="text-3xl font-bold text-white">{user?.name}</h1>
-                <p className="text-green-100 mt-1">Grocery Share Member</p>
+                <p className="text-green-100 mt-1">{BRANDING.APP_NAME} Member</p>
               </div>
             </div>
           </div>
@@ -272,7 +273,7 @@ export const Profile = () => {
                     </ul>
                     <div className="mt-4 pt-4 border-t border-blue-300">
                       <p className="text-sm text-blue-900">
-                        <strong>Remember:</strong> Grocery Share connects neighbors to reduce food waste. 
+                        <strong>Remember:</strong> {BRANDING.APP_NAME} connects neighbors to reduce food waste. 
                         By following these guidelines, you help keep our community safe and thriving!
                       </p>
                     </div>

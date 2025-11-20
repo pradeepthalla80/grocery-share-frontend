@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X, Store, Truck } from 'lucide-react';
+import { LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X, Store, Truck } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { useAdmin } from '../hooks/useAdmin';
 import { useStore } from '../hooks/useStore';
+import { BRANDING } from '../config/branding';
 
 export const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -30,9 +31,12 @@ export const Navbar = () => {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <ShoppingBasket className="h-7 w-7 sm:h-8 sm:w-8 text-green-600" />
-              <span className="text-lg sm:text-xl font-bold text-gray-900">Grocery Share</span>
+            <Link to="/" className="flex items-center">
+              <img 
+                src={BRANDING.LOGO_PATH} 
+                alt={BRANDING.APP_NAME}
+                className="h-8 sm:h-10 w-auto object-contain"
+              />
             </Link>
           </div>
 

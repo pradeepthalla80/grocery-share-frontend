@@ -1,5 +1,5 @@
 /**
- * Address formatting utilities for Grocery Share
+ * Address formatting utilities for BaskMate
  * Handles address truncation and formatting for different contexts and screen sizes
  */
 

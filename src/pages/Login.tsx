@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { authAPI } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 import { FormInput } from '../components/FormInput';
-import { ShoppingBasket } from 'lucide-react';
+import { BRANDING } from '../config/branding';
 
 // Block fake/test email patterns
 const fakeEmailPatterns = [
@@ -68,9 +68,13 @@ export const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <div className="flex flex-col items-center mb-8">
-          <ShoppingBasket className="h-12 w-12 text-green-600 mb-2" />
+          <img 
+            src={BRANDING.LOGO_PATH} 
+            alt={BRANDING.APP_NAME}
+            className="h-16 w-auto object-contain mb-4"
+          />
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
-          <p className="text-gray-600 mt-2">Sign in to your Grocery Share account</p>
+          <p className="text-gray-600 mt-2">Sign in to your {BRANDING.APP_NAME} account</p>
         </div>
 
         {error && (
