@@ -2,6 +2,8 @@
 
 BaskMate (formerly Grocery Share) is a peer-to-peer web application designed to reduce food waste by enabling users to share, request, and exchange surplus grocery items within their local community. Tagline: "Your Emergency Pantry Next Door". The platform aims to connect individuals with excess groceries to those in need, facilitating both free and paid item listings. Key capabilities include listing items, searching for nearby groceries, real-time chat, and map-based pickup coordination. The project's vision is to foster community sharing, combat food insecurity, and promote sustainable consumption.
 
+**Ultra-Compact Design System (Nov 20, 2025)**: Entire app optimized for minimal space usage with uniform compact design across all pages. Space savings of ~50-60% achieved through reduced padding (py-4, p-3), smaller margins (mb-3, mb-4), compact text sizes (text-xs, text-sm, text-2xl headings), and tighter component spacing (gap-2). All boxes, cards, and containers minimized while maintaining mobile responsiveness and touch-friendly interactions (≤400px screens).
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

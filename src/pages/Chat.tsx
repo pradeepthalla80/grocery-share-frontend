@@ -113,34 +113,33 @@ export const Chat = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="mb-6">
+        <div className="mb-3">
           <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
-          <p className="text-gray-600 mt-1">Connect with buyers and sellers in your community</p>
         </div>
 
         {/* Store Owner Promotional Banner */}
-        <div className="mb-4">
+        <div className="mb-3">
           <StoreOwnerPromo />
         </div>
 
         {conversations.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="h-10 w-10 text-blue-600" />
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mx-auto mb-3">
+              <MessageSquare className="h-6 w-6 text-blue-600" />
             </div>
-            <p className="text-gray-700 font-medium text-lg mb-2">No conversations yet</p>
-            <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
-              To start a conversation, find an item you're interested in and click "Contact Seller"
+            <p className="text-gray-700 font-medium text-base mb-2">No conversations yet</p>
+            <p className="text-xs text-gray-500 mb-4 max-w-md mx-auto">
+              Find an item and click "Contact Seller" to start chatting
             </p>
             <button
               onClick={() => navigate('/dashboard')}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
             >
               Browse Items
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {conversations.map((conversation) => (
               <ConversationCard
                 key={conversation.id}

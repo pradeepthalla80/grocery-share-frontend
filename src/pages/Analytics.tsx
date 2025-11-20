@@ -45,17 +45,17 @@ export const Analytics = () => {
     sublabel?: string;
     color: string;
   }) => (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-full ${color}`}>
-          <Icon className="h-6 w-6 text-white" />
+    <div className="bg-white rounded-lg shadow-md p-3 hover:shadow-lg transition">
+      <div className="flex items-center justify-between mb-2">
+        <div className={`p-2 rounded-full ${color}`}>
+          <Icon className="h-4 w-4 text-white" />
         </div>
-        <TrendingUp className="h-5 w-5 text-green-500" />
+        <TrendingUp className="h-3 w-3 text-green-500" />
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-1">{value.toLocaleString()}</h3>
-      <p className="text-gray-600 font-medium">{label}</p>
+      <h3 className="text-xl font-bold text-gray-900">{value.toLocaleString()}</h3>
+      <p className="text-xs text-gray-600 font-medium">{label}</p>
       {sublabel && (
-        <p className="text-sm text-gray-500 mt-1">{sublabel}</p>
+        <p className="text-xs text-gray-500">{sublabel}</p>
       )}
     </div>
   );
@@ -80,20 +80,20 @@ export const Analytics = () => {
         </button>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg shadow-lg p-8 mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-white/20 rounded-full">
-              <TrendingUp className="h-8 w-8 text-white" />
+        <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg shadow-lg p-3 mb-3">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-white/20 rounded-full">
+              <TrendingUp className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Community Impact</h1>
-              <p className="text-green-100 mt-1">See the difference we're making together</p>
+              <h1 className="text-xl font-bold text-white">Community Impact</h1>
+              <p className="text-green-100 text-xs">See the difference we're making together</p>
             </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-2 mb-3">
           <StatCard
             icon={Users}
             label="Total Members"
@@ -144,29 +144,28 @@ export const Analytics = () => {
         </div>
 
         {/* Impact Message */}
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <Leaf className="h-16 w-16 text-green-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+        <div className="bg-white rounded-lg shadow-md p-4 text-center">
+          <Leaf className="h-8 w-8 text-green-600 mx-auto mb-2" />
+          <h2 className="text-base font-bold text-gray-900 mb-2">
             Together We're Making a Difference
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Every item shared helps reduce food waste, save money, and strengthen our community bonds. 
-            Thank you for being part of the solution!
+          <p className="text-gray-600 max-w-2xl mx-auto text-sm">
+            Every item shared helps reduce food waste and strengthen community bonds.
           </p>
           
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-3 gap-3 text-center">
               <div>
-                <p className="text-2xl font-bold text-green-600">100%</p>
-                <p className="text-gray-600 mt-1">Free to Use</p>
+                <p className="text-lg font-bold text-green-600">100%</p>
+                <p className="text-xs text-gray-600">Free</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-600">24/7</p>
-                <p className="text-gray-600 mt-1">Always Available</p>
+                <p className="text-lg font-bold text-green-600">24/7</p>
+                <p className="text-xs text-gray-600">Available</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-600">Local</p>
-                <p className="text-gray-600 mt-1">Your Neighborhood</p>
+                <p className="text-lg font-bold text-green-600">Local</p>
+                <p className="text-xs text-gray-600">Nearby</p>
               </div>
             </div>
           </div>

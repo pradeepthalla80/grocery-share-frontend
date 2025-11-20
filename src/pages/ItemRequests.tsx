@@ -188,27 +188,26 @@ export const ItemRequests = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Item Requests</h1>
-            <p className="text-gray-600 mt-2">Help others by fulfilling their grocery requests</p>
           </div>
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+            className="flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition text-sm"
           >
-            {showCreateForm ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+            {showCreateForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             {showCreateForm ? 'Cancel' : 'Post Request'}
           </button>
         </div>
 
         {showLocationPicker && (
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-4">
-            <h3 className="text-lg font-semibold text-yellow-900 mb-4">
-              📍 Set Your Location to See Nearby Requests
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mb-3">
+            <h3 className="text-sm font-semibold text-yellow-900 mb-2">
+              📍 Set Your Location
             </h3>
-            <p className="text-sm text-yellow-800 mb-4">
-              Enter your address to find item requests in your area
+            <p className="text-xs text-yellow-800 mb-3">
+              Enter your address to find requests nearby
             </p>
             <AddressInput
               onLocationSelect={handleSearchLocationSelect}
@@ -218,9 +217,9 @@ export const ItemRequests = () => {
         )}
 
         {showCreateForm && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              {editingRequest ? 'Edit Item Request' : 'Create Item Request'}
+          <div className="bg-white rounded-lg shadow-lg p-4 mb-3">
+            <h2 className="text-base font-semibold text-gray-900 mb-3">
+              {editingRequest ? 'Edit Request' : 'Create Request'}
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
@@ -336,64 +335,64 @@ export const ItemRequests = () => {
         )}
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="text-gray-600 mt-4">Loading requests...</p>
+          <div className="text-center py-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+            <p className="text-gray-600 mt-2 text-sm">Loading requests...</p>
           </div>
         ) : requests.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No requests nearby</h3>
-            <p className="text-gray-600">Be the first to post a request in your area!</p>
+          <div className="text-center py-6 bg-white rounded-lg shadow">
+            <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-gray-900 mb-1">No requests nearby</h3>
+            <p className="text-gray-600 text-sm">Be the first to post a request!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {requests.map((request) => (
-              <div key={request._id} className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex items-start justify-between mb-4">
+              <div key={request._id} className="bg-white rounded-lg shadow-lg p-3">
+                <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{request.itemName}</h3>
-                    <p className="text-sm text-gray-600">{request.quantity}</p>
+                    <h3 className="text-base font-semibold text-gray-900">{request.itemName}</h3>
+                    <p className="text-xs text-gray-600">{request.quantity}</p>
                   </div>
-                  <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                  <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
                     {request.category}
                   </span>
                 </div>
 
                 {request.notes && (
-                  <p className="text-gray-700 text-sm mb-4 line-clamp-2">{request.notes}</p>
+                  <p className="text-gray-700 text-xs mb-2 line-clamp-2">{request.notes}</p>
                 )}
 
-                <div className="flex items-center text-sm text-gray-600 mb-4">
-                  <MapPin className="h-4 w-4 mr-1" />
+                <div className="flex items-center text-xs text-gray-600 mb-2">
+                  <MapPin className="h-3 w-3 mr-1" />
                   {request.approximateLocation || 'Nearby'}
                 </div>
 
-                <div className="text-sm text-gray-600 mb-4">
-                  Requested by <span className="font-medium">{request.user.name}</span>
+                <div className="text-xs text-gray-600 mb-2">
+                  By <span className="font-medium">{request.user.name}</span>
                 </div>
 
                 {request.responses.length > 0 && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                    <p className="text-sm text-blue-800">
-                      <CheckCircle className="h-4 w-4 inline mr-1" />
-                      {request.responses.length} {request.responses.length === 1 ? 'person has' : 'people have'} responded
+                  <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-xs text-blue-800">
+                      <CheckCircle className="h-3 w-3 inline mr-1" />
+                      {request.responses.length} responded
                     </p>
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <button
                     onClick={() => navigate(`/request/${request._id}`)}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition text-xs"
                   >
                     View Details
                   </button>
                   <button
                     onClick={() => handleRespond(request._id, request.user.id)}
-                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition text-xs"
                   >
-                    <MessageCircle className="h-4 w-4" />
+                    <MessageCircle className="h-3 w-3" />
                     Offer to Help
                   </button>
                 </div>
