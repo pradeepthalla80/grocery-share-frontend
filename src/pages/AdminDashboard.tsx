@@ -96,89 +96,89 @@ export const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg p-6 mb-4">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg p-2 mb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Shield className="h-8 w-8 text-white" />
+            <div className="flex items-center space-x-2">
+              <Shield className="h-5 w-5 text-white" />
               <div>
-                <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-purple-100">
+                <h1 className="text-lg font-bold text-white">Admin Dashboard</h1>
+                <p className="text-purple-100 text-xs">
                   {isSuperAdmin ? 'Super Admin Access' : 'Admin Access'}
                 </p>
               </div>
             </div>
             <button
               onClick={() => navigate('/admin/users')}
-              className="flex items-center gap-2 bg-white text-purple-600 px-4 py-2 rounded-md hover:bg-purple-50 transition font-medium min-h-[36px]"
+              className="flex items-center gap-1 bg-white text-purple-600 px-3 py-2 rounded-md hover:bg-purple-50 transition font-medium min-h-[36px] text-sm"
             >
-              <Users className="h-5 w-5" />
+              <Users className="h-4 w-4" />
               Manage Users
             </button>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mb-3">
           <div
-            className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
+            className="bg-white rounded-lg shadow p-2 cursor-pointer hover:shadow-lg transition"
             onClick={() => navigate('/admin/users')}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                <p className="text-xs text-gray-600">Total Users</p>
+                <p className="text-lg font-bold text-gray-900">{stats.totalUsers}</p>
               </div>
-              <Users className="h-12 w-12 text-purple-600" />
+              <Users className="h-6 w-6 text-purple-600" />
             </div>
-            <p className="text-xs text-purple-600 mt-2 font-medium">Click to manage →</p>
+            <p className="text-xs text-purple-600 mt-1 font-medium">Click to manage →</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Items</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalItems}</p>
+                <p className="text-xs text-gray-600">Total Items</p>
+                <p className="text-lg font-bold text-gray-900">{stats.totalItems}</p>
               </div>
-              <Package className="h-12 w-12 text-green-600" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active Items</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeItems}</p>
-              </div>
-              <TrendingUp className="h-12 w-12 text-green-500" />
+              <Package className="h-6 w-6 text-green-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Sold Items</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.soldItems}</p>
+                <p className="text-xs text-gray-600">Active Items</p>
+                <p className="text-lg font-bold text-gray-900">{stats.activeItems}</p>
               </div>
-              <TrendingUp className="h-12 w-12 text-gray-500" />
+              <TrendingUp className="h-6 w-6 text-green-500" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Requests</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalRequests}</p>
+                <p className="text-xs text-gray-600">Sold Items</p>
+                <p className="text-lg font-bold text-gray-900">{stats.soldItems}</p>
               </div>
-              <MessageSquare className="h-12 w-12 text-blue-600" />
+              <TrendingUp className="h-6 w-6 text-gray-500" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-600">Total Requests</p>
+                <p className="text-lg font-bold text-gray-900">{stats.totalRequests}</p>
+              </div>
+              <MessageSquare className="h-6 w-6 text-blue-600" />
             </div>
           </div>
         </div>
 
         {/* Recent Items */}
-        <div className="bg-white rounded-lg shadow mb-4">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
-              <Package className="h-6 w-6 text-green-600" />
+        <div className="bg-white rounded-lg shadow mb-3">
+          <div className="p-2 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-gray-900 flex items-center space-x-1">
+              <Package className="h-4 w-4 text-green-600" />
               <span>Recent Items</span>
             </h2>
           </div>
@@ -186,19 +186,19 @@ export const AdminDashboard = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Item
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Provider
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Price
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -206,27 +206,27 @@ export const AdminDashboard = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {recentItems.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
                           src={item.imageURL || '/placeholder.png'}
                           alt={item.name}
-                          className="h-10 w-10 rounded object-cover"
+                          className="h-8 w-8 rounded object-cover"
                         />
-                        <div className="ml-4">
+                        <div className="ml-2">
                           <div className="text-sm font-medium text-gray-900">{item.name}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{item.user?.name || 'Unknown'}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {item.isFree ? 'Free' : `$${item.price.toFixed(2)}`}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         item.status === 'sold' ? 'bg-gray-100 text-gray-800' :
                         item.status === 'refunded' ? 'bg-red-100 text-red-800' :
@@ -235,7 +235,7 @@ export const AdminDashboard = () => {
                         {item.status || 'available'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <td className="px-3 py-2 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => navigate(`/items/${item.id}`)}
                         className="text-blue-600 hover:text-blue-900 min-h-[36px] inline-flex items-center"
@@ -258,9 +258,9 @@ export const AdminDashboard = () => {
 
         {/* Recent Requests */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center space-x-2">
-              <MessageSquare className="h-6 w-6 text-blue-600" />
+          <div className="p-2 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-gray-900 flex items-center space-x-1">
+              <MessageSquare className="h-4 w-4 text-blue-600" />
               <span>Recent Requests</span>
             </h2>
           </div>
@@ -268,16 +268,16 @@ export const AdminDashboard = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Request
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Requester
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -285,13 +285,13 @@ export const AdminDashboard = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {recentRequests.map((request) => (
                   <tr key={request._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{request.itemName}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{request.user?.name || 'Unknown'}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         request.status === 'fulfilled' ? 'bg-green-100 text-green-800' :
                         request.status === 'cancelled' ? 'bg-gray-100 text-gray-800' :
@@ -300,7 +300,7 @@ export const AdminDashboard = () => {
                         {request.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <td className="px-3 py-2 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => navigate(`/requests/${request._id}`)}
                         className="text-blue-600 hover:text-blue-900 min-h-[36px] inline-flex items-center"

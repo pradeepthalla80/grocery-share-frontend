@@ -45,14 +45,14 @@ export const Analytics = () => {
     sublabel?: string;
     color: string;
   }) => (
-    <div className="bg-white rounded-lg shadow-md p-3 hover:shadow-lg transition">
-      <div className="flex items-center justify-between mb-2">
-        <div className={`p-2 rounded-full ${color}`}>
-          <Icon className="h-4 w-4 text-white" />
+    <div className="bg-white rounded-lg shadow-md p-2 hover:shadow-lg transition">
+      <div className="flex items-center justify-between mb-1">
+        <div className={`p-1.5 rounded-full ${color}`}>
+          <Icon className="h-3 w-3 text-white" />
         </div>
         <TrendingUp className="h-3 w-3 text-green-500" />
       </div>
-      <h3 className="text-xl font-bold text-gray-900">{value.toLocaleString()}</h3>
+      <h3 className="text-lg font-bold text-gray-900">{value.toLocaleString()}</h3>
       <p className="text-xs text-gray-600 font-medium">{label}</p>
       {sublabel && (
         <p className="text-xs text-gray-500">{sublabel}</p>
@@ -80,20 +80,20 @@ export const Analytics = () => {
         </button>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg shadow-lg p-3 mb-3">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-white/20 rounded-full">
-              <TrendingUp className="h-5 w-5 text-white" />
+        <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg shadow-lg p-2 mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 bg-white/20 rounded-full">
+              <TrendingUp className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Community Impact</h1>
+              <h1 className="text-lg font-bold text-white">Community Impact</h1>
               <p className="text-green-100 text-xs">See the difference we're making together</p>
             </div>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-2 mb-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1.5 mb-3">
           <StatCard
             icon={Users}
             label="Total Members"

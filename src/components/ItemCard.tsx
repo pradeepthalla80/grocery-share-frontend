@@ -50,13 +50,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
     <div className={`rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${
       item.isStoreItem ? 'bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200' : 'bg-white'
     }`}>
-      <div className="relative w-full h-32 bg-gray-200">
+      <div className="relative w-full h-24 bg-gray-200">
         {allImages.length > 0 ? (
           <>
             <img
               src={allImages[currentImageIndex]}
               alt={`${item.name} - Image ${currentImageIndex + 1}`}
-              className="w-full h-32 object-cover"
+              className="w-full h-24 object-cover"
             />
             {allImages.length > 1 && (
               <>
@@ -100,11 +100,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           </div>
         )}
       </div>
-      <div className="p-2">
-        <h3 className="text-sm font-semibold text-gray-900 mb-1">{item.name}</h3>
+      <div className="p-1.5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-0.5">{item.name}</h3>
         
         {item.category && (
-          <div className="flex items-center space-x-1 text-sm text-gray-600 mb-1">
+          <div className="flex items-center space-x-1 text-sm text-gray-600 mb-0.5">
             <Tag className="h-3 w-3" />
             <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs">
               {item.category}
@@ -112,10 +112,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           </div>
         )}
 
-        <div className="space-y-1 text-sm text-gray-600">
+        <div className="space-y-0.5 text-sm text-gray-600">
           {/* Store Name - Prominent Display for Mini Stores */}
           {item.isStoreItem && item.user?.storeName && (
-            <div className="bg-blue-100 border-l-2 border-blue-600 px-2 py-1 rounded flex items-center justify-between">
+            <div className="bg-blue-100 border-l-2 border-blue-600 px-1.5 py-0.5 rounded flex items-center justify-between">
               <div className="flex items-center space-x-1">
                 <ShoppingCart className="h-4 w-4 text-blue-700" />
                 <div>
@@ -207,7 +207,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         </div>
 
         {item.tags && item.tags.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-0.5">
+          <div className="mt-1 flex flex-wrap gap-0.5">
             {item.tags.map((tag, idx) => (
               <span
                 key={idx}
@@ -220,7 +220,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         )}
 
         {!isMyItem && !showActions && item.user && (
-          <div className="mt-2 space-y-1">
+          <div className="mt-1 space-y-0.5">
             <button
               onClick={handleViewDetails}
               className="w-full bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-1 text-sm min-h-[36px]"
@@ -238,7 +238,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         )}
 
         {showActions && (
-          <div className="mt-2 flex space-x-1">
+          <div className="mt-1 flex space-x-1">
             {onEdit && (
               <button
                 onClick={onEdit}

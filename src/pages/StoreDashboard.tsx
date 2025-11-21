@@ -50,58 +50,58 @@ export const StoreDashboard = () => {
     <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-3 mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-white bg-opacity-20 p-2 rounded-lg">
-              <Store className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-2 mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="bg-white bg-opacity-20 p-1.5 rounded-lg">
+              <Store className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white">{storeName}</h1>
-              <p className="text-sm sm:text-base text-blue-100">Store Owner Dashboard</p>
+              <h1 className="text-lg font-bold text-white">{storeName}</h1>
+              <p className="text-xs text-blue-100">Store Owner Dashboard</p>
             </div>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-          <div className="bg-white rounded-lg shadow p-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+          <div className="bg-white rounded-lg shadow p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm text-gray-600">Total Items</p>
-                <p className="text-xl font-bold text-gray-900">{storeItems.length}</p>
+                <p className="text-xs text-gray-600">Total Items</p>
+                <p className="text-lg font-bold text-gray-900">{storeItems.length}</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <Package className="h-6 w-6 text-blue-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-3">
+          <div className="bg-white rounded-lg shadow p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm text-gray-600">Total Sales</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs text-gray-600">Total Sales</p>
+                <p className="text-lg font-bold text-gray-900">
                   {transactions?.totalSales || 0}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
+              <TrendingUp className="h-6 w-6 text-green-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-3 sm:col-span-2 lg:col-span-1">
+          <div className="bg-white rounded-lg shadow p-2 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm text-gray-600">Total Revenue</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-xs text-gray-600">Total Revenue</p>
+                <p className="text-lg font-bold text-gray-900">
                   ${transactions?.totalRevenue.toFixed(2) || '0.00'}
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <DollarSign className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </div>
 
         {/* Inventory Section */}
-        <div className="bg-white rounded-lg shadow mb-4">
-          <div className="p-3 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+        <div className="bg-white rounded-lg shadow mb-3">
+          <div className="p-2 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
             <h2 className="text-base font-semibold text-gray-900 flex items-center space-x-2">
               <Package className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               <span>Inventory</span>
