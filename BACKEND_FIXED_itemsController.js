@@ -667,7 +667,7 @@ const updateItem = async (req, res) => {
   }
 };
 
-// Delete an item (protected route - only owner can delete)
+// Delete an item (protected route - only owner or admin can delete)
 const deleteItem = async (req, res) => {
   try {
     const { id } = req.params;
@@ -679,8 +679,11 @@ const deleteItem = async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
     
-    // Check ownership (convert both to strings for comparison)
-    if (item.user.toString() !== req.user.userId.toString()) {
+    // Check ownership OR admin role (convert both to strings for comparison)
+    const isOwner = item.user.toString() === req.user.userId.toString();
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+    
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Not authorized to delete this item' });
     }
     
