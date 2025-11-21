@@ -28,4 +28,17 @@
   .animate-slide-in {
     animation: slide-in 0.3s ease-out;
   }
+
+  /* BaskMate Compact Design System - Accessibility Utilities */
+  .bm-touch {
+    @apply flex items-center justify-center min-h-[36px] px-3 py-2.5 text-sm leading-tight font-medium gap-2 rounded-md;
+  }
+
+  .bm-label {
+    @apply text-sm leading-snug font-medium text-gray-800;
+  }
+
+  .bm-helper {
+    @apply text-xs leading-tight text-gray-500;
+  }
 }
