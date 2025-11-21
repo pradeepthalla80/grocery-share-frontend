@@ -125,7 +125,7 @@ export const MyItems = () => {
           <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600">Total</p>
+                <p className="text-sm text-gray-600">Total</p>
                 <p className="text-xl font-bold text-gray-900">{stats.total}</p>
               </div>
               <Package className="h-6 w-6 text-blue-600" />
@@ -134,7 +134,7 @@ export const MyItems = () => {
           <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600">Active</p>
+                <p className="text-sm text-gray-600">Active</p>
                 <p className="text-xl font-bold text-green-600">{stats.active}</p>
               </div>
               <CheckCircle className="h-6 w-6 text-green-600" />
@@ -143,7 +143,7 @@ export const MyItems = () => {
           <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600">Expiring</p>
+                <p className="text-sm text-gray-600">Expiring</p>
                 <p className="text-xl font-bold text-orange-600">{stats.expiring}</p>
               </div>
               <Clock className="h-6 w-6 text-orange-600" />
@@ -152,7 +152,7 @@ export const MyItems = () => {
           <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600">Expired</p>
+                <p className="text-sm text-gray-600">Expired</p>
                 <p className="text-xl font-bold text-red-600">{stats.expired}</p>
               </div>
               <AlertCircle className="h-6 w-6 text-red-600" />
@@ -232,7 +232,7 @@ export const MyItems = () => {
             <p className="text-gray-400 mt-2">Start sharing your groceries with the community!</p>
             <button
               onClick={() => navigate('/add-item')}
-              className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition"
+              className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition" min-h-[36px]
             >
               Add Your First Item
             </button>

@@ -109,7 +109,7 @@ export const AdminDashboard = () => {
             </div>
             <button
               onClick={() => navigate('/admin/users')}
-              className="flex items-center gap-2 bg-white text-purple-600 px-4 py-2 rounded-md hover:bg-purple-50 transition font-medium"
+              className="flex items-center gap-2 bg-white text-purple-600 px-4 py-2 rounded-md hover:bg-purple-50 transition font-medium" min-h-[36px]
             >
               <Users className="h-5 w-5" />
               Manage Users
@@ -238,13 +238,13 @@ export const AdminDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => navigate(`/items/${item.id}`)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 hover:text-blue-900" min-h-[36px] inline-flex items-center
                       >
                         View
                       </button>
                       <button
                         onClick={() => handleDeleteItem(item.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900" min-h-[36px] inline-flex items-center
                       >
                         Delete
                       </button>
@@ -303,13 +303,13 @@ export const AdminDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => navigate(`/requests/${request._id}`)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 hover:text-blue-900" min-h-[36px] inline-flex items-center
                       >
                         View
                       </button>
                       <button
                         onClick={() => handleDeleteRequest(request._id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900" min-h-[36px] inline-flex items-center
                       >
                         Delete
                       </button>

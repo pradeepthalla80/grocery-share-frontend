@@ -354,7 +354,7 @@ export const ItemRequests = () => {
                     <h3 className="text-base font-semibold text-gray-900">{request.itemName}</h3>
                     <p className="text-xs text-gray-600">{request.quantity}</p>
                   </div>
-                  <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                  <span className="px-2 py-0.5 bg-green-100 text-green-800 text-sm font-medium rounded-full">
                     {request.category}
                   </span>
                 </div>
@@ -368,13 +368,13 @@ export const ItemRequests = () => {
                   {request.approximateLocation || 'Nearby'}
                 </div>
 
-                <div className="text-xs text-gray-600 mb-2">
+                <div className="text-sm text-gray-600 mb-2">
                   By <span className="font-medium">{request.user.name}</span>
                 </div>
 
                 {request.responses.length > 0 && (
                   <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                    <p className="text-xs text-blue-800">
+                    <p className="text-sm text-blue-800">
                       <CheckCircle className="h-4 w-4 inline mr-1" />
                       {request.responses.length} responded
                     </p>

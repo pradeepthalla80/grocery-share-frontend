@@ -249,7 +249,7 @@ export const Dashboard = () => {
               <select
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value as TabType)}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white h-[30px]"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white min-h-[36px]"
               >
                 <option value="available">Available</option>
                 <option value="requested">Requested</option>
@@ -264,7 +264,7 @@ export const Dashboard = () => {
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 h-[30px]"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 min-h-[36px]"
               />
             </div>
             <div className="w-28">
@@ -274,7 +274,7 @@ export const Dashboard = () => {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 h-[30px]"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 min-h-[36px]"
               >
                 <option value="">All</option>
                 <option value="Fruits">Fruits</option>
@@ -295,7 +295,7 @@ export const Dashboard = () => {
               <select
                 value={radius}
                 onChange={(e) => setRadius(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 h-[30px]"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 min-h-[36px]"
               >
                 <option value="5">5 mi</option>
                 <option value="10">10 mi</option>
@@ -324,7 +324,7 @@ export const Dashboard = () => {
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="organic, fresh..."
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 h-[30px]"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 min-h-[36px]"
               />
             </div>
           </div>
@@ -343,7 +343,7 @@ export const Dashboard = () => {
           <button
             onClick={handleSearch}
             disabled={loading || !searchLocation}
-            className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition disabled:opacity-50 text-xs font-medium h-[34px]"
+            className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition disabled:opacity-50 text-sm font-medium min-h-[36px]"
           >
             <Search className="h-4 w-4" />
             <span>{loading ? 'Searching...' : 'Search'}</span>
@@ -363,7 +363,7 @@ export const Dashboard = () => {
               {keyword && (
                 <button
                   onClick={() => setKeyword('')}
-                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-xs border border-gray-300 hover:bg-gray-50 transition"
+                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-sm min-h-[36px] border border-gray-300 hover:bg-gray-50 transition"
                 >
                   <span>{keyword}</span>
                   <X className="h-3 w-3" />
@@ -372,7 +372,7 @@ export const Dashboard = () => {
               {category && (
                 <button
                   onClick={() => setCategory('')}
-                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-xs border border-gray-300 hover:bg-gray-50 transition"
+                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-sm min-h-[36px] border border-gray-300 hover:bg-gray-50 transition"
                 >
                   <span>{category}</span>
                   <X className="h-3 w-3" />
@@ -381,7 +381,7 @@ export const Dashboard = () => {
               {tags && (
                 <button
                   onClick={() => setTags('')}
-                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-xs border border-gray-300 hover:bg-gray-50 transition"
+                  className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full text-sm min-h-[36px] border border-gray-300 hover:bg-gray-50 transition"
                 >
                   <span>{tags}</span>
                   <X className="h-3 w-3" />
