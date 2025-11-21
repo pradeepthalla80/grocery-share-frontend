@@ -112,20 +112,20 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           </div>
         )}
 
-        <div className="space-y-1 text-xs text-gray-600">
+        <div className="space-y-1 text-sm text-gray-600">
           {/* Store Name - Prominent Display for Mini Stores */}
           {item.isStoreItem && item.user?.storeName && (
             <div className="bg-blue-100 border-l-2 border-blue-600 px-2 py-1 rounded flex items-center justify-between">
               <div className="flex items-center space-x-1">
-                <ShoppingCart className="h-3 w-3 text-blue-700" />
+                <ShoppingCart className="h-4 w-4 text-blue-700" />
                 <div>
-                  <p className="text-xs font-bold text-blue-900">{item.user.storeName}</p>
+                  <p className="text-sm font-bold text-blue-900">{item.user.storeName}</p>
                 </div>
               </div>
               {item.user.averageRating !== undefined && item.user.ratingCount !== undefined && item.user.ratingCount > 0 && (
                 <div className="flex items-center space-x-0.5">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs font-semibold text-gray-800">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-semibold text-gray-800">
                     {item.user.averageRating.toFixed(1)}
                   </span>
                   <span className="text-xs text-gray-600">
@@ -139,34 +139,34 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1">
               {item.isFree ? (
-                <span className="bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded text-xs">
+                <span className="bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded text-sm">
                   🆓 FREE
                 </span>
               ) : (
                 <>
-                  <DollarSign className="h-3 w-3" />
-                  <span className="font-semibold text-green-600 text-xs">${item.price.toFixed(2)}</span>
+                  <DollarSign className="h-4 w-4" />
+                  <span className="font-semibold text-green-600 text-sm">${item.price.toFixed(2)}</span>
                 </>
               )}
             </div>
             
             {/* Stock Info for Store Items */}
             {item.isStoreItem && item.quantity !== null && item.quantity !== undefined && (
-              <div className="flex items-center space-x-0.5 bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
-                <Package className="h-3 w-3" />
+              <div className="flex items-center space-x-0.5 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-sm font-medium">
+                <Package className="h-4 w-4" />
                 <span>Stock: {item.quantity}</span>
               </div>
             )}
           </div>
           
           <div className="flex items-center space-x-1">
-            <Calendar className="h-3 w-3" />
-            <span className="text-xs">Expires: {format(new Date(item.expiryDate), 'MMM dd')}</span>
+            <Calendar className="h-4 w-4" />
+            <span className="text-sm">Expires: {format(new Date(item.expiryDate), 'MMM dd')}</span>
           </div>
 
           {!item.flexiblePickup && item.pickupTimeStart && item.pickupTimeEnd && (
             <div className="flex items-center space-x-1">
-              <Clock className="h-3 w-3" />
+              <Clock className="h-4 w-4" />
               <span className="text-xs">
                 Pickup: {format(new Date(item.pickupTimeStart), 'MMM dd, h:mm a')} - {format(new Date(item.pickupTimeEnd), 'h:mm a')}
               </span>
@@ -175,26 +175,26 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
 
           {item.flexiblePickup && (
             <div className="flex items-center space-x-1">
-              <Clock className="h-3 w-3" />
-              <span className="text-xs text-gray-500">Flexible pickup</span>
+              <Clock className="h-4 w-4" />
+              <span className="text-sm text-gray-500">Flexible pickup</span>
             </div>
           )}
           
           <div className="flex items-center space-x-1">
-            <MapPin className="h-3 w-3" />
-            <span className="text-xs truncate">{item.location.address || `${item.location.lat.toFixed(4)}, ${item.location.lng.toFixed(4)}`}</span>
+            <MapPin className="h-4 w-4" />
+            <span className="text-sm truncate">{item.location.address || `${item.location.lat.toFixed(4)}, ${item.location.lng.toFixed(4)}`}</span>
           </div>
 
           {item.user && !item.isStoreItem && (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1">
-                <User className="h-3 w-3" />
-                <span className="text-gray-700 text-xs">Seller: {item.user.name}</span>
+                <User className="h-4 w-4" />
+                <span className="text-gray-700 text-sm">Seller: {item.user.name}</span>
               </div>
               {item.user.averageRating !== undefined && item.user.ratingCount !== undefined && item.user.ratingCount > 0 && (
                 <div className="flex items-center space-x-0.5">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs font-semibold text-gray-800">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-semibold text-gray-800">
                     {item.user.averageRating.toFixed(1)}
                   </span>
                   <span className="text-xs text-gray-600">
@@ -223,15 +223,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           <div className="mt-2 space-y-1">
             <button
               onClick={handleViewDetails}
-              className="w-full bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-1 text-xs"
+              className="w-full bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-1 text-sm min-h-[36px]"
             >
               View Details
             </button>
             <button
               onClick={handleContactSeller}
-              className="w-full bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition flex items-center justify-center gap-1 text-xs"
+              className="w-full bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition flex items-center justify-center gap-1 text-sm min-h-[36px]"
             >
-              <MessageCircle className="h-3 w-3" />
+              <MessageCircle className="h-4 w-4" />
               Contact Seller
             </button>
           </div>
@@ -242,7 +242,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
             {onEdit && (
               <button
                 onClick={onEdit}
-                className="flex-1 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition text-xs"
+                className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition text-sm min-h-[36px]"
               >
                 Edit
               </button>
@@ -250,7 +250,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
             {onDelete && (
               <button
                 onClick={onDelete}
-                className="flex-1 bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 transition text-xs"
+                className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition text-sm min-h-[36px]"
               >
                 Delete
               </button>

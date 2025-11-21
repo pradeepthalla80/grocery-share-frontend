@@ -194,7 +194,7 @@ export const ItemRequests = () => {
           </div>
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition text-sm"
+            className="flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-md min-h-[36px] hover:bg-green-700 transition text-sm"
           >
             {showCreateForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             {showCreateForm ? 'Cancel' : 'Post Request'}
@@ -364,7 +364,7 @@ export const ItemRequests = () => {
                 )}
 
                 <div className="flex items-center text-xs text-gray-600 mb-2">
-                  <MapPin className="h-3 w-3 mr-1" />
+                  <MapPin className="h-4 w-4 mr-1" />
                   {request.approximateLocation || 'Nearby'}
                 </div>
 
@@ -375,7 +375,7 @@ export const ItemRequests = () => {
                 {request.responses.length > 0 && (
                   <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
                     <p className="text-xs text-blue-800">
-                      <CheckCircle className="h-3 w-3 inline mr-1" />
+                      <CheckCircle className="h-4 w-4 inline mr-1" />
                       {request.responses.length} responded
                     </p>
                   </div>
@@ -384,15 +384,15 @@ export const ItemRequests = () => {
                 <div className="space-y-1.5">
                   <button
                     onClick={() => navigate(`/request/${request._id}`)}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition text-xs"
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-md min-h-[36px] hover:bg-blue-700 transition text-sm"
                   >
                     View Details
                   </button>
                   <button
                     onClick={() => handleRespond(request._id, request.user.id)}
-                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition text-xs"
+                    className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-3 py-2 rounded-md min-h-[36px] hover:bg-green-700 transition text-sm"
                   >
-                    <MessageCircle className="h-3 w-3" />
+                    <MessageCircle className="h-4 w-4" />
                     Offer to Help
                   </button>
                 </div>

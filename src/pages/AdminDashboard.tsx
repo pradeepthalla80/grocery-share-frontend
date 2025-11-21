@@ -118,7 +118,7 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
           <div
             className="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-lg transition"
             onClick={() => navigate('/admin/users')}

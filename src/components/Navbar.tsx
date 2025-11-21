@@ -61,7 +61,7 @@ export const Navbar = () => {
           {/* Desktop Menu */}
           {isAuthenticated && (
             <div className="hidden lg:flex items-center space-x-2">
-              <Link to="/dashboard" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/dashboard' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
+              <Link to="/dashboard" className={`flex items-center space-x-1 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium transition ${location.pathname === '/dashboard' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <Home className="h-4 w-4" />
                 <span>Dashboard</span>
               </Link>
@@ -70,7 +70,7 @@ export const Navbar = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setMyItemsDropdownOpen(!myItemsDropdownOpen)}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${['/my-items', '/item-requests'].includes(location.pathname) ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium transition ${['/my-items', '/item-requests'].includes(location.pathname) ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}
                 >
                   <Package className="h-4 w-4" />
                   <span>My Items</span>
@@ -80,14 +80,14 @@ export const Navbar = () => {
                   <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-[160px] z-50">
                     <Link
                       to="/my-items"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition min-h-[36px]"
                       onClick={() => setMyItemsDropdownOpen(false)}
                     >
                       My Listed Items
                     </Link>
                     <Link
                       to="/item-requests"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition min-h-[36px]"
                       onClick={() => setMyItemsDropdownOpen(false)}
                     >
                       My Requests
@@ -96,26 +96,26 @@ export const Navbar = () => {
                 )}
               </div>
 
-              <Link to="/chat" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/chat' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
+              <Link to="/chat" className={`flex items-center space-x-1 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium transition ${location.pathname === '/chat' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <MessageCircle className="h-4 w-4" />
                 <span>Messages</span>
               </Link>
-              <Link to="/pickup-requests" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/pickup-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
+              <Link to="/pickup-requests" className={`flex items-center space-x-1 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium transition ${location.pathname === '/pickup-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <Truck className="h-4 w-4" />
                 <span>Pickups</span>
               </Link>
-              <Link to="/analytics" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/analytics' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
+              <Link to="/analytics" className={`flex items-center space-x-1 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium transition ${location.pathname === '/analytics' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <TrendingUp className="h-4 w-4" />
                 <span>Impact</span>
               </Link>
               {isStoreOwner && (
-                <Link to="/store-dashboard" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/store-dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'}`}>
+                <Link to="/store-dashboard" className={`flex items-center space-x-1 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium transition ${location.pathname === '/store-dashboard' ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'}`}>
                   <Store className="h-4 w-4" />
                   <span>My Store</span>
                 </Link>
               )}
               {hasAdminAccess && (
-                <Link to="/admin" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/admin' ? 'bg-purple-100 text-purple-700' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}>
+                <Link to="/admin" className={`flex items-center space-x-1 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium transition ${location.pathname === '/admin' ? 'bg-purple-100 text-purple-700' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'}`}>
                   <Shield className="h-4 w-4" />
                   <span>Admin</span>
                 </Link>
@@ -132,15 +132,15 @@ export const Navbar = () => {
                   <User className="h-5 w-5" />
                   <span className="text-sm font-medium">{user?.name}</span>
                 </Link>
-                <button onClick={handleLogout} className="flex items-center space-x-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition">
+                <button onClick={handleLogout} className="flex items-center space-x-1 bg-red-600 text-white px-4 py-2 rounded-md min-h-[36px] hover:bg-red-700 transition">
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium">Login</Link>
-                <Link to="/register" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">Sign Up</Link>
+                <Link to="/login" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md min-h-[36px] text-sm font-medium">Login</Link>
+                <Link to="/register" className="bg-green-600 text-white px-4 py-2 rounded-md min-h-[36px] hover:bg-green-700 transition">Sign Up</Link>
               </>
             )}
           </div>

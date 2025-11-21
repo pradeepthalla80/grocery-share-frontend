@@ -47,10 +47,10 @@ export const StoreDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+    <div className="min-h-screen bg-gray-50 py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-3 mb-4">
           <div className="flex items-center space-x-3">
             <div className="bg-white bg-opacity-20 p-2 rounded-lg">
               <Store className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
@@ -63,46 +63,46 @@ export const StoreDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+          <div className="bg-white rounded-lg shadow p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm text-gray-600">Total Items</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{storeItems.length}</p>
+                <p className="text-xl font-bold text-gray-900">{storeItems.length}</p>
               </div>
-              <Package className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
+              <Package className="h-8 w-8 text-blue-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+          <div className="bg-white rounded-lg shadow p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm text-gray-600">Total Sales</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                <p className="text-xl font-bold text-gray-900">
                   {transactions?.totalSales || 0}
                 </p>
               </div>
-              <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-green-600" />
+              <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
+          <div className="bg-white rounded-lg shadow p-3 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm text-gray-600">Total Revenue</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                <p className="text-xl font-bold text-gray-900">
                   ${transactions?.totalRevenue.toFixed(2) || '0.00'}
                 </p>
               </div>
-              <DollarSign className="h-10 w-10 sm:h-12 sm:w-12 text-green-600" />
+              <DollarSign className="h-8 w-8 text-green-600" />
             </div>
           </div>
         </div>
 
         {/* Inventory Section */}
-        <div className="bg-white rounded-lg shadow mb-6 sm:mb-8">
-          <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center space-x-2">
+        <div className="bg-white rounded-lg shadow mb-4">
+          <div className="p-3 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+            <h2 className="text-base font-semibold text-gray-900 flex items-center space-x-2">
               <Package className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               <span>Inventory</span>
             </h2>

@@ -103,7 +103,7 @@ export const MyItems = () => {
           </div>
           <button
             onClick={() => navigate('/add-item')}
-            className="flex items-center space-x-2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition text-sm"
+            className="flex items-center space-x-2 bg-green-600 text-white px-3 py-2 rounded-md min-h-[36px] hover:bg-green-700 transition text-sm"
           >
             <Plus className="h-4 w-4" />
             <span>Add New Item</span>
