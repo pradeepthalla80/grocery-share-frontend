@@ -164,7 +164,7 @@ export const MyItems = () => {
           <div className="flex space-x-8">
             <button
               onClick={() => setFilter('all')}
-              className={`pb-4 px-1 ${
+              className={`pb-4 px-1 min-h-[36px] ${
                 filter === 'all'
                   ? 'text-green-600 border-b-2 border-green-600 font-semibold'
                   : 'text-gray-500 hover:text-gray-700'
@@ -174,7 +174,7 @@ export const MyItems = () => {
             </button>
             <button
               onClick={() => setFilter('active')}
-              className={`pb-4 px-1 ${
+              className={`pb-4 px-1 min-h-[36px] ${
                 filter === 'active'
                   ? 'text-green-600 border-b-2 border-green-600 font-semibold'
                   : 'text-gray-500 hover:text-gray-700'
@@ -184,7 +184,7 @@ export const MyItems = () => {
             </button>
             <button
               onClick={() => setFilter('expiring')}
-              className={`pb-4 px-1 ${
+              className={`pb-4 px-1 min-h-[36px] ${
                 filter === 'expiring'
                   ? 'text-green-600 border-b-2 border-green-600 font-semibold'
                   : 'text-gray-500 hover:text-gray-700'
@@ -194,7 +194,7 @@ export const MyItems = () => {
             </button>
             <button
               onClick={() => setFilter('expired')}
-              className={`pb-4 px-1 ${
+              className={`pb-4 px-1 min-h-[36px] ${
                 filter === 'expired'
                   ? 'text-green-600 border-b-2 border-green-600 font-semibold'
                   : 'text-gray-500 hover:text-gray-700'
@@ -232,7 +232,7 @@ export const MyItems = () => {
             <p className="text-gray-400 mt-2">Start sharing your groceries with the community!</p>
             <button
               onClick={() => navigate('/add-item')}
-              className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition" min-h-[36px]
+              className="mt-6 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition min-h-[36px]"
             >
               Add Your First Item
             </button>

@@ -104,7 +104,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         <h3 className="text-sm font-semibold text-gray-900 mb-1">{item.name}</h3>
         
         {item.category && (
-          <div className="flex items-center space-x-1 text-xs text-gray-600 mb-1">
+          <div className="flex items-center space-x-1 text-sm text-gray-600 mb-1">
             <Tag className="h-3 w-3" />
             <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs">
               {item.category}
@@ -128,7 +128,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
                   <span className="text-sm font-semibold text-gray-800">
                     {item.user.averageRating.toFixed(1)}
                   </span>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-sm text-gray-600">
                     ({item.user.ratingCount})
                   </span>
                 </div>
@@ -167,7 +167,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           {!item.flexiblePickup && item.pickupTimeStart && item.pickupTimeEnd && (
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4" />
-              <span className="text-xs">
+              <span className="text-sm">
                 Pickup: {format(new Date(item.pickupTimeStart), 'MMM dd, h:mm a')} - {format(new Date(item.pickupTimeEnd), 'h:mm a')}
               </span>
             </div>
@@ -197,7 +197,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
                   <span className="text-sm font-semibold text-gray-800">
                     {item.user.averageRating.toFixed(1)}
                   </span>
-                  <span className="text-xs text-gray-600">
+                  <span className="text-sm text-gray-600">
                     ({item.user.ratingCount})
                   </span>
                 </div>
