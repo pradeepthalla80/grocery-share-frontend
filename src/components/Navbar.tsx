@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X, Store, Truck } from 'lucide-react';
+import { LogOut, User, Home, Package, MessageCircle, HandHeart, Shield, TrendingUp, Menu, X, Store, Truck, ChevronDown } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { useAdmin } from '../hooks/useAdmin';
 import { useStore } from '../hooks/useStore';
@@ -14,10 +14,25 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [myItemsDropdownOpen, setMyItemsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    setMyItemsDropdownOpen(false);
   }, [location.pathname]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setMyItemsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -50,17 +65,40 @@ export const Navbar = () => {
                 <Home className="h-4 w-4" />
                 <span>Dashboard</span>
               </Link>
-              <Link to="/my-items" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/my-items' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
-                <Package className="h-4 w-4" />
-                <span>My Items</span>
-              </Link>
+              
+              {/* My Items Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setMyItemsDropdownOpen(!myItemsDropdownOpen)}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${['/my-items', '/item-requests'].includes(location.pathname) ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}
+                >
+                  <Package className="h-4 w-4" />
+                  <span>My Items</span>
+                  <ChevronDown className={`h-3 w-3 transition-transform ${myItemsDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {myItemsDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-[160px] z-50">
+                    <Link
+                      to="/my-items"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                      onClick={() => setMyItemsDropdownOpen(false)}
+                    >
+                      My Listed Items
+                    </Link>
+                    <Link
+                      to="/item-requests"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                      onClick={() => setMyItemsDropdownOpen(false)}
+                    >
+                      My Requests
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               <Link to="/chat" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/chat' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <MessageCircle className="h-4 w-4" />
                 <span>Messages</span>
-              </Link>
-              <Link to="/item-requests" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/item-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
-                <HandHeart className="h-4 w-4" />
-                <span>Requests</span>
               </Link>
               <Link to="/pickup-requests" className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition ${location.pathname === '/pickup-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100'}`}>
                 <Truck className="h-4 w-4" />
@@ -130,19 +168,19 @@ export const Navbar = () => {
                 </Link>
                 <Link to="/my-items" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/my-items' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                   <Package className="h-5 w-5" />
-                  <span>My Items</span>
+                  <span>My Listed Items</span>
+                </Link>
+                <Link to="/item-requests" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/item-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  <HandHeart className="h-5 w-5" />
+                  <span>My Requests</span>
                 </Link>
                 <Link to="/chat" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/chat' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                   <MessageCircle className="h-5 w-5" />
                   <span>Messages</span>
                 </Link>
-                <Link to="/item-requests" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/item-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
-                  <HandHeart className="h-5 w-5" />
-                  <span>Requests</span>
-                </Link>
                 <Link to="/pickup-requests" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/pickup-requests' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                   <Truck className="h-5 w-5" />
-                  <span>Pickup Requests</span>
+                  <span>Pickups</span>
                 </Link>
                 <Link to="/analytics" onClick={() => setMobileMenuOpen(false)} className={`flex items-center space-x-3 px-4 py-3 rounded-md font-medium transition min-h-[44px] ${location.pathname === '/analytics' ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100'}`}>
                   <TrendingUp className="h-5 w-5" />
