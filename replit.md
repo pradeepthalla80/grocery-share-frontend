@@ -4,6 +4,8 @@ BaskMate (formerly Grocery Share) is a peer-to-peer web application designed to 
 
 **Ultra-Compact Design System (Nov 20, 2025)**: Entire app optimized for minimal space usage with uniform compact design across all pages. Space savings of ~50-60% achieved through reduced padding (py-4, p-3), smaller margins (mb-3, mb-4), compact text sizes (text-xs, text-sm, text-2xl headings), and tighter component spacing (gap-2). All boxes, cards, and containers minimized while maintaining mobile responsiveness and touch-friendly interactions (≤400px screens).
 
+**Accessibility System (Nov 21, 2025)**: Comprehensive accessibility refinement ensures all interactive elements meet WCAG standards while preserving ultra-compact design. Shared utility classes in `src/index.css` enforce consistency: `.bm-touch` (≥36px touch targets for all buttons/controls), `.bm-label` (text-sm for critical labels), `.bm-helper` (text-xs for secondary content). All interactive elements across Dashboard, MyItems, ItemRequests, AdminDashboard, ItemCard, and Navbar upgraded to meet minimum touch target requirements. Critical information (prices, CTAs, status labels, metadata) uses text-sm for readability, while secondary elements (badges, helper text, counts) appropriately use text-xs. System balances maximum content visibility with accessibility compliance for future mobile app conversion.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
