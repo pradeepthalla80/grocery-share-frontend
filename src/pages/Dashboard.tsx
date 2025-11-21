@@ -464,7 +464,7 @@ export const Dashboard = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {sortedItems.map((item) => {
                 const imageUrl = item.images && item.images.length > 0 ? item.images[0] : item.imageURL;
                 const handleClick = () => {
@@ -475,10 +475,10 @@ export const Dashboard = () => {
                   <div
                     key={item.id}
                     onClick={handleClick}
-                    className="flex items-center gap-4 p-3 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer"
+                    className="flex items-center gap-2 p-2 bg-white rounded-lg shadow hover:shadow-md transition cursor-pointer"
                   >
                     {/* Thumbnail */}
-                    <div className="w-16 h-16 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
+                    <div className="w-12 h-12 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
                       {imageUrl ? (
                         <img
                           src={imageUrl}
@@ -487,35 +487,35 @@ export const Dashboard = () => {
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-400">
-                          <Package className="h-6 w-6" />
+                          <Package className="h-4 w-4" />
                         </div>
                       )}
                     </div>
 
                     {/* Item Info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <h3 className="text-sm font-semibold text-gray-900 truncate">{item.name}</h3>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         {item.isStoreItem ? (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-600 text-white flex items-center gap-1">
-                            🛒 MINI STORE
+                          <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-indigo-600 text-white flex items-center gap-1">
+                            🛒 STORE
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             Available
                           </span>
                         )}
                         {item.isStoreItem && item.quantity !== null && item.quantity !== undefined && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             Qty: {item.quantity}
                           </span>
                         )}
-                        <span className="text-sm text-gray-600">{item.category || 'Uncategorized'}</span>
+                        <span className="text-xs text-gray-600">{item.category || 'Uncategorized'}</span>
                       </div>
                     </div>
 
                     {/* Price/Distance */}
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-2 text-xs flex-shrink-0">
                       <div className="text-gray-700 font-semibold">
                         {item.isFree ? (
                           <span className="text-green-600">FREE</span>
@@ -523,8 +523,8 @@ export const Dashboard = () => {
                           <span>${item.price.toFixed(2)}</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 text-gray-600">
-                        <MapPin className="h-4 w-4" />
+                      <div className="flex items-center gap-0.5 text-gray-600">
+                        <MapPin className="h-3 w-3" />
                         <span>{(item.distance || 0).toFixed(1)} mi</span>
                       </div>
                     </div>
