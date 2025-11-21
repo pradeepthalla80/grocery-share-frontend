@@ -50,13 +50,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
     <div className={`rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${
       item.isStoreItem ? 'bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200' : 'bg-white'
     }`}>
-      <div className="relative w-full h-24 bg-gray-200">
+      <div className="relative w-full aspect-square bg-gray-200">
         {allImages.length > 0 ? (
           <>
             <img
               src={allImages[currentImageIndex]}
               alt={`${item.name} - Image ${currentImageIndex + 1}`}
-              className="w-full h-24 object-cover"
+              className="w-full aspect-square object-cover"
             />
             {allImages.length > 1 && (
               <>
