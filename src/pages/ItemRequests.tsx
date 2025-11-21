@@ -217,7 +217,7 @@ export const ItemRequests = () => {
         )}
 
         {showCreateForm && (
-          <div className="bg-white rounded-lg shadow-lg p-4 mb-3">
+          <div className="bg-white rounded-lg shadow-lg p-3 mb-3">
             <h2 className="text-base font-semibold text-gray-900 mb-3">
               {editingRequest ? 'Edit Request' : 'Create Request'}
             </h2>
@@ -348,7 +348,7 @@ export const ItemRequests = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {requests.map((request) => (
-              <div key={request._id} className="bg-white rounded-lg shadow-lg p-3">
+              <div key={request._id} className="bg-white rounded-lg shadow-lg p-2">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h3 className="text-base font-semibold text-gray-900">{request.itemName}</h3>

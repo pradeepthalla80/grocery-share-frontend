@@ -121,41 +121,41 @@ export const MyItems = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-          <div className="bg-white rounded-lg shadow-md p-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+          <div className="bg-white rounded-lg shadow-md p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+                <p className="bm-label text-gray-600">Total</p>
+                <p className="text-lg font-bold text-gray-900">{stats.total}</p>
               </div>
-              <Package className="h-6 w-6 text-blue-600" />
+              <Package className="h-5 w-5 text-blue-600" />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-3">
+          <div className="bg-white rounded-lg shadow-md p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active</p>
-                <p className="text-xl font-bold text-green-600">{stats.active}</p>
+                <p className="bm-label text-gray-600">Active</p>
+                <p className="text-lg font-bold text-green-600">{stats.active}</p>
               </div>
-              <CheckCircle className="h-6 w-6 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-green-600" />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-3">
+          <div className="bg-white rounded-lg shadow-md p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Expiring</p>
-                <p className="text-xl font-bold text-orange-600">{stats.expiring}</p>
+                <p className="bm-label text-gray-600">Expiring</p>
+                <p className="text-lg font-bold text-orange-600">{stats.expiring}</p>
               </div>
-              <Clock className="h-6 w-6 text-orange-600" />
+              <Clock className="h-5 w-5 text-orange-600" />
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-3">
+          <div className="bg-white rounded-lg shadow-md p-2">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Expired</p>
-                <p className="text-xl font-bold text-red-600">{stats.expired}</p>
+                <p className="bm-label text-gray-600">Expired</p>
+                <p className="text-lg font-bold text-red-600">{stats.expired}</p>
               </div>
-              <AlertCircle className="h-6 w-6 text-red-600" />
+              <AlertCircle className="h-5 w-5 text-red-600" />
             </div>
           </div>
         </div>
