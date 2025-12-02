@@ -10,6 +10,8 @@ BaskMate (formerly Grocery Share) is a peer-to-peer web application designed to 
 
 **Backend Bug Fixes (Nov 21, 2025)**: Identified and created fixes for 4 critical backend issues: (1) Items endpoint 500 error - added null check for deleted users in getItemsByLocation (line 378 itemsController.js), (2) Recommendations 404 error - registered missing /api/v1/recommendations route in index.js, (3) Admin delete permission - added admin role check allowing super_admin/admin to delete any item (lines 686-691 itemsController.js), (4) Reveal address conversation error - fixed ObjectId comparison by adding .toString() to req.user.userId (line 16 addressController.js). Complete fixed files ready for deployment: BACKEND_FIXED_index.js, BACKEND_FIXED_itemsController.js, BACKEND_FIXED_addressController.js.
 
+**Custom Delivery Fee (Nov 21, 2025)**: Added "Custom Fee" option to delivery fee selection in both AddItem.tsx and OfferModal.tsx. Users can now enter any custom delivery amount instead of only choosing from preset $1-$5 options. Custom fee input appears when "Custom Fee" radio button is selected, with a numeric input field supporting decimal values.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

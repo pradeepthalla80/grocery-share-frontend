@@ -26,6 +26,7 @@ export const OfferModal = ({ isOpen, onClose, request }: OfferModalProps) => {
   const [loading, setLoading] = useState(false);
   const [offerDelivery, setOfferDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState('free');
+  const [customDeliveryFee, setCustomDeliveryFee] = useState('');
 
   if (!isOpen) return null;
 
@@ -51,8 +52,9 @@ export const OfferModal = ({ isOpen, onClose, request }: OfferModalProps) => {
       }
 
       // TODO: Implement payment flow for paid offers
+      const actualDeliveryFee = deliveryFee === 'custom' ? customDeliveryFee : deliveryFee;
       const deliveryInfo = offerDelivery 
-        ? `(${deliveryFee === 'free' ? 'Free delivery available' : `$${deliveryFee} delivery available`})`
+        ? `(${actualDeliveryFee === 'free' ? 'Free delivery available' : `$${actualDeliveryFee} delivery available`})`
         : '';
       const offerMessage = `I can offer "${request.itemName}" for $${price.toFixed(2)}. ${deliveryInfo}`;
       
@@ -66,8 +68,9 @@ export const OfferModal = ({ isOpen, onClose, request }: OfferModalProps) => {
       }, 1500);
     } else {
       // Free offer - notify and coordinate with delivery info
+      const actualDeliveryFee = deliveryFee === 'custom' ? customDeliveryFee : deliveryFee;
       const deliveryInfo = offerDelivery 
-        ? (deliveryFee === 'free' ? ' I can offer free delivery!' : ` I can deliver for $${deliveryFee}.`)
+        ? (actualDeliveryFee === 'free' ? ' I can offer free delivery!' : ` I can deliver for $${actualDeliveryFee}.`)
         : '';
       const offerMessage = `I can offer you "${request.itemName}" for free!${deliveryInfo}`;
       
@@ -247,6 +250,33 @@ export const OfferModal = ({ isOpen, onClose, request }: OfferModalProps) => {
                       <span className="text-sm text-gray-700">${fee} Delivery Fee</span>
                     </label>
                   ))}
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      value="custom"
+                      checked={deliveryFee === 'custom'}
+                      onChange={(e) => setDeliveryFee(e.target.value)}
+                      className="h-4 w-4 text-blue-600"
+                    />
+                    <span className="text-sm text-gray-700">💰 Custom Fee</span>
+                  </label>
+                  {deliveryFee === 'custom' && (
+                    <div className="ml-6 mt-2">
+                      <div className="relative w-32">
+                        <span className="absolute left-3 top-2 text-gray-500">$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={customDeliveryFee}
+                          onChange={(e) => setCustomDeliveryFee(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Enter your custom delivery fee</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

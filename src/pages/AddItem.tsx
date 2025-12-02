@@ -33,13 +33,13 @@ const addItemSchema = z.object({
 }).refine((data) => {
   if (data.offerDelivery && data.deliveryFee && data.deliveryFee !== 'free') {
     const fee = Number(data.deliveryFee);
-    if (isNaN(fee) || fee < 1 || fee > 5) {
+    if (isNaN(fee) || fee < 0) {
       return false;
     }
   }
   return true;
 }, {
-  message: 'Delivery fee must be free or between $1-$5',
+  message: 'Delivery fee must be a valid amount',
   path: ['deliveryFee'],
 }).refine((data) => {
   if (!data.isFree && (!data.price || Number(data.price) <= 0)) {
@@ -74,6 +74,7 @@ export const AddItem = () => {
   const [locationError, setLocationError] = useState('');
   const [offerDelivery, setOfferDelivery] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState('free');
+  const [customDeliveryFee, setCustomDeliveryFee] = useState('');
   const [isStoreItem, setIsStoreItem] = useState(false);
   const [stockStatus, setStockStatus] = useState('in_stock');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -185,7 +186,8 @@ export const AddItem = () => {
       // Add delivery options
       formData.append('offerDelivery', offerDelivery.toString());
       if (offerDelivery) {
-        formData.append('deliveryFee', deliveryFee === 'free' ? '0' : deliveryFee);
+        const feeValue = deliveryFee === 'free' ? '0' : (deliveryFee === 'custom' ? customDeliveryFee : deliveryFee);
+        formData.append('deliveryFee', feeValue);
       }
 
       // Add store item fields
@@ -494,6 +496,39 @@ export const AddItem = () => {
                         <span className="text-sm text-gray-700">${fee} Delivery Fee</span>
                       </label>
                     ))}
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="custom"
+                        checked={deliveryFee === 'custom'}
+                        onChange={(e) => {
+                          setDeliveryFee(e.target.value);
+                          setValue('deliveryFee', e.target.value);
+                        }}
+                        className="h-4 w-4 text-green-600"
+                      />
+                      <span className="text-sm text-gray-700">💰 Custom Fee</span>
+                    </label>
+                    {deliveryFee === 'custom' && (
+                      <div className="ml-6 mt-2">
+                        <div className="relative w-32">
+                          <span className="absolute left-3 top-2 text-gray-500">$</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={customDeliveryFee}
+                            onChange={(e) => {
+                              setCustomDeliveryFee(e.target.value);
+                              setValue('deliveryFee', e.target.value);
+                            }}
+                            placeholder="0.00"
+                            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Enter your custom delivery fee</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
