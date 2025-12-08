@@ -1,10 +1,15 @@
 import axios from 'axios';
-import { getToken } from '../utils/token';
+import { getToken, removeToken } from '../utils/token';
 
 export const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL || 'https://grocery-share-backend.onrender.com') + '/api/v1';
 
 let toastCallback: ((message: string, type: 'success' | 'error' | 'info') => void) | null = null;
 let authCheckCallback: (() => Promise<void>) | null = null;
+
+// Track 401 retry attempts to prevent infinite loops
+let retryCount = 0;
+const MAX_RETRIES = 1;
+let isRefreshingAuth = false;
 
 export const setToastCallback = (callback: (message: string, type: 'success' | 'error' | 'info') => void) => {
   toastCallback = callback;
@@ -19,21 +24,18 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout
-  withCredentials: true, // Send HttpOnly cookies automatically with every request
+  timeout: 30000,
+  withCredentials: true,
 });
 
 // Request interceptor to add Authorization header for mobile browser compatibility
 apiClient.interceptors.request.use(
   (config) => {
-    // Get token from localStorage (fallback for mobile browsers that block cookies)
     const token = getToken();
     if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // FIX: Remove Content-Type header for FormData uploads
-    // Let browser set correct multipart/form-data boundary automatically
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
     }
@@ -44,7 +46,11 @@ apiClient.interceptors.request.use(
 );
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Reset retry count on successful response
+    retryCount = 0;
+    return response;
+  },
   async (error) => {
     // Handle network errors
     if (error.code === 'ERR_NETWORK' || !error.response) {
@@ -75,34 +81,69 @@ apiClient.interceptors.response.use(
       const requestUrl = error.config?.url || '';
       const currentPath = window.location.pathname;
       
-      // Skip 401 handling for OAuth callback flow
-      if (currentPath.includes('/auth/google/callback') || 
-          currentPath.includes('/auth/callback') ||
-          requestUrl.includes('/auth/google')) {
+      // List of paths that should NOT trigger auth clearing on 401
+      const skipAuthClearPaths = [
+        '/auth/google/callback',
+        '/auth/callback',
+        '/auth/google',
+        '/auth/me',
+        '/login',
+        '/register',
+        '/seller/onboarding',
+        '/terms-acceptance',
+      ];
+      
+      // Skip 401 handling for OAuth callback flow and onboarding returns
+      const shouldSkip = skipAuthClearPaths.some(path => 
+        currentPath.includes(path) || requestUrl.includes(path)
+      );
+      
+      if (shouldSkip) {
         return Promise.reject(error);
       }
       
-      // Skip 401 handling for /auth/me - let AuthContext handle initial check
-      if (requestUrl.includes('/auth/me')) {
+      // Prevent multiple simultaneous auth refreshes
+      if (isRefreshingAuth) {
         return Promise.reject(error);
       }
       
-      // Skip 401 handling during login/register flows
-      if (currentPath === '/login' || currentPath === '/register') {
+      // Only attempt re-auth check once per session
+      if (retryCount >= MAX_RETRIES) {
+        // Max retries reached - clear token but DON'T force logout
+        // Let the component handle the error gracefully
+        console.log('401 error: Max retries reached, clearing local token');
+        removeToken();
         return Promise.reject(error);
       }
       
-      // For all other 401s (mid-session expiry), trigger re-auth check
-      // This handles cases where backend clears session or cookie expires
+      retryCount++;
+      isRefreshingAuth = true;
+      
+      // For other 401s, try to re-verify auth silently
       if (authCheckCallback) {
         try {
           await authCheckCallback();
+          isRefreshingAuth = false;
+          // Auth check succeeded - user is still logged in
+          // The original request already failed, so we still reject
+          // but auth state is preserved
         } catch {
-          // If checkAuth fails, it will clear auth state and ProtectedRoute will redirect
+          isRefreshingAuth = false;
+          // Auth check failed - session truly expired
+          // But don't force redirect, let ProtectedRoute handle it
+          console.log('401 error: Auth check failed, session expired');
         }
+      } else {
+        isRefreshingAuth = false;
       }
     }
 
     return Promise.reject(error);
   }
 );
+
+// Export a function to reset retry count (useful after successful login)
+export const resetAuthRetryCount = () => {
+  retryCount = 0;
+  isRefreshingAuth = false;
+};

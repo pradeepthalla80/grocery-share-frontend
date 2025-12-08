@@ -1,6 +1,6 @@
-import React, { createContext, useState, useEffect, type ReactNode } from 'react';
-import { apiClient, setAuthCheckCallback } from '../api/config';
-import { saveToken, removeToken } from '../utils/token';
+import React, { createContext, useState, useEffect, useRef, type ReactNode } from 'react';
+import { apiClient, setAuthCheckCallback, resetAuthRetryCount } from '../api/config';
+import { saveToken, removeToken, getToken } from '../utils/token';
 
 interface User {
   id: string;
@@ -31,53 +31,82 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const isCheckingAuth = useRef(false);
+  const lastAuthCheck = useRef<number>(0);
+  const AUTH_CHECK_COOLDOWN = 2000; // 2 seconds cooldown between auth checks
 
-  // Check authentication by calling /me endpoint
-  // HttpOnly cookie is automatically sent via withCredentials: true
   const checkAuth = async () => {
+    // Prevent multiple simultaneous auth checks
+    if (isCheckingAuth.current) {
+      return;
+    }
+    
+    // Cooldown to prevent rapid repeated checks
+    const now = Date.now();
+    if (now - lastAuthCheck.current < AUTH_CHECK_COOLDOWN) {
+      return;
+    }
+    
+    isCheckingAuth.current = true;
+    lastAuthCheck.current = now;
+    
     try {
       const response = await apiClient.get('/auth/me');
       if (response.data.success && response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
       } else {
-        setUser(null);
-        setIsAuthenticated(false);
+        // Only clear auth if we got an explicit "not authenticated" response
+        // AND there's no token stored (prevents clearing during transient issues)
+        const token = getToken();
+        if (!token) {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       }
     } catch (error: any) {
       console.log('Auth check failed:', error.response?.status);
-      setUser(null);
-      setIsAuthenticated(false);
+      
+      // Only clear auth state if:
+      // 1. We get an explicit 401/403 AND
+      // 2. There's no stored token (meaning it wasn't just a transient issue)
+      const status = error.response?.status;
+      const token = getToken();
+      
+      if ((status === 401 || status === 403) && !token) {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+      // For network errors or other issues, preserve current auth state
+      // This prevents logout during temporary connectivity issues
     } finally {
       setIsLoading(false);
+      isCheckingAuth.current = false;
     }
   };
 
   useEffect(() => {
     checkAuth();
-    // Register checkAuth callback for interceptor to use on 401 errors
     setAuthCheckCallback(checkAuth);
   }, []);
 
   const login = (token: string, userData: User) => {
-    // Save token to localStorage for mobile browser compatibility
-    // HttpOnly cookie is still used as primary auth, this is fallback for mobile
     saveToken(token);
     setUser(userData);
     setIsAuthenticated(true);
+    resetAuthRetryCount(); // Reset retry count after successful login
   };
 
   const logout = async () => {
     try {
-      // Call backend to clear HttpOnly cookie
       await apiClient.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear localStorage token
       removeToken();
       setUser(null);
       setIsAuthenticated(false);
+      resetAuthRetryCount();
     }
   };
 
