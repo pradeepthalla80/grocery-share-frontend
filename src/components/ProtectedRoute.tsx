@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getToken } from '../utils/token';
@@ -10,80 +10,69 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading, checkAuth } = useAuth();
   const location = useLocation();
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [hasChecked, setHasChecked] = useState(false);
-
-  // Paths that might return from external redirects (Stripe, OAuth, etc.)
-  const externalReturnPaths = [
-    '/seller/onboarding/complete',
-    '/seller/onboarding/refresh',
-    '/seller/onboarding',
-    '/auth/google/callback',
-    '/auth/callback',
-  ];
-
-  const isExternalReturn = externalReturnPaths.some(path => 
-    location.pathname.includes(path)
-  );
+  const [authState, setAuthState] = useState<'checking' | 'verified' | 'no_token'>('checking');
+  const verificationAttempted = useRef(false);
 
   useEffect(() => {
-    const verifyAuth = async () => {
-      // If we have a token but aren't authenticated yet, verify
+    const verifyToken = async () => {
+      // Only run once per mount
+      if (verificationAttempted.current) return;
+      verificationAttempted.current = true;
+
       const token = getToken();
       
-      if (token && !isAuthenticated && !isLoading && !hasChecked) {
-        setIsVerifying(true);
+      if (!token) {
+        // No token stored - definitely not authenticated
+        setAuthState('no_token');
+        return;
+      }
+
+      // Token exists - wait for auth verification if not already authenticated
+      if (!isAuthenticated && !isLoading) {
         try {
           await checkAuth();
         } catch (err) {
-          console.error('Auth verification failed:', err);
-        } finally {
-          setIsVerifying(false);
-          setHasChecked(true);
+          console.log('ProtectedRoute: Auth verification failed');
         }
-      } else if (!token) {
-        setHasChecked(true);
       }
+      
+      setAuthState('verified');
     };
 
-    verifyAuth();
-  }, [isAuthenticated, isLoading, hasChecked, checkAuth]);
+    verifyToken();
+  }, []);
 
-  // Show loading while initial auth check or verification is in progress
-  if (isLoading || isVerifying) {
+  // Also update state when AuthContext finishes loading
+  useEffect(() => {
+    if (!isLoading && authState === 'checking') {
+      const token = getToken();
+      if (!token) {
+        setAuthState('no_token');
+      } else if (isAuthenticated) {
+        setAuthState('verified');
+      }
+    }
+  }, [isLoading, isAuthenticated, authState]);
+
+  // Show loading while checking
+  if (authState === 'checking' || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Verifying your session...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // If we have a token but not authenticated yet on external return paths, wait
-  const token = getToken();
-  if (token && !isAuthenticated && isExternalReturn && !hasChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Restoring your session...</p>
-        </div>
-      </div>
-    );
+  // No token = redirect to login
+  if (authState === 'no_token') {
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Only redirect to login if no token exists
-  if (!isAuthenticated && !token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // If we have a token but verification failed, still allow access
-  // The individual page will handle re-verification
-  if (token && !isAuthenticated) {
-    return <>{children}</>;
-  }
-
+  // Token exists and verification complete
+  // Allow access even if isAuthenticated is false (let page handle re-auth)
+  // This prevents logout during transient issues
   return <>{children}</>;
 };
