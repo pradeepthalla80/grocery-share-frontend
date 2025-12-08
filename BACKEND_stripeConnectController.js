@@ -123,9 +123,7 @@ const createAccountLink = async (req, res) => {
       refresh_url: `${frontendUrl}/seller/onboarding/refresh`,
       return_url: `${frontendUrl}/seller/onboarding/complete`,
       type: 'account_onboarding',
-      collection_options: {
-        fields: 'eventually_due',
-      },
+      collect: 'eventually_due',
     });
 
     console.log(`Created account link for user ${userId}`);
