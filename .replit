@@ -66,5 +66,9 @@ externalPort = 6000
 localPort = 44977
 externalPort = 3002
 
+[[ports]]
+localPort = 46275
+externalPort = 8000
+
 [nix]
 packages = ["openssh"]
