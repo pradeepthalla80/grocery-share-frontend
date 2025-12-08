@@ -18,8 +18,15 @@ const createConnectedAccount = async (req, res) => {
     const userId = req.user._id;
     const { country } = req.body;
     
+    // Require country to be provided - no defaults to prevent accidental US-only accounts
+    if (!country) {
+      return res.status(400).json({ 
+        error: 'Country is required. Please select your country from the dropdown.' 
+      });
+    }
+    
     // Validate country code
-    const countryCode = (country || 'US').toUpperCase();
+    const countryCode = country.toUpperCase();
     if (!SUPPORTED_COUNTRIES.includes(countryCode)) {
       return res.status(400).json({ 
         error: `Country '${countryCode}' is not supported for Stripe Connect. Supported countries: ${SUPPORTED_COUNTRIES.join(', ')}` 
