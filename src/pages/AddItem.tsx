@@ -4,11 +4,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { itemsAPI } from '../api/items';
+import { stripeConnectAPI, SUPPORTED_COUNTRIES } from '../api/stripeConnect';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
-import { ArrowLeft, Store, Home, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Store, Home, AlertTriangle, CreditCard, Loader2, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const addItemSchema = z.object({
@@ -99,6 +100,12 @@ export const AddItem = () => {
   const [validityPeriod, setValidityPeriod] = useState('never');
   const [existingItemNames, setExistingItemNames] = useState<string[]>([]);
   const [duplicateWarning, setDuplicateWarning] = useState('');
+  
+  // Stripe Connect states
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<'loading' | 'not_connected' | 'pending' | 'active'>('loading');
+  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('US');
 
   const {
     register,
@@ -148,6 +155,26 @@ export const AddItem = () => {
     fetchExistingItems();
   }, []);
 
+  // Check Stripe Connect status on mount
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      try {
+        const response = await stripeConnectAPI.getAccountStatus();
+        if (!response.hasAccount) {
+          setStripeAccountStatus('not_connected');
+        } else if (response.accountStatus?.status === 'active') {
+          setStripeAccountStatus('active');
+        } else {
+          setStripeAccountStatus('pending');
+        }
+      } catch (err) {
+        console.error('Failed to check Stripe status:', err);
+        setStripeAccountStatus('not_connected');
+      }
+    };
+    checkStripeStatus();
+  }, []);
+
   // Check for duplicate names as user types
   useEffect(() => {
     if (itemName && existingItemNames.includes(itemName.toLowerCase().trim())) {
@@ -170,6 +197,28 @@ export const AddItem = () => {
       setImageError('Please provide at least one image');
     } else {
       setImageError('');
+    }
+  };
+
+  // Handle Stripe Connect setup from modal
+  const handleStripeSetup = async () => {
+    try {
+      setStripeLoading(true);
+      
+      if (stripeAccountStatus === 'not_connected') {
+        // Create new account with selected country
+        await stripeConnectAPI.createAccount(selectedCountry);
+      }
+      
+      // Get onboarding link
+      const linkResponse = await stripeConnectAPI.createAccountLink();
+      
+      // Redirect to Stripe - this will leave the app briefly for compliance
+      window.location.href = linkResponse.url;
+    } catch (err: any) {
+      console.error('Failed to setup Stripe:', err);
+      setError(err.response?.data?.error || 'Failed to start Stripe setup');
+      setStripeLoading(false);
     }
   };
 
@@ -200,6 +249,13 @@ export const AddItem = () => {
           setLoading(false);
           return;
         }
+      }
+
+      // Check if selling paid item without Stripe Connect
+      if (!isFree && stripeAccountStatus !== 'active') {
+        setShowStripeModal(true);
+        setLoading(false);
+        return;
       }
 
       const formData = new FormData();
@@ -697,6 +753,98 @@ export const AddItem = () => {
           </form>
         </div>
       </div>
+
+      {/* Stripe Connect Modal */}
+      {showStripeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+            <button
+              onClick={() => setShowStripeModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <CreditCard className="h-6 w-6 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Payment Setup Required</h2>
+            </div>
+
+            <p className="text-gray-600 mb-4">
+              To sell paid items, you need to connect your bank account so you can receive payments directly.
+            </p>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-800">
+                <strong>How it works:</strong> When buyers purchase your items, you'll receive 90% of the sale directly to your bank account. BaskMate keeps 10% as a platform fee.
+              </p>
+            </div>
+
+            {stripeAccountStatus === 'pending' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-orange-800">
+                  You started setting up your payment account but haven't finished. Please complete the setup to sell paid items.
+                </p>
+              </div>
+            )}
+
+            {stripeAccountStatus === 'not_connected' && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Your Country
+                </label>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                >
+                  {SUPPORTED_COUNTRIES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="flex space-x-3">
+              <button
+                onClick={handleStripeSetup}
+                disabled={stripeLoading}
+                className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
+              >
+                {stripeLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Setting up...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-5 w-5" />
+                    <span>{stripeAccountStatus === 'pending' ? 'Continue Setup' : 'Set Up Payments'}</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setShowStripeModal(false);
+                  setIsFree(true);
+                  setValue('isFree', true);
+                }}
+                className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-gray-700"
+              >
+                Give Free
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              You'll be briefly redirected to Stripe's secure page to verify your identity.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

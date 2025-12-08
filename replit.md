@@ -87,6 +87,9 @@ Complete Stripe Connect Express integration for seller payments:
 - Automatic payouts to sellers via `transfer_data`
 - Seller balance/earnings display
 - Stripe Express dashboard access
+- **Enforcement**: Paid item listings blocked until seller has active Stripe Connect account
+- **In-app modal**: When adding paid item, modal prompts user to set up Stripe Connect with country selection
+- **40+ supported countries**: US, UK, Canada, EU, Australia, Japan, Singapore, etc.
 
 **Backend Files to Deploy:**
 - `BACKEND_stripeConnectController.js` → `controllers/stripeConnectController.js`
