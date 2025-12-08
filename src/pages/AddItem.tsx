@@ -756,11 +756,17 @@ export const AddItem = () => {
 
       {/* Stripe Connect Modal */}
       {showStripeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4"
+          onClick={() => setShowStripeModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-md w-full p-6 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setShowStripeModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 min-h-[36px] min-w-[36px] flex items-center justify-center"
             >
               <X className="h-5 w-5" />
             </button>
