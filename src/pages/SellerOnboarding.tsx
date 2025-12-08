@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   CreditCard, 
@@ -14,12 +14,13 @@ import {
 import { stripeConnectAPI, SUPPORTED_COUNTRIES, type StripeAccountStatus } from '../api/stripeConnect';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
+import { getToken } from '../utils/token';
 
 export const SellerOnboarding = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
-  const { checkAuth, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { checkAuth, isLoading: authLoading } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -28,33 +29,51 @@ export const SellerOnboarding = () => {
   const [balance, setBalance] = useState<{ available: number; pending: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState('US');
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const initRef = useRef(false);
 
   const isReturn = location.pathname.includes('/complete');
   const isRefresh = location.pathname.includes('/refresh');
 
+  // Initialize auth on mount - especially important for Stripe redirect returns
   useEffect(() => {
-    const revalidateAuth = async () => {
-      if (isReturn || isRefresh) {
+    const initAuth = async () => {
+      if (initRef.current) return;
+      initRef.current = true;
+
+      const token = getToken();
+      
+      // If returning from Stripe or we have a token, verify auth
+      if ((isReturn || isRefresh) && token) {
         try {
           await checkAuth();
         } catch (err) {
-          console.error('Auth revalidation failed:', err);
+          console.log('Auth revalidation failed, but token exists');
         }
       }
-      setAuthChecked(true);
+      
+      setAuthReady(true);
     };
-    revalidateAuth();
-  }, [isReturn, isRefresh, checkAuth]);
 
+    initAuth();
+  }, []);
+
+  // Load account status once auth is ready (don't wait for isAuthenticated)
   useEffect(() => {
-    if (authChecked && isAuthenticated) {
-      checkAccountStatus();
+    if (authReady && !authLoading) {
+      const token = getToken();
+      if (token) {
+        checkAccountStatus();
+      } else {
+        // No token - redirect to login
+        navigate('/login', { replace: true });
+      }
     }
-  }, [authChecked, isAuthenticated]);
+  }, [authReady, authLoading]);
 
+  // Show toasts for return/refresh states
   useEffect(() => {
-    if (authChecked && isAuthenticated) {
+    if (authReady) {
       if (isReturn) {
         showToast('Checking your account status...', 'info');
       }
@@ -62,16 +81,17 @@ export const SellerOnboarding = () => {
         showToast('Onboarding link expired. Please try again.', 'error');
       }
     }
-  }, [isReturn, isRefresh, authChecked, isAuthenticated, showToast]);
+  }, [isReturn, isRefresh, authReady, showToast]);
 
+  // Check for pending item data
   useEffect(() => {
-    if (authChecked && isAuthenticated && isReturn) {
+    if (authReady && isReturn) {
       const pendingItemData = sessionStorage.getItem('pendingItemData');
       if (pendingItemData) {
         showToast('Your item form has been saved. Return to Add Item to continue.', 'info');
       }
     }
-  }, [authChecked, isAuthenticated, isReturn, showToast]);
+  }, [authReady, isReturn, showToast]);
 
   const checkAccountStatus = async () => {
     try {
@@ -93,7 +113,21 @@ export const SellerOnboarding = () => {
       }
     } catch (err: any) {
       console.error('Failed to check account status:', err);
-      setError(err.response?.data?.error || 'Failed to check account status');
+      
+      // Handle 401 - session expired
+      if (err.response?.status === 401) {
+        setError('Session expired. Please log in again.');
+        setTimeout(() => navigate('/login', { replace: true }), 2000);
+        return;
+      }
+      
+      // Handle 404 - backend route not found (not deployed yet)
+      if (err.response?.status === 404) {
+        setError('Stripe Connect is not available yet. Please contact support.');
+        return;
+      }
+      
+      setError(err.response?.data?.error || 'Failed to check account status. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -104,15 +138,29 @@ export const SellerOnboarding = () => {
       setActionLoading(true);
       setError(null);
       
-      await stripeConnectAPI.createAccount(selectedCountry);
+      // Step 1: Create the Stripe account
+      const createResponse = await stripeConnectAPI.createAccount(selectedCountry);
       
+      if (!createResponse.success) {
+        throw new Error('Failed to create Stripe account');
+      }
+      
+      // Step 2: Get the onboarding link
       const linkResponse = await stripeConnectAPI.createAccountLink();
       
+      if (!linkResponse.url) {
+        throw new Error('Failed to get onboarding link');
+      }
+      
+      // Step 3: Redirect to Stripe
       window.location.href = linkResponse.url;
     } catch (err: any) {
       console.error('Failed to create account:', err);
-      setError(err.response?.data?.error || 'Failed to start onboarding');
-      showToast('Failed to start onboarding', 'error');
+      
+      // Show specific error messages
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to start onboarding';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       setActionLoading(false);
     }
   };
@@ -123,11 +171,17 @@ export const SellerOnboarding = () => {
       setError(null);
       
       const linkResponse = await stripeConnectAPI.createAccountLink();
+      
+      if (!linkResponse.url) {
+        throw new Error('Failed to get onboarding link');
+      }
+      
       window.location.href = linkResponse.url;
     } catch (err: any) {
       console.error('Failed to get onboarding link:', err);
-      setError(err.response?.data?.error || 'Failed to continue onboarding');
-      showToast('Failed to continue onboarding', 'error');
+      const errorMessage = err.response?.data?.error || 'Failed to continue onboarding';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       setActionLoading(false);
     }
   };
@@ -184,13 +238,14 @@ export const SellerOnboarding = () => {
     }
   };
 
-  if (authLoading || !authChecked || loading) {
+  // Show loading while initializing
+  if (!authReady || authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-green-600 mx-auto mb-4" />
           <p className="text-gray-600">
-            {authLoading || !authChecked ? 'Verifying your session...' : 'Loading seller account status...'}
+            {!authReady || authLoading ? 'Verifying your session...' : 'Loading seller account status...'}
           </p>
         </div>
       </div>
