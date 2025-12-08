@@ -1,0 +1,64 @@
+
+
+Dec 8, 1:36 PM - 1:40 PM
+CST
+
+Menu
+
+==> Downloading cache...
+==> Cloning from https://github.com/pradeepthalla80/grocery-share-backend
+==> Checking out commit f5ddaf1cfa5fa15f731ced47779b4d562ac977bd in branch main
+==> Downloaded 82MB in 2s. Extraction took 3s.
+==> Requesting Node.js version >=18.0.0
+==> Using Node.js version 25.2.1 via /opt/render/project/src/package.json
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install'...
+up to date, audited 240 packages in 2s
+28 packages are looking for funding
+  run `npm fund` for details
+6 vulnerabilities (1 low, 1 moderate, 4 high)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+==> Uploading build...
+==> Uploaded in 3.7s. Compression took 3.2s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+/opt/render/project/src/node_modules/express/lib/router/index.js:462
+    throw new TypeError('Router.use() requires a middleware function')
+    ^
+TypeError: Router.use() requires a middleware function
+    at router.use (/opt/render/project/src/node_modules/express/lib/router/index.js:462:11)
+    at Object.<anonymous> (/opt/render/project/src/routes/stripeConnectRoutes.js:7:8)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+Node.js v25.2.1
+==> Exited with status 1
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'node index.js'
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+/opt/render/project/src/node_modules/express/lib/router/index.js:462
+    throw new TypeError('Router.use() requires a middleware function')
+    ^
+TypeError: Router.use() requires a middleware function
+    at router.use (/opt/render/project/src/node_modules/express/lib/router/index.js:462:11)
+    at Object.<anonymous> (/opt/render/project/src/routes/stripeConnectRoutes.js:7:8)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+    at Object..js (node:internal/modules/cjs/loader:1892:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+Node.js v25.2.1
