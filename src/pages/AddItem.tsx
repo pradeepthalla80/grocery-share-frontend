@@ -106,6 +106,9 @@ export const AddItem = () => {
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('US');
+  
+  // Real-time price validation
+  const [priceError, setPriceError] = useState('');
 
   const {
     register,
@@ -529,15 +532,31 @@ export const AddItem = () => {
 
                 {!isFree && (
                   <div>
-                    <FormInput
-                      label="Price ($)"
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price ($)
+                    </label>
+                    <input
                       type="number"
                       step="0.01"
                       min="3"
-                      {...register('price')}
-                      error={errors.price?.message}
+                      {...register('price', {
+                        onChange: (e) => {
+                          const value = parseFloat(e.target.value);
+                          if (e.target.value && value < 3) {
+                            setPriceError('Minimum price is $3.00 for paid items');
+                          } else {
+                            setPriceError('');
+                          }
+                        }
+                      })}
                       placeholder="3.00"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                        priceError || errors.price?.message ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     />
+                    {(priceError || errors.price?.message) && (
+                      <p className="text-sm text-red-600 mt-1">{priceError || errors.price?.message}</p>
+                    )}
                     <p className="text-xs text-gray-500 mt-1">
                       Minimum $3.00 for paid items.{' '}
                       <button
@@ -754,14 +773,16 @@ export const AddItem = () => {
         </div>
       </div>
 
-      {/* Stripe Connect Modal */}
+      {/* Stripe Connect Modal - High z-index to cover map */}
       {showStripeModal && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          style={{ zIndex: 9999 }}
           onClick={() => setShowStripeModal(false)}
         >
           <div 
-            className="bg-white rounded-lg max-w-md w-full p-6 relative"
+            className="bg-white rounded-lg max-w-md w-full p-6 relative shadow-2xl"
+            style={{ zIndex: 10000 }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
