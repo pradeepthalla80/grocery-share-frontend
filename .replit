@@ -43,6 +43,10 @@ localPort = 34413
 externalPort = 3003
 
 [[ports]]
+localPort = 37275
+externalPort = 8000
+
+[[ports]]
 localPort = 38031
 externalPort = 4200
 
@@ -65,10 +69,6 @@ externalPort = 6000
 [[ports]]
 localPort = 44977
 externalPort = 3002
-
-[[ports]]
-localPort = 46275
-externalPort = 8000
 
 [nix]
 packages = ["openssh"]

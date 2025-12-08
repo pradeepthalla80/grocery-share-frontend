@@ -138,14 +138,24 @@ export const AddItem = () => {
   const itemName = watch('name');
   const allFormValues = watch();
 
-  // Restore form data from sessionStorage if returning from Stripe
+  // Restore form data from localStorage if returning from Stripe
+  // Data expires after 7 days (enough time for Stripe verification)
   useEffect(() => {
     const shouldRestore = searchParams.get('restore') === 'true';
     if (shouldRestore) {
-      const savedData = sessionStorage.getItem('pendingItemData');
+      const savedData = localStorage.getItem('pendingItemData');
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
+          
+          // Check if data is expired (7 days = 604800000 ms)
+          const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+          if (parsed.savedAt && (Date.now() - parsed.savedAt > SEVEN_DAYS)) {
+            console.log('Saved form data expired, clearing...');
+            localStorage.removeItem('pendingItemData');
+            return;
+          }
+          
           // Restore form values
           if (parsed.name) setValue('name', parsed.name);
           if (parsed.category) {
@@ -191,7 +201,7 @@ export const AddItem = () => {
           if (parsed.pickupTimeEnd) setValue('pickupTimeEnd', parsed.pickupTimeEnd);
           
           // Clear the saved data after restoring
-          sessionStorage.removeItem('pendingItemData');
+          localStorage.removeItem('pendingItemData');
         } catch (err) {
           console.error('Failed to restore form data:', err);
         }
@@ -265,7 +275,8 @@ export const AddItem = () => {
     }
   };
 
-  // Save form data to sessionStorage before Stripe redirect
+  // Save form data to localStorage (with expiry) before Stripe redirect
+  // Using localStorage instead of sessionStorage so data survives browser close during Stripe verification (1-2 days)
   const saveFormDataBeforeRedirect = () => {
     const formDataToSave = {
       ...allFormValues,
@@ -278,8 +289,9 @@ export const AddItem = () => {
       customDeliveryFee,
       stockStatus,
       flexiblePickup,
+      savedAt: Date.now(), // For expiry check
     };
-    sessionStorage.setItem('pendingItemData', JSON.stringify(formDataToSave));
+    localStorage.setItem('pendingItemData', JSON.stringify(formDataToSave));
   };
 
   // Handle Stripe Connect setup from modal

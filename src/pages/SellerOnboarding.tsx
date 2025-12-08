@@ -83,10 +83,10 @@ export const SellerOnboarding = () => {
     }
   }, [isReturn, isRefresh, authReady, showToast]);
 
-  // Check for pending item data
+  // Check for pending item data (now in localStorage for persistence during Stripe verification)
   useEffect(() => {
     if (authReady && isReturn) {
-      const pendingItemData = sessionStorage.getItem('pendingItemData');
+      const pendingItemData = localStorage.getItem('pendingItemData');
       if (pendingItemData) {
         showToast('Your item form has been saved. Return to Add Item to continue.', 'info');
       }
@@ -200,7 +200,7 @@ export const SellerOnboarding = () => {
   };
 
   const handleReturnToAddItem = () => {
-    const pendingItemData = sessionStorage.getItem('pendingItemData');
+    const pendingItemData = localStorage.getItem('pendingItemData');
     if (pendingItemData) {
       navigate('/add-item?restore=true');
     } else {
@@ -445,7 +445,7 @@ export const SellerOnboarding = () => {
                 </p>
               </div>
 
-              {sessionStorage.getItem('pendingItemData') && (
+              {localStorage.getItem('pendingItemData') && (
                 <button
                   onClick={handleReturnToAddItem}
                   className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center space-x-2"
@@ -485,9 +485,28 @@ export const SellerOnboarding = () => {
                 </p>
               </div>
 
+              {localStorage.getItem('pendingItemData') && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 mb-2">Your Item Data is Saved</h3>
+                  <p className="text-sm text-blue-800 mb-3">
+                    Don't worry! Your item form has been saved. Once your account is verified, 
+                    you can return to complete adding your item.
+                  </p>
+                  <button
+                    onClick={handleReturnToAddItem}
+                    type="button"
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center space-x-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>View Saved Item Form</span>
+                  </button>
+                </div>
+              )}
+
               <button
                 onClick={checkAccountStatus}
                 disabled={loading}
+                type="button"
                 className="w-full bg-yellow-600 text-white py-3 px-6 rounded-lg hover:bg-yellow-700 transition font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
               >
                 <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
