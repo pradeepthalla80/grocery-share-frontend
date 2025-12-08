@@ -8,7 +8,7 @@ import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
-import { ArrowLeft, Store } from 'lucide-react';
+import { ArrowLeft, Store, Home, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const addItemSchema = z.object({
@@ -25,6 +25,7 @@ const addItemSchema = z.object({
   pickupTimeEnd: z.string().optional(),
   flexiblePickup: z.boolean().optional(),
   validityPeriod: z.string().optional(),
+  customValidityDate: z.string().optional(),
   address: z.string().min(1, 'Address is required'),
   lat: z.number(),
   lng: z.number(),
@@ -50,6 +51,15 @@ const addItemSchema = z.object({
   message: 'Price must be a positive number when item is not free',
   path: ['price'],
 }).refine((data) => {
+  // Minimum $3 for paid items (to cover Stripe fees)
+  if (!data.isFree && data.price && Number(data.price) > 0 && Number(data.price) < 3) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Minimum price for paid items is $3.00 (to cover payment processing fees)',
+  path: ['price'],
+}).refine((data) => {
   if (!data.flexiblePickup && data.pickupTimeStart && data.pickupTimeEnd) {
     return new Date(data.pickupTimeEnd) > new Date(data.pickupTimeStart);
   }
@@ -57,6 +67,14 @@ const addItemSchema = z.object({
 }, {
   message: 'Pickup end time must be after start time',
   path: ['pickupTimeEnd'],
+}).refine((data) => {
+  if (data.validityPeriod === 'custom' && !data.customValidityDate) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Please select a custom expiry date and time',
+  path: ['customValidityDate'],
 });
 
 type AddItemFormData = z.infer<typeof addItemSchema>;
@@ -78,6 +96,9 @@ export const AddItem = () => {
   const [isStoreItem, setIsStoreItem] = useState(false);
   const [stockStatus, setStockStatus] = useState('in_stock');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [validityPeriod, setValidityPeriod] = useState('never');
+  const [existingItemNames, setExistingItemNames] = useState<string[]>([]);
+  const [duplicateWarning, setDuplicateWarning] = useState('');
 
   const {
     register,
@@ -97,12 +118,14 @@ export const AddItem = () => {
       deliveryFee: 'free',
       quantity: '1',
       stockStatus: 'in_stock',
+      validityPeriod: 'never',
     },
   });
 
   const lat = watch('lat');
   const lng = watch('lng');
   const address = watch('address');
+  const itemName = watch('name');
 
   useEffect(() => {
     const isStoreItemParam = searchParams.get('isStoreItem') === 'true';
@@ -110,6 +133,29 @@ export const AddItem = () => {
       setIsStoreItem(true);
     }
   }, [searchParams, user]);
+
+  // Fetch existing items to check for duplicates
+  useEffect(() => {
+    const fetchExistingItems = async () => {
+      try {
+        const response = await itemsAPI.getMyItems();
+        const names = response.items.map(item => item.name.toLowerCase().trim());
+        setExistingItemNames(names);
+      } catch (err) {
+        console.error('Failed to fetch existing items:', err);
+      }
+    };
+    fetchExistingItems();
+  }, []);
+
+  // Check for duplicate names as user types
+  useEffect(() => {
+    if (itemName && existingItemNames.includes(itemName.toLowerCase().trim())) {
+      setDuplicateWarning(`You already have an item named "${itemName}". Consider using a different name to avoid duplicates.`);
+    } else {
+      setDuplicateWarning('');
+    }
+  }, [itemName, existingItemNames]);
 
   const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
     setValue('address', location.address);
@@ -145,6 +191,17 @@ export const AddItem = () => {
         return;
       }
 
+      // Check for duplicate - show confirmation if duplicate exists
+      if (existingItemNames.includes(data.name.toLowerCase().trim())) {
+        const confirmAdd = window.confirm(
+          `You already have an item named "${data.name}". Are you sure you want to add another item with the same name?`
+        );
+        if (!confirmAdd) {
+          setLoading(false);
+          return;
+        }
+      }
+
       const formData = new FormData();
       formData.append('name', data.name);
       if (data.category) {
@@ -178,9 +235,11 @@ export const AddItem = () => {
         lng: data.lng,
       }));
 
-      // Add validity period
-      if (data.validityPeriod) {
-        formData.append('validityPeriod', data.validityPeriod);
+      // Add validity period - handle custom period
+      if (validityPeriod === 'custom' && data.customValidityDate) {
+        formData.append('validityPeriod', data.customValidityDate);
+      } else if (validityPeriod !== 'never') {
+        formData.append('validityPeriod', validityPeriod);
       }
 
       // Add delivery options
@@ -216,16 +275,32 @@ export const AddItem = () => {
     }
   };
 
+  // Get minimum datetime for custom validity (now + 1 hour)
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    return now.toISOString().slice(0, 16);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back</span>
-        </button>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back</span>
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium"
+          >
+            <Home className="h-5 w-5" />
+            <span>Dashboard</span>
+          </button>
+        </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
           <div className="flex items-center space-x-3 mb-6">
@@ -246,13 +321,21 @@ export const AddItem = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <FormInput
-              label="Item Name"
-              type="text"
-              {...register('name')}
-              error={errors.name?.message}
-              placeholder="e.g., Organic Apples"
-            />
+            <div>
+              <FormInput
+                label="Item Name"
+                type="text"
+                {...register('name')}
+                error={errors.name?.message}
+                placeholder="e.g., Organic Apples"
+              />
+              {duplicateWarning && (
+                <div className="flex items-start space-x-2 mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-yellow-800">{duplicateWarning}</p>
+                </div>
+              )}
+            </div>
 
             <ImageUpload
               maxImages={5}
@@ -333,6 +416,12 @@ export const AddItem = () => {
                 </label>
                 <select
                   {...register('validityPeriod')}
+                  value={validityPeriod}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setValidityPeriod(value);
+                    setValue('validityPeriod', value);
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <option value="never">Never expires</option>
@@ -340,10 +429,29 @@ export const AddItem = () => {
                   <option value="6h">6 hours</option>
                   <option value="12h">12 hours</option>
                   <option value="24h">24 hours</option>
+                  <option value="custom">Custom period</option>
                 </select>
                 <p className="text-xs text-gray-500">After this period, your listing will be automatically hidden</p>
               </div>
             </div>
+
+            {validityPeriod === 'custom' && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Custom Expiry Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  {...register('customValidityDate')}
+                  min={getMinDateTime()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                {errors.customValidityDate && (
+                  <p className="text-sm text-red-600">{errors.customValidityDate.message}</p>
+                )}
+                <p className="text-xs text-gray-500">Select when you want this listing to expire (minimum 1 hour from now)</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -364,14 +472,18 @@ export const AddItem = () => {
                 )}
 
                 {!isFree && (
-                  <FormInput
-                    label="Price ($)"
-                    type="number"
-                    step="0.01"
-                    {...register('price')}
-                    error={errors.price?.message}
-                    placeholder="9.99"
-                  />
+                  <div>
+                    <FormInput
+                      label="Price ($)"
+                      type="number"
+                      step="0.01"
+                      min="3"
+                      {...register('price')}
+                      error={errors.price?.message}
+                      placeholder="3.00"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Minimum $3.00 for paid items (covers payment processing fees)</p>
+                  </div>
                 )}
               </div>
 
@@ -401,10 +513,10 @@ export const AddItem = () => {
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="in_stock">✅ In Stock</option>
-                  <option value="low_stock">⚠️ Low Stock</option>
-                  <option value="out_of_stock">❌ Out of Stock</option>
-                  <option value="unlimited">♾️ Unlimited Stock</option>
+                  <option value="in_stock">In Stock</option>
+                  <option value="low_stock">Low Stock</option>
+                  <option value="out_of_stock">Out of Stock</option>
+                  <option value="unlimited">Unlimited Stock</option>
                 </select>
                 <p className="text-xs text-gray-500">
                   Customers will see this status when viewing your item
@@ -479,7 +591,7 @@ export const AddItem = () => {
                         }}
                         className="h-4 w-4 text-green-600"
                       />
-                      <span className="text-sm text-gray-700">🚚 Free Delivery</span>
+                      <span className="text-sm text-gray-700">Free Delivery</span>
                     </label>
                     {['1', '2', '3', '4', '5'].map((fee) => (
                       <label key={fee} className="flex items-center space-x-2 cursor-pointer">
@@ -507,7 +619,7 @@ export const AddItem = () => {
                         }}
                         className="h-4 w-4 text-green-600"
                       />
-                      <span className="text-sm text-gray-700">💰 Custom Fee</span>
+                      <span className="text-sm text-gray-700">Custom Fee</span>
                     </label>
                     {deliveryFee === 'custom' && (
                       <div className="ml-6 mt-2">
@@ -566,7 +678,7 @@ export const AddItem = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate('/dashboard')}
                 className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
               >
                 Cancel
