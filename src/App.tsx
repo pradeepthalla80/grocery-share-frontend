@@ -29,6 +29,7 @@ import { PickupRequests } from './pages/PickupRequests';
 import { NotFound } from './pages/NotFound';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import { SellerOnboarding } from './pages/SellerOnboarding';
 
 function App() {
   return (
@@ -165,6 +166,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <LegalAgreements />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/onboarding"
+              element={
+                <ProtectedRoute>
+                  <SellerOnboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/onboarding/complete"
+              element={
+                <ProtectedRoute>
+                  <SellerOnboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/onboarding/refresh"
+              element={
+                <ProtectedRoute>
+                  <SellerOnboarding />
                 </ProtectedRoute>
               }
             />

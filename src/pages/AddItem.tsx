@@ -482,7 +482,17 @@ export const AddItem = () => {
                       error={errors.price?.message}
                       placeholder="3.00"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Minimum $3.00 for paid items (covers payment processing fees)</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Minimum $3.00 for paid items.{' '}
+                      <button
+                        type="button"
+                        onClick={() => navigate('/seller/onboarding')}
+                        className="text-green-600 hover:text-green-700 underline"
+                      >
+                        Set up seller account
+                      </button>
+                      {' '}to receive payments directly.
+                    </p>
                   </div>
                 )}
               </div>

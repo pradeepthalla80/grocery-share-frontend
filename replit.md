@@ -66,3 +66,35 @@ The UI is built with React 19, TypeScript, and Vite 7, using Tailwind CSS v4 wit
 - **Base URL**: `https://grocery-share-backend.onrender.com`.
 - A RESTful API requiring JWT authentication for protected endpoints, using JSON for requests and responses. It supports user management, item listings, chat, notifications, item requests, admin functionalities, analytics, and store owner mode. The API follows a `/api/v1` versioned endpoint structure with a standardized response format.
 - **Backend Structure**: Uses root-level `controllers/`, `routes/`, `models/`, and `services/` folders. Main entry point is `index.js`.
+- **Backend Reference Files**: Latest backend snapshot in `attached_assets/Backend Refrence/grocery-share-backend-main_as of 12-08-2025/`.
+
+# Recent Changes (Dec 8, 2025)
+
+## Backend Bug Fixes (DEPLOYED)
+All 5 critical backend issues fixed and deployed: (1) Items endpoint 500 error, (2) Recommendations 404 error, (3) Admin delete items permission, (4) Address reveal conversation error, (5) Admin delete requests permission.
+
+## Items Section Improvements
+- Duplicate item prevention with warning and confirmation
+- Dashboard button navigation at top header
+- Custom validity period with datetime picker
+- Address suggestions optimization for house numbers
+- Minimum $3 price for paid items
+
+## Stripe Connect Integration
+Complete Stripe Connect Express integration for seller payments:
+- Seller onboarding page at `/seller/onboarding`
+- 10% platform commission via `application_fee_amount`
+- Automatic payouts to sellers via `transfer_data`
+- Seller balance/earnings display
+- Stripe Express dashboard access
+
+**Backend Files to Deploy:**
+- `BACKEND_stripeConnectController.js` → `controllers/stripeConnectController.js`
+- `BACKEND_stripeConnectRoutes.js` → `routes/stripeConnectRoutes.js`
+- `BACKEND_paymentController_WITH_CONNECT.js` → `controllers/paymentController.js`
+- User model needs `stripeAccountId` and `stripeAccountStatus` fields (see `BACKEND_User_Model_Updates.md`)
+
+**Stripe Dashboard Setup Required:**
+1. Enable Connect in Stripe Dashboard
+2. Configure Express account settings
+3. Set up Connect webhooks
