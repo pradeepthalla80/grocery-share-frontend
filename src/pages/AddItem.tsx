@@ -136,6 +136,68 @@ export const AddItem = () => {
   const lng = watch('lng');
   const address = watch('address');
   const itemName = watch('name');
+  const allFormValues = watch();
+
+  // Restore form data from sessionStorage if returning from Stripe
+  useEffect(() => {
+    const shouldRestore = searchParams.get('restore') === 'true';
+    if (shouldRestore) {
+      const savedData = sessionStorage.getItem('pendingItemData');
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          // Restore form values
+          if (parsed.name) setValue('name', parsed.name);
+          if (parsed.category) {
+            setValue('category', parsed.category);
+            setSelectedCategory(parsed.category);
+          }
+          if (parsed.customCategory) setValue('customCategory', parsed.customCategory);
+          if (parsed.tags) setValue('tags', parsed.tags);
+          if (parsed.expiryDate) setValue('expiryDate', parsed.expiryDate);
+          if (parsed.price) setValue('price', parsed.price);
+          if (parsed.isFree !== undefined) {
+            setValue('isFree', parsed.isFree);
+            setIsFree(parsed.isFree);
+          }
+          if (parsed.quantity) setValue('quantity', parsed.quantity);
+          if (parsed.address) setValue('address', parsed.address);
+          if (parsed.lat) setValue('lat', parsed.lat);
+          if (parsed.lng) setValue('lng', parsed.lng);
+          if (parsed.validityPeriod) {
+            setValue('validityPeriod', parsed.validityPeriod);
+            setValidityPeriod(parsed.validityPeriod);
+          }
+          if (parsed.customValidityDate) setValue('customValidityDate', parsed.customValidityDate);
+          if (parsed.offerDelivery !== undefined) {
+            setValue('offerDelivery', parsed.offerDelivery);
+            setOfferDelivery(parsed.offerDelivery);
+          }
+          if (parsed.deliveryFee) {
+            setValue('deliveryFee', parsed.deliveryFee);
+            setDeliveryFee(parsed.deliveryFee);
+          }
+          if (parsed.customDeliveryFee) setCustomDeliveryFee(parsed.customDeliveryFee);
+          if (parsed.stockStatus) {
+            setValue('stockStatus', parsed.stockStatus);
+            setStockStatus(parsed.stockStatus);
+          }
+          if (parsed.isStoreItem) setIsStoreItem(parsed.isStoreItem);
+          if (parsed.flexiblePickup !== undefined) {
+            setValue('flexiblePickup', parsed.flexiblePickup);
+            setFlexiblePickup(parsed.flexiblePickup);
+          }
+          if (parsed.pickupTimeStart) setValue('pickupTimeStart', parsed.pickupTimeStart);
+          if (parsed.pickupTimeEnd) setValue('pickupTimeEnd', parsed.pickupTimeEnd);
+          
+          // Clear the saved data after restoring
+          sessionStorage.removeItem('pendingItemData');
+        } catch (err) {
+          console.error('Failed to restore form data:', err);
+        }
+      }
+    }
+  }, [searchParams, setValue]);
 
   useEffect(() => {
     const isStoreItemParam = searchParams.get('isStoreItem') === 'true';
@@ -203,10 +265,30 @@ export const AddItem = () => {
     }
   };
 
+  // Save form data to sessionStorage before Stripe redirect
+  const saveFormDataBeforeRedirect = () => {
+    const formDataToSave = {
+      ...allFormValues,
+      isFree,
+      isStoreItem,
+      selectedCategory,
+      validityPeriod,
+      offerDelivery,
+      deliveryFee,
+      customDeliveryFee,
+      stockStatus,
+      flexiblePickup,
+    };
+    sessionStorage.setItem('pendingItemData', JSON.stringify(formDataToSave));
+  };
+
   // Handle Stripe Connect setup from modal
   const handleStripeSetup = async () => {
     try {
       setStripeLoading(true);
+      
+      // Save current form data before redirecting to Stripe
+      saveFormDataBeforeRedirect();
       
       if (stripeAccountStatus === 'not_connected') {
         // Create new account with selected country
@@ -561,7 +643,10 @@ export const AddItem = () => {
                       Minimum $3.00 for paid items.{' '}
                       <button
                         type="button"
-                        onClick={() => navigate('/seller/onboarding')}
+                        onClick={() => {
+                          saveFormDataBeforeRedirect();
+                          navigate('/seller/onboarding');
+                        }}
                         className="text-green-600 hover:text-green-700 underline"
                       >
                         Set up seller account

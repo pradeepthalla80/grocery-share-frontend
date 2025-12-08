@@ -19,7 +19,7 @@ export const SellerOnboarding = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
-  useAuth(); // Auth context ensures user is authenticated
+  const { checkAuth, isAuthenticated, isLoading: authLoading } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -28,24 +28,50 @@ export const SellerOnboarding = () => {
   const [balance, setBalance] = useState<{ available: number; pending: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState('US');
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Check if returning from Stripe onboarding
   const isReturn = location.pathname.includes('/complete');
   const isRefresh = location.pathname.includes('/refresh');
 
   useEffect(() => {
-    checkAccountStatus();
-  }, []);
+    const revalidateAuth = async () => {
+      if (isReturn || isRefresh) {
+        try {
+          await checkAuth();
+        } catch (err) {
+          console.error('Auth revalidation failed:', err);
+        }
+      }
+      setAuthChecked(true);
+    };
+    revalidateAuth();
+  }, [isReturn, isRefresh, checkAuth]);
 
   useEffect(() => {
-    if (isReturn) {
-      showToast('Checking your account status...', 'info');
+    if (authChecked && isAuthenticated) {
       checkAccountStatus();
     }
-    if (isRefresh) {
-      showToast('Onboarding link expired. Please try again.', 'error');
+  }, [authChecked, isAuthenticated]);
+
+  useEffect(() => {
+    if (authChecked && isAuthenticated) {
+      if (isReturn) {
+        showToast('Checking your account status...', 'info');
+      }
+      if (isRefresh) {
+        showToast('Onboarding link expired. Please try again.', 'error');
+      }
     }
-  }, [isReturn, isRefresh]);
+  }, [isReturn, isRefresh, authChecked, isAuthenticated, showToast]);
+
+  useEffect(() => {
+    if (authChecked && isAuthenticated && isReturn) {
+      const pendingItemData = sessionStorage.getItem('pendingItemData');
+      if (pendingItemData) {
+        showToast('Your item form has been saved. Return to Add Item to continue.', 'info');
+      }
+    }
+  }, [authChecked, isAuthenticated, isReturn, showToast]);
 
   const checkAccountStatus = async () => {
     try {
@@ -57,7 +83,6 @@ export const SellerOnboarding = () => {
       setHasAccount(response.hasAccount);
       setAccountStatus(response.accountStatus || null);
       
-      // If account is active, fetch balance
       if (response.accountStatus?.status === 'active') {
         try {
           const balanceResponse = await stripeConnectAPI.getBalance();
@@ -79,13 +104,10 @@ export const SellerOnboarding = () => {
       setActionLoading(true);
       setError(null);
       
-      // Create account with selected country
       await stripeConnectAPI.createAccount(selectedCountry);
       
-      // Get onboarding link
       const linkResponse = await stripeConnectAPI.createAccountLink();
       
-      // Redirect to Stripe onboarding
       window.location.href = linkResponse.url;
     } catch (err: any) {
       console.error('Failed to create account:', err);
@@ -123,6 +145,15 @@ export const SellerOnboarding = () => {
     }
   };
 
+  const handleReturnToAddItem = () => {
+    const pendingItemData = sessionStorage.getItem('pendingItemData');
+    if (pendingItemData) {
+      navigate('/add-item?restore=true');
+    } else {
+      navigate('/add-item');
+    }
+  };
+
   const getStatusDisplay = () => {
     if (!accountStatus) return null;
     
@@ -153,12 +184,14 @@ export const SellerOnboarding = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || !authChecked || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-green-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading seller account status...</p>
+          <p className="text-gray-600">
+            {authLoading || !authChecked ? 'Verifying your session...' : 'Loading seller account status...'}
+          </p>
         </div>
       </div>
     );
@@ -167,7 +200,6 @@ export const SellerOnboarding = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate(-1)}
@@ -185,7 +217,6 @@ export const SellerOnboarding = () => {
           </button>
         </div>
 
-        {/* Main Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center space-x-3 mb-6">
             <div className="bg-green-100 p-3 rounded-lg">
@@ -207,14 +238,12 @@ export const SellerOnboarding = () => {
             </div>
           )}
 
-          {/* Account Status */}
           {hasAccount && accountStatus && (
             <div className="mb-6">
               {getStatusDisplay()}
             </div>
           )}
 
-          {/* No Account - Show Setup */}
           {!hasAccount && (
             <div className="space-y-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -288,7 +317,6 @@ export const SellerOnboarding = () => {
             </div>
           )}
 
-          {/* Account Pending - Continue Onboarding */}
           {hasAccount && accountStatus?.status === 'pending' && (
             <div className="space-y-6">
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -329,10 +357,8 @@ export const SellerOnboarding = () => {
             </div>
           )}
 
-          {/* Account Active - Show Dashboard */}
           {hasAccount && accountStatus?.status === 'active' && (
             <div className="space-y-6">
-              {/* Balance Display */}
               {balance && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -364,6 +390,16 @@ export const SellerOnboarding = () => {
                 </p>
               </div>
 
+              {sessionStorage.getItem('pendingItemData') && (
+                <button
+                  onClick={handleReturnToAddItem}
+                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center space-x-2"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  <span>Return to Add Item</span>
+                </button>
+              )}
+
               <div className="flex space-x-4">
                 <button
                   onClick={handleOpenDashboard}
@@ -384,7 +420,6 @@ export const SellerOnboarding = () => {
             </div>
           )}
 
-          {/* Pending Verification */}
           {hasAccount && accountStatus?.status === 'pending_verification' && (
             <div className="space-y-6">
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -407,7 +442,6 @@ export const SellerOnboarding = () => {
           )}
         </div>
 
-        {/* Info Footer */}
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>Payments are processed securely by Stripe.</p>
           <p className="mt-1">BaskMate commission: 10% per sale</p>
