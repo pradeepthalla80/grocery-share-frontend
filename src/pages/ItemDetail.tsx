@@ -10,6 +10,7 @@ import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
 import { sendInterestNotification } from '../api/notifications';
 import { pickupRequestsAPI } from '../api/pickupRequests';
+import { sendMessage } from '../api/chat';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -115,11 +116,20 @@ export const ItemDetail = () => {
   };
 
   const handleInterestNotification = async () => {
-    if (!item) return;
+    if (!item || !item.user?.id) return;
     
     try {
+      // Send notification to seller
       await sendInterestNotification(item.id, item.name, 'item');
-      showToast('✅ Seller notified of your interest! They may reach out soon.', 'success');
+      
+      // Also send a message to create/open a conversation so seller can reply
+      const interestMessage = `Hi! I'm interested in your "${item.name}". Is it still available?`;
+      await sendMessage(item.user.id, interestMessage, item.id);
+      
+      showToast('✅ Seller notified! A conversation has been started so they can reply directly.', 'success');
+      
+      // Navigate to chat so buyer can see the conversation
+      navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
     } catch (error) {
       showToast('Failed to send interest notification', 'error');
     }

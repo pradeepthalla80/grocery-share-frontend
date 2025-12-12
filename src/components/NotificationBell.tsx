@@ -60,9 +60,15 @@ export function NotificationBell() {
                       
                       // Route based on notification type
                       const pickupRequestTypes = ['pickup_request', 'request_accepted', 'request_declined', 'request_canceled', 'exchange_completed', 'pickup_confirmed'];
+                      const itemDiscoveryTypes = ['nearby_free', 'nearby_discounted', 'expiring_soon', 'new_match'];
+                      
                       if (pickupRequestTypes.includes(notif.type)) {
                         navigate('/pickup-requests');
+                      } else if (itemDiscoveryTypes.includes(notif.type) && notif.item?.id) {
+                        // Item discovery notifications - go to item detail
+                        navigate(`/item/${notif.item.id}`);
                       } else {
+                        // Interest, message, and other notifications - go to chat
                         navigate('/chat');
                       }
                     }}
