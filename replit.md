@@ -8,6 +8,11 @@ Preferred communication style: Simple, everyday language.
 
 User prefers complete file updates rather than partial edits - always provide entire updated files when making backend changes.
 
+**CRITICAL: Git Push Command**
+- ALWAYS use: `git push https://$GITHUB_TOKEN@github.com/pradeepthalla80/grocery-share-frontend.git main`
+- NEVER use old embedded tokens or plain `git push`
+- The `GITHUB_TOKEN` secret contains the valid PAT (expires March 2026)
+
 **CRITICAL: Mobile-First Development**
 - ALL new features and changes MUST work perfectly on mobile devices
 - Test and verify mobile responsiveness for screens ≤400px
