@@ -661,22 +661,27 @@ export const AddItem = () => {
                     {(priceError || errors.price?.message) && (
                       <p className="text-sm text-red-600 mt-1">{priceError || errors.price?.message}</p>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-gray-500 mt-1">
                       Minimum $3.00 for paid items.{' '}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
                           saveFormDataBeforeRedirect();
                           navigate('/seller/onboarding');
                         }}
-                        className="text-green-600 hover:text-green-700 underline"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            saveFormDataBeforeRedirect();
+                            navigate('/seller/onboarding');
+                          }
+                        }}
+                        className="text-green-600 hover:text-green-700 underline cursor-pointer"
                       >
                         Set up seller account
-                      </button>
+                      </span>
                       {' '}to receive payments directly.
-                    </p>
+                    </div>
                   </div>
                 )}
               </div>
