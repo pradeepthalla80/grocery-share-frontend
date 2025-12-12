@@ -115,6 +115,11 @@ export const Dashboard = () => {
 
   const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
     setSearchLocation(location);
+    // Cache the user-selected location for 24 hours
+    localStorage.setItem('userSearchLocation', JSON.stringify({
+      ...location,
+      savedAt: Date.now()
+    }));
   };
 
   // No longer using combined list - always show items and requests separately
@@ -188,29 +193,94 @@ export const Dashboard = () => {
     }
   }, [searchLocation, activeTab, showOnlyStoreItems]);
 
-  // Auto-load items on page load using browser geolocation
+  // Auto-load items on page load using cached location or browser geolocation
   useEffect(() => {
-    if ('geolocation' in navigator && !searchLocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          // Set location and trigger auto-search
-          setSearchLocation({
-            address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-            lat: latitude,
-            lng: longitude
-          });
-        },
-        (error) => {
-          console.log('Geolocation error:', error);
-          // Fallback: use a default location (e.g., New York City)
-          setSearchLocation({
-            address: 'Default Location',
-            lat: 40.7128,
-            lng: -74.0060
-          });
+    const initLocation = async () => {
+      // First, try to restore cached location from localStorage
+      const cachedLocation = localStorage.getItem('userSearchLocation');
+      if (cachedLocation) {
+        try {
+          const parsed = JSON.parse(cachedLocation);
+          // Check if cache is still valid (24 hours)
+          const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+          if (parsed.savedAt && (Date.now() - parsed.savedAt < TWENTY_FOUR_HOURS)) {
+            setSearchLocation({
+              address: parsed.address,
+              lat: parsed.lat,
+              lng: parsed.lng
+            });
+            return;
+          }
+        } catch (err) {
+          console.log('Failed to parse cached location:', err);
         }
-      );
+      }
+
+      // No valid cache, try geolocation
+      if ('geolocation' in navigator) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: false,
+              timeout: 8000,
+              maximumAge: 300000 // 5 min cache
+            });
+          });
+
+          const { latitude, longitude } = position.coords;
+
+          // Reverse geocode to get proper address
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
+            );
+            const data = await response.json();
+            
+            // Format address nicely
+            let address = '';
+            if (data.address) {
+              const parts = [];
+              if (data.address.city || data.address.town || data.address.village) {
+                parts.push(data.address.city || data.address.town || data.address.village);
+              }
+              if (data.address.state) {
+                parts.push(data.address.state);
+              }
+              address = parts.join(', ') || data.display_name?.split(',').slice(0, 2).join(',') || 'Your Location';
+            } else {
+              address = 'Your Location';
+            }
+
+            const locationData = { address, lat: latitude, lng: longitude };
+            setSearchLocation(locationData);
+            
+            // Cache the location
+            localStorage.setItem('userSearchLocation', JSON.stringify({
+              ...locationData,
+              savedAt: Date.now()
+            }));
+          } catch (geoErr) {
+            // Reverse geocode failed, use coordinates
+            const locationData = {
+              address: 'Your Location',
+              lat: latitude,
+              lng: longitude
+            };
+            setSearchLocation(locationData);
+            localStorage.setItem('userSearchLocation', JSON.stringify({
+              ...locationData,
+              savedAt: Date.now()
+            }));
+          }
+        } catch (error) {
+          console.log('Geolocation error:', error);
+          // Don't set a default location - let user enter manually
+        }
+      }
+    };
+
+    if (!searchLocation) {
+      initLocation();
     }
   }, []);
 
