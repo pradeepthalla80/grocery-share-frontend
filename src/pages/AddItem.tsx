@@ -440,14 +440,24 @@ export const AddItem = () => {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => navigate(-1)}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(-1);
+            }}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="h-5 w-5" />
             <span>Back</span>
           </button>
           <button
-            onClick={() => navigate('/dashboard')}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate('/dashboard');
+            }}
             className="flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium"
           >
             <Home className="h-5 w-5" />
@@ -655,7 +665,9 @@ export const AddItem = () => {
                       Minimum $3.00 for paid items.{' '}
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           saveFormDataBeforeRedirect();
                           navigate('/seller/onboarding');
                         }}
@@ -860,7 +872,11 @@ export const AddItem = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/dashboard')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate('/dashboard');
+                }}
                 className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
               >
                 Cancel
@@ -935,7 +951,12 @@ export const AddItem = () => {
 
             <div className="flex space-x-3">
               <button
-                onClick={handleStripeSetup}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleStripeSetup();
+                }}
                 disabled={stripeLoading}
                 className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
               >
@@ -952,7 +973,10 @@ export const AddItem = () => {
                 )}
               </button>
               <button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setShowStripeModal(false);
                   setIsFree(true);
                   setValue('isFree', true);
