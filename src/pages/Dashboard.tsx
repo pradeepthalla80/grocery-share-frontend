@@ -661,10 +661,10 @@ export const Dashboard = () => {
                           <Calendar className="h-3 w-3" />
                           <span className="line-clamp-1">{format(new Date(item.expiryDate), 'MMM dd')}</span>
                         </div>
-                        {item.location?.address && (
+                        {item.distance !== undefined && (
                           <div className="flex items-center space-x-1">
                             <MapPin className="h-3 w-3 flex-shrink-0" />
-                            <span className="line-clamp-1 text-xs">{item.location.address.split(',')[0]}</span>
+                            <span className="line-clamp-1 text-xs">{item.distance.toFixed(1)} mi away</span>
                           </div>
                         )}
                       </div>

@@ -183,7 +183,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           
           <div className="flex items-center space-x-1">
             <MapPin className="h-3 w-3" />
-            <span className="text-xs truncate">{item.location.address || `${item.location.lat.toFixed(4)}, ${item.location.lng.toFixed(4)}`}</span>
+            <span className="text-xs truncate">
+              {item.distance !== undefined ? `${item.distance.toFixed(1)} mi away` : 'Location available'}
+            </span>
           </div>
 
           {item.user && !item.isStoreItem && (

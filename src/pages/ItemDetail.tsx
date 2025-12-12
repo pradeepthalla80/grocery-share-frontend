@@ -342,9 +342,7 @@ export const ItemDetail = () => {
                     <MapPin className="h-5 w-5 text-green-600" />
                     <div>
                       <span className="font-semibold">Distance:</span> {distance.toFixed(1)} miles away
-                      {item.location.address && (
-                        <span className="block text-sm text-gray-500">{item.location.address}</span>
-                      )}
+                      <span className="block text-sm text-gray-500">Exact address revealed after seller accepts</span>
                     </div>
                   </div>
                 )}
