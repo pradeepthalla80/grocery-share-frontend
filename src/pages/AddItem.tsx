@@ -451,18 +451,13 @@ export const AddItem = () => {
             <ArrowLeft className="h-5 w-5" />
             <span>Back</span>
           </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              navigate('/dashboard');
-            }}
+          <a
+            href="/dashboard"
             className="flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium"
           >
             <Home className="h-5 w-5" />
             <span>Dashboard</span>
-          </button>
+          </a>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
@@ -663,18 +658,13 @@ export const AddItem = () => {
                     )}
                     <div className="text-xs text-gray-500 mt-1">
                       Minimum $3.00 for paid items.{' '}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          saveFormDataBeforeRedirect();
-                          navigate('/seller/onboarding');
-                        }}
+                      <a
+                        href="/seller/onboarding"
+                        onClick={() => saveFormDataBeforeRedirect()}
                         className="text-green-600 hover:text-green-700 underline"
                       >
                         Set up seller account
-                      </button>
+                      </a>
                       {' '}to receive payments directly.
                     </div>
                   </div>
