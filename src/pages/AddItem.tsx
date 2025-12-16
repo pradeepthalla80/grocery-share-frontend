@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -451,13 +451,18 @@ export const AddItem = () => {
             <ArrowLeft className="h-5 w-5" />
             <span>Back</span>
           </button>
-          <Link
-            to="/dashboard"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate('/dashboard');
+            }}
             className="flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium"
           >
             <Home className="h-5 w-5" />
             <span>Dashboard</span>
-          </Link>
+          </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
@@ -658,13 +663,18 @@ export const AddItem = () => {
                     )}
                     <div className="text-xs text-gray-500 mt-1">
                       Minimum $3.00 for paid items.{' '}
-                      <Link
-                        to="/seller/onboarding"
-                        onClick={() => saveFormDataBeforeRedirect()}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          saveFormDataBeforeRedirect();
+                          navigate('/seller/onboarding');
+                        }}
                         className="text-green-600 hover:text-green-700 underline"
                       >
                         Set up seller account
-                      </Link>
+                      </button>
                       {' '}to receive payments directly.
                     </div>
                   </div>
