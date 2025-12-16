@@ -1,0 +1,105 @@
+Welcome to Grocery Share (BaskMate). By creating an account or using the platform, you agree to these Terms.
+
+1. Platform Purpose
+
+Grocery Share is a peer-to-peer marketplace that enables users to list, request, share, or sell grocery items locally. We do not sell, inspect, store, or deliver items ourselves.
+
+2. Eligibility
+
+You must be 18 years or older
+
+You are responsible for ensuring your participation complies with local laws
+
+Store owners are responsible for any permits or licenses required in their jurisdiction
+
+3. Listings & Requests
+
+Only sealed, labeled, and unexpired items may be listed
+
+Users must ensure accuracy of item descriptions, expiry dates, and pricing
+
+Grocery Share may remove listings that violate guidelines
+
+Store items may include pricing and stock quantity
+
+4. Store Owner Mode
+
+Store owners operate as independent sellers
+
+Grocery Share does not verify food quality, legality, or seller compliance
+
+Store owners agree to separate Store Terms & Agreement
+
+Acceptance of store terms is logged with timestamp and IP address
+
+5. Payments & Fees
+
+Payments are processed via Stripe
+
+Grocery Share does not store credit card information
+
+A platform service fee may be deducted per transaction
+
+Refunds and disputes are subject to seller policies and Stripe rules
+
+6. Pickup & Communication
+
+Pickup is arranged directly between users
+
+Addresses are shared only with mutual consent
+
+Users are responsible for personal safety during exchanges
+
+7. No Guarantees & Food Disclaimer
+
+Grocery Share makes no guarantees about item safety, quality, freshness, or legality
+
+Users assume all risk associated with consuming or handling items
+
+Grocery Share is not liable for illness, damage, or loss
+
+8. Reviews & Ratings
+
+One rating per transaction
+
+False or abusive reviews may be removed
+
+9. Account Suspension
+
+We may suspend or terminate accounts for:
+
+Fraud
+
+Abuse
+
+Policy violations
+
+Illegal activity
+
+10. Limitation of Liability
+
+To the maximum extent permitted by law, Grocery Share is not liable for:
+
+Personal injury
+
+Food-related illness
+
+Financial loss
+
+Disputes between users
+
+11. Indemnification
+
+You agree to indemnify and hold harmless Grocery Share and its owners from any claims arising from your use of the platform.
+
+12. Governing Law
+
+These Terms are governed by the laws of the State of Illinois, USA.
+
+13. Changes
+
+We may update these Terms. Continued use means acceptance.
+
+14. Contact
+
+support@groceryshare.app
