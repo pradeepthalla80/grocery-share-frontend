@@ -1,0 +1,229 @@
+import '../models/user.dart';
+import '../models/item.dart';
+import '../models/item_request.dart';
+import 'api_client.dart';
+
+class AdminService {
+  final ApiClient _api = ApiClient();
+  
+  Future<AdminUsersResult> getUsers({int page = 1, int limit = 20, String? search}) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
+      if (search != null) queryParams['search'] = search;
+      
+      final response = await _api.get('/admin/users', queryParameters: queryParams);
+      final users = (response.data['users'] as List<dynamic>)
+          .map((u) => User.fromJson(u))
+          .toList();
+      
+      return AdminUsersResult(
+        success: true,
+        users: users,
+        total: response.data['total'],
+        page: response.data['page'],
+        totalPages: response.data['totalPages'],
+      );
+    } catch (e) {
+      return AdminUsersResult(success: false, error: e.toString());
+    }
+  }
+  
+  Future<bool> updateUserRole(String userId, String role) async {
+    try {
+      await _api.patch('/admin/users/$userId/role', data: {'role': role});
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  
+  Future<bool> suspendUser(String userId) async {
+    try {
+      await _api.post('/admin/users/$userId/suspend');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  
+  Future<bool> unsuspendUser(String userId) async {
+    try {
+      await _api.post('/admin/users/$userId/unsuspend');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  
+  Future<bool> deleteUser(String userId) async {
+    try {
+      await _api.delete('/admin/users/$userId');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  
+  Future<AdminItemsResult> getAllItems({int page = 1, int limit = 20, String? search}) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
+      if (search != null) queryParams['search'] = search;
+      
+      final response = await _api.get('/admin/items', queryParameters: queryParams);
+      final items = (response.data['items'] as List<dynamic>)
+          .map((i) => Item.fromJson(i))
+          .toList();
+      
+      return AdminItemsResult(
+        success: true,
+        items: items,
+        total: response.data['total'],
+        page: response.data['page'],
+        totalPages: response.data['totalPages'],
+      );
+    } catch (e) {
+      return AdminItemsResult(success: false, error: e.toString());
+    }
+  }
+  
+  Future<bool> deleteItem(String itemId) async {
+    try {
+      await _api.delete('/admin/items/$itemId');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  
+  Future<AdminRequestsResult> getAllRequests({int page = 1, int limit = 20}) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
+      
+      final response = await _api.get('/admin/requests', queryParameters: queryParams);
+      final requests = (response.data['requests'] as List<dynamic>)
+          .map((r) => ItemRequest.fromJson(r))
+          .toList();
+      
+      return AdminRequestsResult(
+        success: true,
+        requests: requests,
+        total: response.data['total'],
+        page: response.data['page'],
+        totalPages: response.data['totalPages'],
+      );
+    } catch (e) {
+      return AdminRequestsResult(success: false, error: e.toString());
+    }
+  }
+  
+  Future<bool> deleteRequest(String requestId) async {
+    try {
+      await _api.delete('/admin/requests/$requestId');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  
+  Future<AdminStatsResult> getDashboardStats() async {
+    try {
+      final response = await _api.get('/admin/stats');
+      return AdminStatsResult(
+        success: true,
+        totalUsers: response.data['totalUsers'] ?? 0,
+        totalItems: response.data['totalItems'] ?? 0,
+        totalRequests: response.data['totalRequests'] ?? 0,
+        activeItems: response.data['activeItems'] ?? 0,
+        completedExchanges: response.data['completedExchanges'] ?? 0,
+        storeOwners: response.data['storeOwners'] ?? 0,
+      );
+    } catch (e) {
+      return AdminStatsResult(success: false, error: e.toString());
+    }
+  }
+}
+
+class AdminUsersResult {
+  final bool success;
+  final List<User>? users;
+  final int? total;
+  final int? page;
+  final int? totalPages;
+  final String? error;
+  
+  AdminUsersResult({
+    required this.success,
+    this.users,
+    this.total,
+    this.page,
+    this.totalPages,
+    this.error,
+  });
+}
+
+class AdminItemsResult {
+  final bool success;
+  final List<Item>? items;
+  final int? total;
+  final int? page;
+  final int? totalPages;
+  final String? error;
+  
+  AdminItemsResult({
+    required this.success,
+    this.items,
+    this.total,
+    this.page,
+    this.totalPages,
+    this.error,
+  });
+}
+
+class AdminRequestsResult {
+  final bool success;
+  final List<ItemRequest>? requests;
+  final int? total;
+  final int? page;
+  final int? totalPages;
+  final String? error;
+  
+  AdminRequestsResult({
+    required this.success,
+    this.requests,
+    this.total,
+    this.page,
+    this.totalPages,
+    this.error,
+  });
+}
+
+class AdminStatsResult {
+  final bool success;
+  final int totalUsers;
+  final int totalItems;
+  final int totalRequests;
+  final int activeItems;
+  final int completedExchanges;
+  final int storeOwners;
+  final String? error;
+  
+  AdminStatsResult({
+    required this.success,
+    this.totalUsers = 0,
+    this.totalItems = 0,
+    this.totalRequests = 0,
+    this.activeItems = 0,
+    this.completedExchanges = 0,
+    this.storeOwners = 0,
+    this.error,
+  });
+}
