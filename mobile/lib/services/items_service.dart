@@ -38,7 +38,9 @@ class ItemsService {
       final response = await _api.get('/items', queryParameters: queryParams);
       final data = response.data;
       
-      final items = (data['items'] as List<dynamic>)
+      // Handle null or missing items array gracefully
+      final itemsList = data['items'] as List<dynamic>? ?? [];
+      final items = itemsList
           .map((item) => Item.fromJson(item))
           .toList();
       
@@ -75,20 +77,23 @@ class ItemsService {
       if (longitude != null) queryParams['longitude'] = longitude;
       
       final response = await _api.get('/items/recommendations', queryParameters: queryParams);
-      final items = (response.data['items'] as List<dynamic>)
+      final itemsList = response.data['items'] as List<dynamic>? ?? [];
+      final items = itemsList
           .map((item) => Item.fromJson(item))
           .toList();
       
       return ItemsResult(success: true, items: items);
     } catch (e) {
-      return ItemsResult(success: false, error: _parseError(e));
+      // Recommendations are non-critical, return empty list on failure
+      return ItemsResult(success: true, items: []);
     }
   }
   
   Future<ItemsResult> getTrendingItems({int limit = 10}) async {
     try {
       final response = await _api.get('/items/trending', queryParameters: {'limit': limit});
-      final items = (response.data['items'] as List<dynamic>)
+      final itemsList = response.data['items'] as List<dynamic>? ?? [];
+      final items = itemsList
           .map((item) => Item.fromJson(item))
           .toList();
       
@@ -101,7 +106,8 @@ class ItemsService {
   Future<ItemsResult> getMyItems() async {
     try {
       final response = await _api.get('/items/my-items');
-      final items = (response.data['items'] as List<dynamic>)
+      final itemsList = response.data['items'] as List<dynamic>? ?? [];
+      final items = itemsList
           .map((item) => Item.fromJson(item))
           .toList();
       

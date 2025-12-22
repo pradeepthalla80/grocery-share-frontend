@@ -33,16 +33,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeData();
+    });
   }
 
   Future<void> _initializeData() async {
+    if (!mounted) return;
+    
     final locationProvider = context.read<LocationProvider>();
+    final itemsProvider = context.read<ItemsProvider>();
+    
+    // Try to get location but don't block on failure
     await locationProvider.getCurrentLocation();
-
+    
     if (!mounted) return;
 
-    final itemsProvider = context.read<ItemsProvider>();
+    // Fetch items regardless of location success (API handles null coords)
     itemsProvider.fetchItems(
       latitude: locationProvider.latitude,
       longitude: locationProvider.longitude,
