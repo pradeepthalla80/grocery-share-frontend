@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -29,8 +30,12 @@ void main() async {
     ),
   );
   
-  Stripe.publishableKey = AppConfig.stripePublishableKey;
-  await Stripe.instance.applySettings();
+  if (!kIsWeb &&
+      AppConfig.stripePublishableKey.isNotEmpty &&
+      AppConfig.stripePublishableKey.startsWith('pk_')) {
+    Stripe.publishableKey = AppConfig.stripePublishableKey;
+    await Stripe.instance.applySettings();
+  }
   
   runApp(const BaskMateApp());
 }
