@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/items_provider.dart';
 import '../../providers/notifications_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/location_provider.dart';
@@ -34,30 +33,18 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeData();
+      _initializeLocation();
     });
   }
 
-  Future<void> _initializeData() async {
+  Future<void> _initializeLocation() async {
     if (!mounted) return;
     
     final locationProvider = context.read<LocationProvider>();
-    final itemsProvider = context.read<ItemsProvider>();
     
-    // Try to get location but don't block on failure
-    await locationProvider.getCurrentLocation();
-    
-    if (!mounted) return;
-
-    // Fetch items regardless of location success (API handles null coords)
-    itemsProvider.fetchItems(
-      latitude: locationProvider.latitude,
-      longitude: locationProvider.longitude,
-    );
-    itemsProvider.fetchRecommendations(
-      latitude: locationProvider.latitude,
-      longitude: locationProvider.longitude,
-    );
+    if (!locationProvider.hasLocation && !locationProvider.isLoading) {
+      await locationProvider.getCurrentLocation();
+    }
   }
 
   @override

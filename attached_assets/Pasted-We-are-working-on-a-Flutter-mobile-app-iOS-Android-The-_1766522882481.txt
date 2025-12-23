@@ -1,0 +1,154 @@
+We are working on a Flutter mobile app (iOS + Android).
+The iOS build environment is now STABLE and must NOT be altered.
+
+🚫 NON-NEGOTIABLE CONSTRAINTS (VERY IMPORTANT)
+
+Do NOT regenerate the Flutter project
+
+Do NOT modify platform folders: ios/, android/, web/, macos/, windows/
+
+Modify ONLY Dart files under lib/
+
+Do NOT undo or refactor fixes completed yesterday and today
+
+If any of the above is violated, the solution is not acceptable.
+
+✅ FIXES ALREADY COMPLETED (DO NOT TOUCH)
+
+These fixes are working and must remain unchanged:
+
+Flutter iOS build issues resolved (CocoaPods, Flutter.h, pubspec, intl)
+
+Provider lifecycle safety fixes (notifyListeners guards)
+
+Stripe initialization guarded to prevent crashes when keys are missing
+
+App builds and runs cleanly on iOS simulator
+
+Email/password authentication works correctly
+
+App navigation and routing are stable
+
+🎯 PRIMARY GOAL: RESTORE POST-LOGIN FEATURES (CRITICAL)
+Current problem
+
+After successful login (non-Google), the home screen shows “Try again”
+
+Search bar, categories, filters, item list, add-item UI, map, address fields are NOT visible
+
+This is NOT an authentication issue
+
+Root cause (confirmed)
+
+ItemsScreen calls ItemsProvider.fetchItems() using latitude/longitude from LocationProvider
+
+On first login, location is not yet available (latitude / longitude are null)
+
+API call fails → provider error → UI collapses into “Try again”
+
+Multiple features disappear together because they share the same provider state
+
+🛠️ REQUIRED FIX – LOCATION FLOW (HIGH PRIORITY)
+
+Update LocationProvider to explicitly manage:
+
+isLoadingLocation
+
+hasPermission
+
+latitude
+
+longitude
+
+error
+
+Ensure location permission is requested automatically on:
+
+App start OR
+
+First home screen load
+
+Update ItemsProvider so:
+
+fetchItems() is NOT called when latitude or longitude is null
+
+No API call should happen without valid coordinates
+
+Update ItemsScreen UI logic so:
+
+While location is loading → show “Fetching location…”
+
+If permission denied → show a permission prompt UI
+
+Only call fetchItems() once location is available
+
+“Try again” should NOT be used when the real issue is missing location
+
+🌐 FEATURE PARITY REQUIREMENT (VERY IMPORTANT)
+
+All mobile app features must behave exactly the same way as the web app.
+
+This includes (but is not limited to):
+
+Search fields
+
+Categories
+
+Filters
+
+Distance-based sorting
+
+Available items
+
+Requested items
+
+Add item flow
+
+Address entry
+
+Map / location usage
+
+Buy / purchase options
+
+No feature that exists on the web app should be missing or hidden on mobile unless explicitly gated by platform limitations.
+
+💳 SECONDARY GOAL: STRIPE WORKAROUND (IMPORTANT)
+
+Stripe works on the web app
+
+On mobile, buy/purchase option is currently not visible or blocked
+
+We need a temporary or permanent workaround so mobile users can:
+
+See buy / purchase options
+
+Complete purchases in test mode
+
+Acceptable approaches:
+
+Native mobile Stripe checkout (preferred if feasible)
+
+OR redirect to web Stripe checkout as a temporary solution
+
+OR mock / simulated purchase flow for development
+
+⚠️ Do NOT remove or weaken existing Stripe safety guards.
+
+🚫 OUT OF SCOPE FOR NOW
+
+Google Sign-In on iOS (Apple Developer enrollment is still processing)
+
+✅ DELIVERABLES
+
+Dart-only code changes
+
+All fixes pushed to GitHub
+
+No platform regeneration
+
+No regression of previously fixed issues
+
+Goal summary:
+After login and location permission, the mobile app should fully match web app behavior, with all post-login features visible and functional, without breaking any environment or stability fixes already completed.
+
+Proceed carefully and conservatively.
