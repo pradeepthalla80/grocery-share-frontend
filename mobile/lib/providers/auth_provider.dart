@@ -9,6 +9,8 @@ class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
   
+  bool _disposed = false;
+  
   User? _user;
   bool _isLoading = false;
   bool _isInitialized = false;
@@ -25,11 +27,25 @@ class AuthProvider with ChangeNotifier {
   bool get isStoreOwner => _user?.isStoreOwner ?? false;
   bool get hasStripeAccount => _user?.hasStripeAccount ?? false;
   
+  void _safeNotify() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_disposed) {
+        notifyListeners();
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+  
   Future<void> initialize() async {
     if (_isInitialized) return;
     
     _isLoading = true;
-    _safeNotifyListeners();
+    _safeNotify();
     
     final result = await _authService.getCurrentUser();
     if (result.success && result.user != null) {
@@ -38,31 +54,25 @@ class AuthProvider with ChangeNotifier {
     
     _isLoading = false;
     _isInitialized = true;
-    _safeNotifyListeners();
-  }
-  
-  void _safeNotifyListeners() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    _safeNotify();
   }
   
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _authService.login(email, password);
     
     _isLoading = false;
     if (result.success && result.user != null) {
       _user = result.user;
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
     _error = result.error;
-    notifyListeners();
+    _safeNotify();
     return false;
   }
   
@@ -74,7 +84,7 @@ class AuthProvider with ChangeNotifier {
   }) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _authService.register(
       name: name,
@@ -86,43 +96,43 @@ class AuthProvider with ChangeNotifier {
     _isLoading = false;
     if (result.success && result.user != null) {
       _user = result.user;
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
     _error = result.error;
-    notifyListeners();
+    _safeNotify();
     return false;
   }
   
   Future<bool> googleSignIn() async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _authService.googleSignIn();
     
     _isLoading = false;
     if (result.success && result.user != null) {
       _user = result.user;
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
     _error = result.error;
-    notifyListeners();
+    _safeNotify();
     return false;
   }
   
   Future<void> logout() async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
     
     await _authService.logout();
     
     _user = null;
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
   }
   
   Future<bool> forgotPassword(String email) async {
@@ -131,19 +141,19 @@ class AuthProvider with ChangeNotifier {
   
   Future<bool> updateProfile(Map<String, dynamic> updates) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _userService.updateProfile(updates);
     
     _isLoading = false;
     if (result.success && result.user != null) {
       _user = result.user;
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
     _error = result.error;
-    notifyListeners();
+    _safeNotify();
     return false;
   }
   
@@ -152,7 +162,7 @@ class AuthProvider with ChangeNotifier {
     
     if (result.success && result.user != null) {
       _user = result.user;
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     return false;
@@ -193,12 +203,12 @@ class AuthProvider with ChangeNotifier {
     final result = await _authService.getCurrentUser();
     if (result.success && result.user != null) {
       _user = result.user;
-      notifyListeners();
+      _safeNotify();
     }
   }
   
   void clearError() {
     _error = null;
-    notifyListeners();
+    _safeNotify();
   }
 }
