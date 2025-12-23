@@ -33,10 +33,13 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeChat();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeChat();
+    });
   }
 
   Future<void> _initializeChat() async {
+    if (!mounted) return;
     final chatProvider = context.read<ChatProvider>();
 
     if (widget.conversationId != null) {
