@@ -20,7 +20,11 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ChatProvider>().fetchConversations();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatProvider>().fetchConversations();
+      }
+    });
   }
 
   @override

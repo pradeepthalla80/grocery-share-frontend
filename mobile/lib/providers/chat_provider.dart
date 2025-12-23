@@ -10,6 +10,8 @@ import 'auth_provider.dart';
 class ChatProvider with ChangeNotifier {
   final ChatService _chatService = ChatService();
   
+  bool _disposed = false;
+  
   AuthProvider? _authProvider;
   
   List<Conversation> _conversations = [];
@@ -32,6 +34,21 @@ class ChatProvider with ChangeNotifier {
   bool get isSending => _isSending;
   String? get error => _error;
   int get unreadCount => _unreadCount;
+  
+  void _safeNotify() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_disposed) {
+        notifyListeners();
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _disposed = true;
+    stopPolling();
+    super.dispose();
+  }
   
   void updateAuth(AuthProvider auth) {
     _authProvider = auth;
@@ -80,7 +97,7 @@ class ChatProvider with ChangeNotifier {
   Future<void> fetchConversations() async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _chatService.getConversations();
     
@@ -92,7 +109,7 @@ class ChatProvider with ChangeNotifier {
       _error = result.error;
     }
     
-    notifyListeners();
+    _safeNotify();
   }
   
   Future<Conversation?> getOrCreateConversation({
@@ -100,7 +117,7 @@ class ChatProvider with ChangeNotifier {
     String? itemId,
   }) async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _chatService.getOrCreateConversation(
       recipientId: recipientId,
@@ -117,19 +134,19 @@ class ChatProvider with ChangeNotifier {
         _conversations.insert(0, result.conversation!);
       }
       
-      notifyListeners();
+      _safeNotify();
       return result.conversation;
     }
     
     _error = result.error;
-    notifyListeners();
+    _safeNotify();
     return null;
   }
   
   Future<void> fetchMessages(String conversationId, {bool silent = false}) async {
     if (!silent) {
       _isLoading = true;
-      notifyListeners();
+      _safeNotify();
     }
     
     final result = await _chatService.getMessages(conversationId);
@@ -140,7 +157,7 @@ class ChatProvider with ChangeNotifier {
     
     if (result.success && result.messages != null) {
       _messages = result.messages!.reversed.toList();
-      notifyListeners();
+      _safeNotify();
     }
   }
   
@@ -149,7 +166,7 @@ class ChatProvider with ChangeNotifier {
     required String content,
   }) async {
     _isSending = true;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _chatService.sendMessage(
       conversationId: conversationId,
@@ -176,7 +193,7 @@ class ChatProvider with ChangeNotifier {
         ));
       }
       
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
@@ -200,7 +217,7 @@ class ChatProvider with ChangeNotifier {
           createdAt: conv.createdAt,
           updatedAt: conv.updatedAt,
         );
-        notifyListeners();
+        _safeNotify();
       }
       await fetchUnreadCount();
     }
@@ -210,31 +227,25 @@ class ChatProvider with ChangeNotifier {
     final count = await _chatService.getUnreadCount();
     if (_unreadCount != count) {
       _unreadCount = count;
-      notifyListeners();
+      _safeNotify();
     }
   }
   
   void setCurrentConversation(Conversation? conversation) {
     _currentConversation = conversation;
     _messages = [];
-    notifyListeners();
+    _safeNotify();
   }
   
   void clearMessages() {
     _messages = [];
     _currentConversation = null;
     stopMessagePolling();
-    notifyListeners();
+    _safeNotify();
   }
   
   void clearError() {
     _error = null;
-    notifyListeners();
-  }
-  
-  @override
-  void dispose() {
-    stopPolling();
-    super.dispose();
+    _safeNotify();
   }
 }
