@@ -1,0 +1,100 @@
+STRICT REPLIT PROMPT – FINAL STABILIZATION FIX
+
+CRITICAL – DO NOT TOUCH ANYTHING OUTSIDE THIS SCOPE
+
+We have a Flutter mobile app that has undergone extensive stabilization over the last two days.
+Any regression will require repeating multiple days of work and is not acceptable.
+
+❌ ABSOLUTE NON-NEGOTIABLE CONSTRAINTS
+
+❌ Do NOT regenerate the Flutter project
+
+❌ Do NOT modify platform folders:
+
+ios/, android/, web/, macos/, windows/
+
+❌ Do NOT run or suggest flutter clean
+
+❌ Do NOT change pubspec versions
+
+❌ Do NOT refactor unrelated code
+
+❌ Do NOT add delays, hacks, or Future.delayed workarounds
+
+🎯 PROBLEM TO FIX (ONE ISSUE ONLY)
+
+We are still seeing this runtime exception:
+
+setState() or markNeedsBuild() called during build
+
+
+Flutter reports:
+
+The RequestsProvider sending notification was:
+Instance of 'RequestsProvider'
+
+
+Context:
+
+notifyListeners() inside RequestsProvider has already been fixed using a safe post-frame callback pattern
+
+Therefore, the remaining cause is:
+RequestsProvider methods are being CALLED during widget build
+
+✅ REQUIRED FIX
+
+Identify where RequestsProvider methods (e.g. fetchRequests / load / init) are being invoked from:
+
+inside a widget build() method
+
+inside a Consumer / watch / Selector builder
+
+Move those calls to a safe lifecycle location:
+
+initState() with WidgetsBinding.instance.addPostFrameCallback
+
+OR a guarded one-time post-frame trigger
+
+Ensure:
+
+No provider method that mutates state is ever called during build()
+
+📂 FILES YOU MAY TOUCH (ONLY IF NECESSARY)
+
+lib/screens/home/home_screen.dart
+
+lib/screens/requests/requests_screen.dart
+
+Any widget that directly triggers RequestsProvider actions
+
+Do NOT touch providers again unless strictly required.
+
+🚫 DO NOT CHANGE
+
+Location flow logic
+
+ItemsProvider logic
+
+AuthProvider logic
+
+Stripe guards
+
+Any UI behavior that already works
+
+✅ GOAL
+
+Eliminate the setState() / markNeedsBuild() crash permanently
+
+Preserve all fixes achieved yesterday and today
+
+Keep the app stable on iOS simulator
+
+📦 DELIVERABLE
+
+Minimal Dart-only diff
+
+Push changes to GitHub
+
+No environment or platform changes
+
+If any constraint cannot be met, stop and ask before proceeding.
