@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -9,6 +10,7 @@ class LocationProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _permissionGranted = false;
+  bool _disposed = false;
   
   Position? get currentPosition => _currentPosition;
   String? get currentAddress => _currentAddress;
@@ -20,11 +22,25 @@ class LocationProvider with ChangeNotifier {
   bool get hasLocation => _currentPosition != null;
   bool get permissionGranted => _permissionGranted;
   
+  void _safeNotify() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_disposed) {
+        notifyListeners();
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+  
   Future<bool> checkPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       _error = 'Location services are disabled';
-      notifyListeners();
+      _safeNotify();
       return false;
     }
     
@@ -33,33 +49,33 @@ class LocationProvider with ChangeNotifier {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         _error = 'Location permission denied';
-        notifyListeners();
+        _safeNotify();
         return false;
       }
     }
     
     if (permission == LocationPermission.deniedForever) {
       _error = 'Location permissions are permanently denied';
-      notifyListeners();
+      _safeNotify();
       return false;
     }
     
     _permissionGranted = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     return true;
   }
   
   Future<bool> getCurrentLocation() async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     try {
       final hasPermission = await checkPermission();
       if (!hasPermission) {
         _isLoading = false;
-        notifyListeners();
+        _safeNotify();
         return false;
       }
       
@@ -71,12 +87,12 @@ class LocationProvider with ChangeNotifier {
       await _reverseGeocode();
       
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return true;
     } catch (e) {
       _error = _parseLocationError(e);
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return false;
     }
   }
@@ -180,7 +196,7 @@ class LocationProvider with ChangeNotifier {
     );
     _currentAddress = address;
     _zipCode = zip;
-    notifyListeners();
+    _safeNotify();
   }
   
   void clearLocation() {
@@ -188,11 +204,11 @@ class LocationProvider with ChangeNotifier {
     _currentAddress = null;
     _zipCode = null;
     _error = null;
-    notifyListeners();
+    _safeNotify();
   }
   
   void clearError() {
     _error = null;
-    notifyListeners();
+    _safeNotify();
   }
 }
