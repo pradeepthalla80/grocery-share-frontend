@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../models/item_request.dart';
 import '../models/pickup_request.dart';
@@ -7,6 +8,8 @@ import 'auth_provider.dart';
 
 class RequestsProvider with ChangeNotifier {
   final RequestsService _requestsService = RequestsService();
+  
+  bool _disposed = false;
   
   AuthProvider? _authProvider;
   
@@ -39,6 +42,20 @@ class RequestsProvider with ChangeNotifier {
   List<PickupRequest> get completedPickups =>
       _pickupRequests.where((r) => r.isCompleted).toList();
   
+  void _safeNotify() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_disposed) {
+        notifyListeners();
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+  
   void updateAuth(AuthProvider auth) {
     _authProvider = auth;
   }
@@ -58,7 +75,7 @@ class RequestsProvider with ChangeNotifier {
     
     _isLoading = _itemRequests.isEmpty;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _requestsService.getItemRequests(
       search: search,
@@ -78,12 +95,12 @@ class RequestsProvider with ChangeNotifier {
       _error = result.error;
     }
     
-    notifyListeners();
+    _safeNotify();
   }
   
   Future<void> fetchMyRequests() async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _requestsService.getMyRequests();
     
@@ -93,13 +110,13 @@ class RequestsProvider with ChangeNotifier {
       _myRequests = result.requests!;
     }
     
-    notifyListeners();
+    _safeNotify();
   }
   
   Future<bool> fetchRequest(String id) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _requestsService.getItemRequest(id);
     
@@ -107,12 +124,12 @@ class RequestsProvider with ChangeNotifier {
     
     if (result.success && result.request != null) {
       _currentRequest = result.request;
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
     _error = result.error;
-    notifyListeners();
+    _safeNotify();
     return false;
   }
   
@@ -133,7 +150,7 @@ class RequestsProvider with ChangeNotifier {
   }) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _requestsService.createRequest(
       title: title,
@@ -155,12 +172,12 @@ class RequestsProvider with ChangeNotifier {
     
     if (result.success && result.request != null) {
       _myRequests.insert(0, result.request!);
-      notifyListeners();
+      _safeNotify();
       return result.request;
     }
     
     _error = result.error;
-    notifyListeners();
+    _safeNotify();
     return null;
   }
   
@@ -175,7 +192,7 @@ class RequestsProvider with ChangeNotifier {
       if (_currentRequest?.id == id) {
         _currentRequest = result.request;
       }
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
@@ -191,7 +208,7 @@ class RequestsProvider with ChangeNotifier {
       if (_currentRequest?.id == id) {
         _currentRequest = null;
       }
-      notifyListeners();
+      _safeNotify();
     }
     
     return success;
@@ -217,7 +234,7 @@ class RequestsProvider with ChangeNotifier {
   
   Future<void> fetchPickupRequests() async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
     
     final result = await _requestsService.getPickupRequests();
     
@@ -227,7 +244,7 @@ class RequestsProvider with ChangeNotifier {
       _pickupRequests = result.requests!;
     }
     
-    notifyListeners();
+    _safeNotify();
   }
   
   Future<PickupRequest?> createPickupRequest({
@@ -243,7 +260,7 @@ class RequestsProvider with ChangeNotifier {
     
     if (result.success && result.request != null) {
       _pickupRequests.insert(0, result.request!);
-      notifyListeners();
+      _safeNotify();
       return result.request;
     }
     
@@ -258,7 +275,7 @@ class RequestsProvider with ChangeNotifier {
       if (index != -1) {
         _pickupRequests[index] = result.request!;
       }
-      notifyListeners();
+      _safeNotify();
       return true;
     }
     
@@ -271,11 +288,11 @@ class RequestsProvider with ChangeNotifier {
   
   void clearCurrentRequest() {
     _currentRequest = null;
-    notifyListeners();
+    _safeNotify();
   }
   
   void clearError() {
     _error = null;
-    notifyListeners();
+    _safeNotify();
   }
 }
