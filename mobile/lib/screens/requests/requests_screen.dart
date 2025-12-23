@@ -22,10 +22,13 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   void _loadData() {
+    if (!mounted) return;
     final locationProvider = context.read<LocationProvider>();
     final requestsProvider = context.read<RequestsProvider>();
     
