@@ -23,11 +23,18 @@ class LocationProvider with ChangeNotifier {
   bool get permissionGranted => _permissionGranted;
   
   void _safeNotify() {
+    if (_disposed) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_disposed) {
         notifyListeners();
       }
     });
+  }
+  
+  void _immediateNotify() {
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
   
   @override
@@ -41,6 +48,7 @@ class LocationProvider with ChangeNotifier {
     if (!serviceEnabled) {
       _error = 'Location services are disabled. Please enable in Settings.';
       _safeNotify();
+      await Geolocator.openLocationSettings();
       return false;
     }
     
@@ -74,43 +82,10 @@ class LocationProvider with ChangeNotifier {
     return true;
   }
   
-  Future<bool> requestPermission() async {
-    _error = null;
-    _safeNotify();
-    
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      _error = 'Location services are disabled';
-      _safeNotify();
-      await Geolocator.openLocationSettings();
-      return false;
-    }
-    
-    LocationPermission permission = await Geolocator.checkPermission();
-    
-    if (permission == LocationPermission.deniedForever) {
-      await Geolocator.openAppSettings();
-      return false;
-    }
-    
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    
-    if (permission == LocationPermission.whileInUse || 
-        permission == LocationPermission.always) {
-      _permissionGranted = true;
-      _safeNotify();
-      return true;
-    }
-    
-    return false;
-  }
-  
   Future<bool> getCurrentLocation() async {
     _isLoading = true;
     _error = null;
-    _safeNotify();
+    _immediateNotify();
     
     try {
       final hasPermission = await checkPermission();
@@ -250,6 +225,6 @@ class LocationProvider with ChangeNotifier {
   
   void clearError() {
     _error = null;
-    _safeNotify();
+    _immediateNotify();
   }
 }
