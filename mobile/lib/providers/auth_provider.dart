@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../models/user.dart';
 import '../services/auth_service.dart';
@@ -28,7 +29,7 @@ class AuthProvider with ChangeNotifier {
     if (_isInitialized) return;
     
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     
     final result = await _authService.getCurrentUser();
     if (result.success && result.user != null) {
@@ -37,7 +38,13 @@ class AuthProvider with ChangeNotifier {
     
     _isLoading = false;
     _isInitialized = true;
-    notifyListeners();
+    _safeNotifyListeners();
+  }
+  
+  void _safeNotifyListeners() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
   
   Future<bool> login(String email, String password) async {

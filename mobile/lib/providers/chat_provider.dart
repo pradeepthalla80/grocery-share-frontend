@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../config/app_config.dart';
 import '../models/message.dart';
@@ -35,7 +36,9 @@ class ChatProvider with ChangeNotifier {
   void updateAuth(AuthProvider auth) {
     _authProvider = auth;
     if (auth.isAuthenticated) {
-      startPolling();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        startPolling();
+      });
     } else {
       stopPolling();
       _conversations = [];
