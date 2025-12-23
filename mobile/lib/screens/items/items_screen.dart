@@ -76,8 +76,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
-  void _requestLocationPermission() async {
+  Future<void> _requestLocationPermission() async {
+    if (!mounted) return;
+    
     final locationProvider = context.read<LocationProvider>();
+    
+    locationProvider.clearError();
+    
     final success = await locationProvider.getCurrentLocation();
     
     if (success && mounted) {

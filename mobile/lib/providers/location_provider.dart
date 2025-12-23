@@ -39,31 +39,72 @@ class LocationProvider with ChangeNotifier {
   Future<bool> checkPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _error = 'Location services are disabled';
+      _error = 'Location services are disabled. Please enable in Settings.';
       _safeNotify();
       return false;
     }
     
     LocationPermission permission = await Geolocator.checkPermission();
+    
+    if (permission == LocationPermission.deniedForever) {
+      _error = 'Location permissions are permanently denied. Please enable in Settings.';
+      _safeNotify();
+      await Geolocator.openAppSettings();
+      return false;
+    }
+    
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        _error = 'Location permission denied';
+        _error = 'Location permission denied. Please try again.';
         _safeNotify();
         return false;
       }
-    }
-    
-    if (permission == LocationPermission.deniedForever) {
-      _error = 'Location permissions are permanently denied';
-      _safeNotify();
-      return false;
+      if (permission == LocationPermission.deniedForever) {
+        _error = 'Location permissions are permanently denied. Please enable in Settings.';
+        _safeNotify();
+        await Geolocator.openAppSettings();
+        return false;
+      }
     }
     
     _permissionGranted = true;
     _error = null;
     _safeNotify();
     return true;
+  }
+  
+  Future<bool> requestPermission() async {
+    _error = null;
+    _safeNotify();
+    
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _error = 'Location services are disabled';
+      _safeNotify();
+      await Geolocator.openLocationSettings();
+      return false;
+    }
+    
+    LocationPermission permission = await Geolocator.checkPermission();
+    
+    if (permission == LocationPermission.deniedForever) {
+      await Geolocator.openAppSettings();
+      return false;
+    }
+    
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    
+    if (permission == LocationPermission.whileInUse || 
+        permission == LocationPermission.always) {
+      _permissionGranted = true;
+      _safeNotify();
+      return true;
+    }
+    
+    return false;
   }
   
   Future<bool> getCurrentLocation() async {
