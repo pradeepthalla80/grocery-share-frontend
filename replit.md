@@ -106,3 +106,15 @@ Complete Stripe Connect Express integration for seller payments:
 1. Enable Connect in Stripe Dashboard
 2. Configure Express account settings
 3. Set up Connect webhooks
+
+# Recent Changes (Dec 23, 2025)
+
+## Mobile App - IP-Based Location (Matching Web Behavior)
+- **Auto-location on startup**: App now uses IP-based geolocation (ip-api.com with ipapi.co fallback) to automatically determine user location
+- **No blocking permission flow**: Items load immediately without requiring GPS permission dialog
+- **GPS as optional enhancement**: Users can tap "Use GPS" button for precise location
+- **24-hour location cache**: Location stored in SharedPreferences, valid for 24 hours
+- **Visual indicators**: Globe icon for IP location, pin icon for GPS location
+- **LocationProvider changes**: Added `initializeLocation()`, `getLocationFromIP()`, `upgradeToGPS()`, `isIPLocation` flag
+- **HomeScreen**: Calls `initializeLocation()` instead of `getCurrentLocation()`
+- **ItemsScreen**: Removed blocking "Enable Location" state, shows items immediately with IP location

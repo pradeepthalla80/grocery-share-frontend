@@ -89,6 +89,33 @@ class _ItemsScreenState extends State<ItemsScreen> {
       _fetchItemsWithLocation();
     }
   }
+  
+  Future<void> _retryLocationFetch() async {
+    if (!mounted) return;
+    
+    final locationProvider = context.read<LocationProvider>();
+    locationProvider.clearError();
+    
+    final success = await locationProvider.initializeLocation();
+    
+    if (success && mounted) {
+      _fetchItemsWithLocation();
+    }
+  }
+  
+  Future<void> _upgradeToGPS() async {
+    if (!mounted) return;
+    
+    final locationProvider = context.read<LocationProvider>();
+    locationProvider.clearError();
+    
+    final success = await locationProvider.upgradeToGPS();
+    
+    if (success && mounted) {
+      _hasInitializedItems = false;
+      _fetchItemsWithLocation();
+    }
+  }
 
   void _fetchItemsWithLocation() {
     final locationProvider = context.read<LocationProvider>();
@@ -281,28 +308,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
-  Widget _buildLocationPermissionState(String? error) {
-    final isPermissionDenied = error?.toLowerCase().contains('permission') ?? false;
-    final isServiceDisabled = error?.toLowerCase().contains('service') ?? false;
-
-    String title;
-    String message;
-    IconData icon;
-
-    if (isPermissionDenied) {
-      title = 'Location Permission Required';
-      message = 'We need your location to show nearby items. Please grant location permission.';
-      icon = Icons.location_off;
-    } else if (isServiceDisabled) {
-      title = 'Location Services Disabled';
-      message = 'Please enable location services to find items near you.';
-      icon = Icons.location_disabled;
-    } else {
-      title = 'Unable to Get Location';
-      message = error ?? 'Please try again or check your location settings.';
-      icon = Icons.location_searching;
-    }
-
+  Widget _buildLocationErrorState(String? error) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -310,14 +316,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              icon,
+              Icons.location_searching,
               size: 64,
               color: AppColors.textMuted,
             ),
             const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
+            const Text(
+              'Finding Your Location',
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -325,7 +331,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              error ?? 'We need your location to show nearby items.',
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
@@ -334,9 +340,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: _requestLocationPermission,
-              icon: const Icon(Icons.my_location),
-              label: const Text('Enable Location'),
+              onPressed: _retryLocationFetch,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
             ),
           ],
         ),
@@ -363,10 +369,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
           }
 
           if (!locationProvider.hasLocation) {
-            if (locationProvider.error != null) {
-              return _buildLocationPermissionState(locationProvider.error);
-            }
-            return _buildLocationPermissionState(null);
+            return _buildLocationErrorState(locationProvider.error);
           }
 
           if (!_hasInitializedItems) {
@@ -410,7 +413,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.location_on,
+                        locationProvider.isIPLocation ? Icons.public : Icons.location_on,
                         size: 16,
                         color: AppColors.primary,
                       ),
@@ -426,18 +429,32 @@ class _ItemsScreenState extends State<ItemsScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      TextButton(
-                        onPressed: _requestLocationPermission,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      if (locationProvider.isIPLocation)
+                        TextButton(
+                          onPressed: _upgradeToGPS,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Use GPS',
+                            style: TextStyle(fontSize: 12, color: AppColors.primary),
+                          ),
+                        )
+                      else
+                        TextButton(
+                          onPressed: _requestLocationPermission,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Update',
+                            style: TextStyle(fontSize: 12, color: AppColors.primary),
+                          ),
                         ),
-                        child: Text(
-                          'Update',
-                          style: TextStyle(fontSize: 12, color: AppColors.primary),
-                        ),
-                      ),
                     ],
                   ),
                 ),

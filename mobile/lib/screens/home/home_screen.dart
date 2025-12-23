@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final locationProvider = context.read<LocationProvider>();
     
     if (!locationProvider.hasLocation && !locationProvider.isLoading) {
-      await locationProvider.getCurrentLocation();
+      await locationProvider.initializeLocation();
     }
   }
 

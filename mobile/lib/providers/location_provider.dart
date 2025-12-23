@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class LocationProvider with ChangeNotifier {
   Position? _currentPosition;
@@ -11,6 +14,7 @@ class LocationProvider with ChangeNotifier {
   String? _error;
   bool _permissionGranted = false;
   bool _disposed = false;
+  bool _isIPLocation = false;
   
   Position? get currentPosition => _currentPosition;
   String? get currentAddress => _currentAddress;
@@ -21,6 +25,10 @@ class LocationProvider with ChangeNotifier {
   String? get error => _error;
   bool get hasLocation => _currentPosition != null;
   bool get permissionGranted => _permissionGranted;
+  bool get isIPLocation => _isIPLocation;
+  
+  static const String _locationCacheKey = 'cached_location';
+  static const int _cacheValidityHours = 24;
   
   void _safeNotify() {
     if (_disposed) return;
@@ -41,6 +49,189 @@ class LocationProvider with ChangeNotifier {
   void dispose() {
     _disposed = true;
     super.dispose();
+  }
+  
+  Future<bool> initializeLocation() async {
+    _isLoading = true;
+    _error = null;
+    _immediateNotify();
+    
+    try {
+      final cachedLocation = await _loadCachedLocation();
+      if (cachedLocation != null) {
+        _currentPosition = Position(
+          latitude: cachedLocation['lat'],
+          longitude: cachedLocation['lng'],
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          headingAccuracy: 0,
+          speed: 0,
+          speedAccuracy: 0,
+        );
+        _currentAddress = cachedLocation['address'];
+        _isIPLocation = cachedLocation['isIP'] ?? true;
+        _isLoading = false;
+        _safeNotify();
+        return true;
+      }
+      
+      final success = await getLocationFromIP();
+      _isLoading = false;
+      _safeNotify();
+      return success;
+    } catch (e) {
+      _isLoading = false;
+      _safeNotify();
+      return false;
+    }
+  }
+  
+  Future<bool> getLocationFromIP() async {
+    try {
+      final dio = Dio();
+      dio.options.connectTimeout = const Duration(seconds: 10);
+      dio.options.receiveTimeout = const Duration(seconds: 10);
+      
+      final response = await dio.get('http://ip-api.com/json/?fields=status,lat,lon,city,regionName,zip');
+      
+      if (response.statusCode == 200 && response.data['status'] == 'success') {
+        final data = response.data;
+        final lat = (data['lat'] as num).toDouble();
+        final lng = (data['lon'] as num).toDouble();
+        
+        _currentPosition = Position(
+          latitude: lat,
+          longitude: lng,
+          timestamp: DateTime.now(),
+          accuracy: 5000,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          headingAccuracy: 0,
+          speed: 0,
+          speedAccuracy: 0,
+        );
+        
+        final city = data['city'] ?? '';
+        final region = data['regionName'] ?? '';
+        _zipCode = data['zip'];
+        
+        if (city.isNotEmpty && region.isNotEmpty) {
+          _currentAddress = '$city, $region';
+        } else if (city.isNotEmpty) {
+          _currentAddress = city;
+        } else {
+          _currentAddress = 'Your Location';
+        }
+        
+        _isIPLocation = true;
+        _error = null;
+        
+        await _cacheLocation(lat, lng, _currentAddress!, true);
+        
+        _safeNotify();
+        return true;
+      }
+      
+      return await _tryFallbackIPService();
+    } catch (e) {
+      return await _tryFallbackIPService();
+    }
+  }
+  
+  Future<bool> _tryFallbackIPService() async {
+    try {
+      final dio = Dio();
+      dio.options.connectTimeout = const Duration(seconds: 10);
+      dio.options.receiveTimeout = const Duration(seconds: 10);
+      
+      final response = await dio.get('https://ipapi.co/json/');
+      
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final lat = (data['latitude'] as num?)?.toDouble();
+        final lng = (data['longitude'] as num?)?.toDouble();
+        
+        if (lat != null && lng != null) {
+          _currentPosition = Position(
+            latitude: lat,
+            longitude: lng,
+            timestamp: DateTime.now(),
+            accuracy: 5000,
+            altitude: 0,
+            altitudeAccuracy: 0,
+            heading: 0,
+            headingAccuracy: 0,
+            speed: 0,
+            speedAccuracy: 0,
+          );
+          
+          final city = data['city'] ?? '';
+          final region = data['region'] ?? '';
+          _zipCode = data['postal'];
+          
+          if (city.isNotEmpty && region.isNotEmpty) {
+            _currentAddress = '$city, $region';
+          } else if (city.isNotEmpty) {
+            _currentAddress = city;
+          } else {
+            _currentAddress = 'Your Location';
+          }
+          
+          _isIPLocation = true;
+          _error = null;
+          
+          await _cacheLocation(lat, lng, _currentAddress!, true);
+          
+          _safeNotify();
+          return true;
+        }
+      }
+      
+      _error = 'Unable to determine location';
+      _safeNotify();
+      return false;
+    } catch (e) {
+      _error = 'Unable to determine location';
+      _safeNotify();
+      return false;
+    }
+  }
+  
+  Future<void> _cacheLocation(double lat, double lng, String address, bool isIP) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cacheData = {
+        'lat': lat,
+        'lng': lng,
+        'address': address,
+        'isIP': isIP,
+        'savedAt': DateTime.now().millisecondsSinceEpoch,
+      };
+      await prefs.setString(_locationCacheKey, jsonEncode(cacheData));
+    } catch (_) {}
+  }
+  
+  Future<Map<String, dynamic>?> _loadCachedLocation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(_locationCacheKey);
+      
+      if (cached != null) {
+        final data = jsonDecode(cached) as Map<String, dynamic>;
+        final savedAt = data['savedAt'] as int;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final hoursDiff = (now - savedAt) / (1000 * 60 * 60);
+        
+        if (hoursDiff < _cacheValidityHours) {
+          return data;
+        }
+      }
+    } catch (_) {}
+    return null;
   }
   
   Future<bool> checkPermission() async {
@@ -102,7 +293,18 @@ class LocationProvider with ChangeNotifier {
       
       await _reverseGeocode();
       
+      _isIPLocation = false;
       _isLoading = false;
+      
+      if (_currentPosition != null) {
+        await _cacheLocation(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          _currentAddress ?? 'Your Location',
+          false,
+        );
+      }
+      
       _safeNotify();
       return true;
     } catch (e) {
@@ -111,6 +313,10 @@ class LocationProvider with ChangeNotifier {
       _safeNotify();
       return false;
     }
+  }
+  
+  Future<bool> upgradeToGPS() async {
+    return await getCurrentLocation();
   }
   
   Future<void> _reverseGeocode() async {
@@ -212,6 +418,7 @@ class LocationProvider with ChangeNotifier {
     );
     _currentAddress = address;
     _zipCode = zip;
+    _isIPLocation = false;
     _safeNotify();
   }
   
@@ -220,11 +427,19 @@ class LocationProvider with ChangeNotifier {
     _currentAddress = null;
     _zipCode = null;
     _error = null;
+    _isIPLocation = false;
     _safeNotify();
   }
   
   void clearError() {
     _error = null;
     _immediateNotify();
+  }
+  
+  Future<void> clearCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_locationCacheKey);
+    } catch (_) {}
   }
 }
