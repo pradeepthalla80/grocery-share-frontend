@@ -25,14 +25,14 @@ class ItemsService {
         'limit': limit,
       };
       
-      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+      if (search != null && search.isNotEmpty) queryParams['keyword'] = search;
       if (category != null) queryParams['category'] = category;
       if (tags != null && tags.isNotEmpty) queryParams['tags'] = tags.join(',');
-      if (latitude != null) queryParams['latitude'] = latitude;
-      if (longitude != null) queryParams['longitude'] = longitude;
+      if (latitude != null) queryParams['lat'] = latitude;
+      if (longitude != null) queryParams['lng'] = longitude;
       if (radius != null) queryParams['radius'] = radius;
       if (isFree != null) queryParams['isFree'] = isFree;
-      if (storeOnly != null) queryParams['storeOnly'] = storeOnly;
+      if (storeOnly != null) queryParams['onlyStoreItems'] = storeOnly;
       if (sortBy != null) queryParams['sortBy'] = sortBy;
       
       final response = await _api.get('/items', queryParameters: queryParams);
@@ -73,8 +73,8 @@ class ItemsService {
   }) async {
     try {
       final queryParams = <String, dynamic>{'limit': limit};
-      if (latitude != null) queryParams['latitude'] = latitude;
-      if (longitude != null) queryParams['longitude'] = longitude;
+      if (latitude != null) queryParams['lat'] = latitude;
+      if (longitude != null) queryParams['lng'] = longitude;
       
       final response = await _api.get('/items/recommendations', queryParameters: queryParams);
       final itemsList = response.data['items'] as List<dynamic>? ?? [];
