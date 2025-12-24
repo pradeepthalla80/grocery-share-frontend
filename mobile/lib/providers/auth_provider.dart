@@ -16,6 +16,9 @@ class AuthProvider with ChangeNotifier {
   bool _isInitialized = false;
   String? _error;
   
+  // Flag to prevent re-initialization during external auth flows (Google Sign-In)
+  bool _isInExternalAuthFlow = false;
+  
   User? get user => _user;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
@@ -42,7 +45,8 @@ class AuthProvider with ChangeNotifier {
   }
   
   Future<void> initialize() async {
-    if (_isInitialized) return;
+    // Skip if already initialized or if we're in an external auth flow (Google Sign-In)
+    if (_isInitialized || _isInExternalAuthFlow) return;
     
     _isLoading = true;
     _safeNotify();
@@ -106,22 +110,36 @@ class AuthProvider with ChangeNotifier {
   }
   
   Future<bool> googleSignIn() async {
+    // Mark that we're in an external auth flow to prevent re-initialization
+    _isInExternalAuthFlow = true;
     _isLoading = true;
     _error = null;
     _safeNotify();
     
-    final result = await _authService.googleSignIn();
-    
-    _isLoading = false;
-    if (result.success && result.user != null) {
-      _user = result.user;
+    try {
+      final result = await _authService.googleSignIn();
+      
+      _isLoading = false;
+      _isInExternalAuthFlow = false;
+      
+      if (result.success && result.user != null) {
+        _user = result.user;
+        _safeNotify();
+        return true;
+      }
+      
+      // On failure, preserve auth state - do NOT reset anything
+      // Just set the error and stay on login screen
+      _error = result.error;
       _safeNotify();
-      return true;
+      return false;
+    } catch (e) {
+      _isLoading = false;
+      _isInExternalAuthFlow = false;
+      _error = 'Google sign-in is not yet available on mobile. Please use email/password to sign in.';
+      _safeNotify();
+      return false;
     }
-    
-    _error = result.error;
-    _safeNotify();
-    return false;
   }
   
   Future<void> logout() async {
