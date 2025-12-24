@@ -70,11 +70,12 @@ class AuthService {
       final accessToken = googleAuth.accessToken;
       
       if (idToken == null) {
+        // Sign out of Google to reset state
+        await _googleSignIn.signOut();
         return AuthResult(success: false, error: 'Failed to get Google ID token');
       }
       
-      // Try /auth/google/mobile endpoint first (accepts ID token directly)
-      // Fallback to /auth/google/token if that doesn't exist
+      // Try /auth/google/mobile endpoint (accepts ID token directly)
       try {
         final response = await _api.post('/auth/google/mobile', data: {
           'idToken': idToken,
@@ -92,6 +93,9 @@ class AuthService {
         
         return AuthResult(success: true, user: user, token: token);
       } catch (e) {
+        // Always sign out of Google on backend failure to reset state
+        await _googleSignIn.signOut();
+        
         // Check if it's a 404 (endpoint doesn't exist)
         final errorStr = e.toString();
         if (errorStr.contains('404') || errorStr.contains('Route not found')) {
@@ -101,9 +105,14 @@ class AuthService {
             error: 'Google sign-in is not yet available on mobile. Please use email/password to sign in.',
           );
         }
-        rethrow;
+        // Return parsed error instead of rethrowing
+        return AuthResult(success: false, error: _parseError(e));
       }
     } catch (e) {
+      // Sign out of Google on any error to reset state
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
       return AuthResult(success: false, error: _parseError(e));
     }
   }
