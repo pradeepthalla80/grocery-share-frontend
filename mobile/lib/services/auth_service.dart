@@ -67,22 +67,42 @@ class AuthService {
       
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
       
       if (idToken == null) {
         return AuthResult(success: false, error: 'Failed to get Google ID token');
       }
       
-      final response = await _api.post('/auth/google', data: {
-        'idToken': idToken,
-      });
-      
-      final data = response.data;
-      final token = data['token'];
-      final user = User.fromJson(data['user']);
-      
-      await _api.setToken(token);
-      
-      return AuthResult(success: true, user: user, token: token);
+      // Try /auth/google/mobile endpoint first (accepts ID token directly)
+      // Fallback to /auth/google/token if that doesn't exist
+      try {
+        final response = await _api.post('/auth/google/mobile', data: {
+          'idToken': idToken,
+          'accessToken': accessToken,
+          'email': googleUser.email,
+          'name': googleUser.displayName,
+          'googleId': googleUser.id,
+        });
+        
+        final data = response.data;
+        final token = data['token'];
+        final user = User.fromJson(data['user']);
+        
+        await _api.setToken(token);
+        
+        return AuthResult(success: true, user: user, token: token);
+      } catch (e) {
+        // Check if it's a 404 (endpoint doesn't exist)
+        final errorStr = e.toString();
+        if (errorStr.contains('404') || errorStr.contains('Route not found')) {
+          // Backend doesn't have mobile Google auth endpoint yet
+          return AuthResult(
+            success: false, 
+            error: 'Google sign-in is not yet available on mobile. Please use email/password to sign in.',
+          );
+        }
+        rethrow;
+      }
     } catch (e) {
       return AuthResult(success: false, error: _parseError(e));
     }
