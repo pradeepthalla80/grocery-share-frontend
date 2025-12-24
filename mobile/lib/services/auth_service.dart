@@ -35,12 +35,14 @@ class AuthService {
     required String email,
     required String password,
     String? zipCode,
+    bool acceptedTerms = true,
   }) async {
     try {
       final response = await _api.post('/auth/register', data: {
         'name': name,
         'email': email,
         'password': password,
+        'acceptedTerms': acceptedTerms,
         if (zipCode != null) 'zipCode': zipCode,
       });
       
@@ -149,11 +151,47 @@ class AuthService {
   }
   
   String _parseError(dynamic e) {
-    if (e is Exception) {
-      final message = e.toString();
-      if (message.contains('DioException')) {
-        return 'Network error. Please check your connection.';
+    // Try to extract server error message from DioException
+    if (e.toString().contains('DioException')) {
+      try {
+        // Access response data if available
+        final dynamic response = (e as dynamic).response;
+        if (response != null) {
+          final data = response.data;
+          if (data is Map) {
+            // Try common error message fields
+            if (data['message'] != null) {
+              return data['message'].toString();
+            }
+            if (data['error'] != null) {
+              return data['error'].toString();
+            }
+          }
+          if (data is String && data.isNotEmpty) {
+            return data;
+          }
+        }
+        // Check for connection/timeout errors
+        final String errorString = e.toString();
+        if (errorString.contains('SocketException') || 
+            errorString.contains('Connection refused')) {
+          return 'Unable to connect to server. Please check your internet connection.';
+        }
+        if (errorString.contains('TimeoutException') ||
+            errorString.contains('CONNECT_TIMEOUT') ||
+            errorString.contains('RECEIVE_TIMEOUT')) {
+          return 'Connection timed out. Please try again.';
+        }
+      } catch (_) {
+        // Fallback if we can't parse the error
       }
+      return 'Network error. Please check your connection.';
+    }
+    
+    // Handle other exception types
+    final message = e.toString();
+    if (message.contains('Exception:')) {
+      return message.split('Exception:').last.trim();
     }
     return 'An error occurred. Please try again.';
   }
