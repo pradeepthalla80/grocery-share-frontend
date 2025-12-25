@@ -25,6 +25,11 @@ class _SplashScreenState extends State<SplashScreen> {
     
     if (!mounted) return;
     
+    // Don't navigate if Google Sign-In just failed - stay on login screen
+    if (authProvider.suppressSplashNavigation) {
+      return;
+    }
+    
     if (authProvider.isAuthenticated) {
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } else {

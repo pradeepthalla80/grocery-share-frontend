@@ -19,7 +19,11 @@ class AuthProvider with ChangeNotifier {
   // Flag to prevent re-initialization during external auth flows (Google Sign-In)
   bool _isInExternalAuthFlow = false;
   
+  // Flag to suppress splash navigation after Google Sign-In failure
+  bool _suppressSplashNavigation = false;
+  
   User? get user => _user;
+  bool get suppressSplashNavigation => _suppressSplashNavigation;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   bool get isAuthenticated => _user != null;
@@ -130,12 +134,15 @@ class AuthProvider with ChangeNotifier {
       
       // On failure, preserve auth state - do NOT reset anything
       // Just set the error and stay on login screen
+      // Suppress splash navigation so app doesn't reset to splash
+      _suppressSplashNavigation = true;
       _error = result.error;
       _safeNotify();
       return false;
     } catch (e) {
       _isLoading = false;
       _isInExternalAuthFlow = false;
+      _suppressSplashNavigation = true;
       _error = 'Google sign-in is not yet available on mobile. Please use email/password to sign in.';
       _safeNotify();
       return false;
