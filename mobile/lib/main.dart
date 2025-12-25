@@ -66,18 +66,14 @@ class BaskMateApp extends StatelessWidget {
           update: (_, auth, notifications) => notifications!..updateAuth(auth),
         ),
       ],
-      child: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
-          return MaterialApp(
-            title: 'BaskMate',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.light,
-            home: const SplashScreen(),
-            onGenerateRoute: AppRoutes.generateRoute,
-          );
-        },
+      child: MaterialApp(
+        title: 'BaskMate',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.light,
+        home: const SplashScreen(),
+        onGenerateRoute: AppRoutes.generateRoute,
       ),
     );
   }
