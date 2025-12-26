@@ -79,10 +79,6 @@ class AuthService {
       try {
         final response = await _api.post('/auth/google/mobile', data: {
           'idToken': idToken,
-          'accessToken': accessToken,
-          'email': googleUser.email,
-          'name': googleUser.displayName,
-          'googleId': googleUser.id,
         });
         
         final data = response.data;
