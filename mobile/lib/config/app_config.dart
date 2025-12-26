@@ -3,14 +3,13 @@ class AppConfig {
   static const String appTagline = 'Your Emergency Pantry Next Door';
   
   static const String apiBaseUrl = 'https://grocery-share-backend.onrender.com/api/v1';
+  static const String backendBaseUrl = 'https://grocery-share-backend.onrender.com';
+  
+  static const String googleAuthCallbackScheme = 'groceryshare';
+  static const String googleAuthCallbackUrl = 'groceryshare://auth/callback';
   
   static const String stripePublishableKey = String.fromEnvironment(
     'STRIPE_PUBLISHABLE_KEY',
-    defaultValue: '',
-  );
-  
-  static const String googleClientId = String.fromEnvironment(
-    'GOOGLE_CLIENT_ID',
     defaultValue: '',
   );
   

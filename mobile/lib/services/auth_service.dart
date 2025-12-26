@@ -1,4 +1,4 @@
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 import '../config/app_config.dart';
 import '../models/user.dart';
@@ -6,10 +6,6 @@ import 'api_client.dart';
 
 class AuthService {
   final ApiClient _api = ApiClient();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: AppConfig.googleClientId,
-    scopes: ['email', 'profile'],
-  );
   
   Future<AuthResult> login(String email, String password) async {
     try {
@@ -60,61 +56,41 @@ class AuthService {
   
   Future<AuthResult> googleSignIn() async {
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
+      final authUrl = '${AppConfig.backendBaseUrl}/api/v1/auth/google?platform=mobile';
+      final callbackUrlScheme = AppConfig.googleAuthCallbackScheme;
+      
+      final result = await FlutterWebAuth2.authenticate(
+        url: authUrl,
+        callbackUrlScheme: callbackUrlScheme,
+      );
+      
+      final uri = Uri.parse(result);
+      final token = uri.queryParameters['token'];
+      
+      if (token == null || token.isEmpty) {
+        final error = uri.queryParameters['error'];
+        return AuthResult(
+          success: false, 
+          error: error ?? 'Google sign-in failed. No token received.',
+        );
+      }
+      
+      await _api.setToken(token);
+      
+      final userResult = await getCurrentUser();
+      if (userResult.success && userResult.user != null) {
+        return AuthResult(success: true, user: userResult.user, token: token);
+      }
+      
+      return AuthResult(success: true, token: token);
+    } catch (e) {
+      if (e.toString().contains('CANCELED') || 
+          e.toString().contains('cancelled') ||
+          e.toString().contains('user_cancelled')) {
         return AuthResult(success: false, error: 'Google sign-in cancelled');
       }
-      
-      final googleAuth = await googleUser.authentication;
-      final idToken = googleAuth.idToken;
-      final accessToken = googleAuth.accessToken;
-      
-      if (idToken == null) {
-        // Sign out of Google to reset state
-        await _googleSignIn.signOut();
-        return AuthResult(success: false, error: 'Failed to get Google ID token');
-      }
-      
-      // Try /auth/google/mobile endpoint (accepts ID token directly)
-      try {
-        final response = await _api.post('/auth/google/mobile', data: {
-          'idToken': idToken,
-        });
-        
-        final data = response.data;
-        final token = data['token'];
-        final user = User.fromJson(data['user']);
-        
-        await _api.setToken(token);
-        
-        return AuthResult(success: true, user: user, token: token);
-      } catch (e) {
-        // Always sign out of Google on backend failure to reset state
-        await _googleSignIn.signOut();
-        
-        // Check if it's a 404 (endpoint doesn't exist)
-        final errorStr = e.toString();
-        if (errorStr.contains('404') || errorStr.contains('Route not found')) {
-          // Backend doesn't have mobile Google auth endpoint yet
-          return AuthResult(
-            success: false, 
-            error: 'Google sign-in is not yet available on mobile. Please use email/password to sign in.',
-          );
-        }
-        // Return parsed error instead of rethrowing
-        return AuthResult(success: false, error: _parseError(e));
-      }
-    } catch (e) {
-      // Sign out of Google on any error to reset state
-      try {
-        await _googleSignIn.signOut();
-      } catch (_) {}
       return AuthResult(success: false, error: _parseError(e));
     }
-  }
-  
-  Future<void> googleSignOut() async {
-    await _googleSignIn.signOut();
   }
   
   Future<AuthResult> getCurrentUser() async {
@@ -139,7 +115,6 @@ class AuthService {
       await _api.post('/auth/logout');
     } catch (_) {}
     await _api.clearTokens();
-    await googleSignOut();
   }
   
   Future<bool> forgotPassword(String email) async {
@@ -176,15 +151,12 @@ class AuthService {
   }
   
   String _parseError(dynamic e) {
-    // Try to extract server error message from DioException
     if (e.toString().contains('DioException')) {
       try {
-        // Access response data if available
         final dynamic response = (e as dynamic).response;
         if (response != null) {
           final data = response.data;
           if (data is Map) {
-            // Try common error message fields
             if (data['message'] != null) {
               return data['message'].toString();
             }
@@ -196,7 +168,6 @@ class AuthService {
             return data;
           }
         }
-        // Check for connection/timeout errors
         final String errorString = e.toString();
         if (errorString.contains('SocketException') || 
             errorString.contains('Connection refused')) {
@@ -207,13 +178,10 @@ class AuthService {
             errorString.contains('RECEIVE_TIMEOUT')) {
           return 'Connection timed out. Please try again.';
         }
-      } catch (_) {
-        // Fallback if we can't parse the error
-      }
+      } catch (_) {}
       return 'Network error. Please check your connection.';
     }
     
-    // Handle other exception types
     final message = e.toString();
     if (message.contains('Exception:')) {
       return message.split('Exception:').last.trim();

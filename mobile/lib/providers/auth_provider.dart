@@ -16,14 +16,7 @@ class AuthProvider with ChangeNotifier {
   bool _isInitialized = false;
   String? _error;
   
-  // Flag to prevent re-initialization during external auth flows (Google Sign-In)
-  bool _isInExternalAuthFlow = false;
-  
-  // Flag to suppress splash navigation after Google Sign-In failure
-  bool _suppressSplashNavigation = false;
-  
   User? get user => _user;
-  bool get suppressSplashNavigation => _suppressSplashNavigation;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   bool get isAuthenticated => _user != null;
@@ -49,8 +42,7 @@ class AuthProvider with ChangeNotifier {
   }
   
   Future<void> initialize() async {
-    // Skip if already initialized or if we're in an external auth flow (Google Sign-In)
-    if (_isInitialized || _isInExternalAuthFlow) return;
+    if (_isInitialized) return;
     
     _isLoading = true;
     _safeNotify();
@@ -114,8 +106,6 @@ class AuthProvider with ChangeNotifier {
   }
   
   Future<bool> googleSignIn() async {
-    // Mark that we're in an external auth flow to prevent re-initialization
-    _isInExternalAuthFlow = true;
     _isLoading = true;
     _error = null;
     _safeNotify();
@@ -124,7 +114,6 @@ class AuthProvider with ChangeNotifier {
       final result = await _authService.googleSignIn();
       
       _isLoading = false;
-      _isInExternalAuthFlow = false;
       
       if (result.success && result.user != null) {
         _user = result.user;
@@ -132,18 +121,12 @@ class AuthProvider with ChangeNotifier {
         return true;
       }
       
-      // On failure, preserve auth state - do NOT reset anything
-      // Just set the error and stay on login screen
-      // Suppress splash navigation so app doesn't reset to splash
-      _suppressSplashNavigation = true;
       _error = result.error;
       _safeNotify();
       return false;
     } catch (e) {
       _isLoading = false;
-      _isInExternalAuthFlow = false;
-      _suppressSplashNavigation = true;
-      _error = 'Google sign-in is not yet available on mobile. Please use email/password to sign in.';
+      _error = 'Google sign-in failed. Please try again.';
       _safeNotify();
       return false;
     }

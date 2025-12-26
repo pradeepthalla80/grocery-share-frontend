@@ -1,4 +1,26 @@
+modules = ["dart-3.8"]
 [workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "mobile-analysis"
+
+[[workflows.workflow]]
+name = "mobile-analysis"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd mobile && dart pub get && echo \"Flutter mobile project ready. Run 'flutter run' locally on iOS/Android simulator.\""
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [[ports]]
 localPort = 5000
