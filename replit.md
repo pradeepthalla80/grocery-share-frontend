@@ -104,8 +104,32 @@ user: item.user ? {
 - **GitHub** - Source control for both frontend and backend repositories
 
 ### Authentication
-- **Google OAuth** - Social login via Passport.js
+- **Google OAuth** - Social login via Passport.js with HMAC-signed state parameter
 - **JWT** - Token-based authentication stored in cookies
+
+### Mobile OAuth Flow (December 2025)
+The mobile app uses a web-based OAuth flow via `flutter_web_auth_2` to avoid iOS lifecycle issues:
+
+1. Mobile app opens `backend.com/api/v1/auth/google?platform=mobile`
+2. Backend creates HMAC-signed state with platform flag and redirects to Google
+3. After Google consent, backend callback verifies state signature and timestamp
+4. For mobile: redirects to `groceryshare://auth/callback?token=...`
+5. For web: redirects to frontend URL with token in cookie
+
+**Android Setup Required:**
+Add to AndroidManifest.xml:
+```xml
+<activity android:name="com.linusu.flutter_web_auth_2.CallbackActivity" android:exported="true">
+  <intent-filter android:label="flutter_web_auth_2">
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data android:scheme="groceryshare" />
+  </intent-filter>
+</activity>
+```
+
+**iOS:** Works automatically via ASWebAuthenticationSession (no manifest changes needed)
 
 ### Environment Variables Required
 ```

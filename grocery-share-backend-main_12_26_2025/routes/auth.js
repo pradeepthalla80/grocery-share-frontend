@@ -1,10 +1,42 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const { register, login, changePassword } = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const passport = require('../config/passport');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+
+// Helper functions for OAuth state signing
+function signState(data) {
+  const secret = process.env.JWT_SECRET || 'default-secret';
+  const payload = JSON.stringify(data);
+  const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  return Buffer.from(JSON.stringify({ payload, signature })).toString('base64');
+}
+
+function verifyState(state) {
+  try {
+    const secret = process.env.JWT_SECRET || 'default-secret';
+    const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
+    const { payload, signature } = decoded;
+    const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    
+    if (signature !== expectedSignature) {
+      return null;
+    }
+    
+    const data = JSON.parse(payload);
+    // Check timestamp freshness (10 minutes max)
+    if (Date.now() - data.ts > 10 * 60 * 1000) {
+      return null;
+    }
+    
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
 
 /**
  * @swagger
@@ -172,13 +204,31 @@ router.get('/me', auth, async (req, res) => {
  */
 router.put('/change-password', auth, changePassword);
 
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+router.get('/google', (req, res, next) => {
+  const platform = req.query.platform === 'mobile' ? 'mobile' : 'web';
+  const state = signState({ platform, ts: Date.now() });
+  
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    state: state
+  })(req, res, next);
+});
 
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login', session: false }),
   (req, res) => {
+    // Verify state parameter is present and valid (CSRF protection)
+    if (!req.query.state) {
+      console.error('OAuth callback missing state parameter');
+      return res.status(400).send('Invalid OAuth state: missing state parameter');
+    }
+    
+    const stateData = verifyState(req.query.state);
+    if (!stateData) {
+      console.error('OAuth callback with invalid or expired state');
+      return res.status(400).send('Invalid OAuth state: signature verification failed or state expired');
+    }
+    
     const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
     const token = jwt.sign(
       { 
@@ -190,7 +240,13 @@ router.get('/google/callback',
       { expiresIn: '7d' }
     );
 
-    // Set HttpOnly cookie for tracking prevention support
+    if (stateData.platform === 'mobile') {
+      // Redirect to mobile app deep link
+      const mobileCallbackUrl = `groceryshare://auth/callback?token=${token}&userId=${req.user._id}&name=${encodeURIComponent(req.user.name)}&email=${encodeURIComponent(req.user.email)}`;
+      return res.redirect(mobileCallbackUrl);
+    }
+
+    // Web flow: Set HttpOnly cookie and redirect to frontend
     res.cookie('grocery_share_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
