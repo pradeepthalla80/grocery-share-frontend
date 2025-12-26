@@ -1,4 +1,4 @@
-modules = ["dart-3.8"]
+modules = ["dart-3.8", "nodejs-20"]
 [workflows]
 runButton = "Project"
 
@@ -28,3 +28,6 @@ externalPort = 80
 
 [agent]
 expertMode = true
+
+[nix]
+channel = "stable-25_05"
