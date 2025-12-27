@@ -57,6 +57,13 @@ Preferred communication style: Simple, everyday language.
 - Stripe SDK integration
 - Location services for nearby item discovery
 
+**Mobile UI Navigation (December 2025):**
+- Hamburger menu drawer replaces bottom navigation bar
+- Drawer contains: Dashboard, My Listed Items, My Requests, Messages, Pickups, Impact, Admin (role-based), Profile, Settings, Logout
+- Hamburger icon shows aggregated unread badge (notifications + messages)
+- Item cards use compact horizontal layout (100px image left, details right)
+- Reduced vertical spacing for higher information density
+
 ### Authorization Patterns
 
 Item ownership verification uses MongoDB ObjectId comparison:
