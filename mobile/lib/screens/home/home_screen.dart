@@ -68,21 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Consumer2<NotificationsProvider, ChatProvider>(
-              builder: (context, notifications, chat, _) {
-                final totalBadge = notifications.unreadCount + chat.unreadCount;
-                return Badge(
-                  isLabelVisible: totalBadge > 0,
-                  label: Text('$totalBadge'),
-                  child: const Icon(Icons.menu),
-                );
-              },
-            ),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        automaticallyImplyLeading: false,
         actions: [
           if (_currentIndex == 0) ...[
             IconButton(
@@ -96,9 +82,24 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
             ),
           ],
+          Builder(
+            builder: (context) => IconButton(
+              icon: Consumer2<NotificationsProvider, ChatProvider>(
+                builder: (context, notifications, chat, _) {
+                  final totalBadge = notifications.unreadCount + chat.unreadCount;
+                  return Badge(
+                    isLabelVisible: totalBadge > 0,
+                    label: Text('$totalBadge'),
+                    child: const Icon(Icons.menu),
+                  );
+                },
+              ),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+            ),
+          ),
         ],
       ),
-      drawer: AppDrawer(
+      endDrawer: AppDrawer(
         currentIndex: _currentIndex,
         onNavigate: _onNavigate,
       ),
