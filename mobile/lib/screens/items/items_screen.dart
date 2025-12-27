@@ -352,17 +352,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('BaskMate'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
-          ),
-        ],
-      ),
-      body: Consumer2<LocationProvider, ItemsProvider>(
+    return Consumer2<LocationProvider, ItemsProvider>(
         builder: (context, locationProvider, itemsProvider, _) {
           if (locationProvider.isLoading) {
             return _buildLocationLoadingState();
@@ -381,7 +371,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                 child: Row(
                   children: [
                     Expanded(
@@ -409,7 +399,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
               if (locationProvider.currentAddress != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     children: [
                       Icon(
@@ -465,7 +455,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ],
           );
         },
-      ),
     );
   }
 
@@ -509,7 +498,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         );
       },
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         itemCount: provider.items.length + (provider.hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == provider.items.length) {
@@ -521,7 +510,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             }
             return const Center(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(12),
                 child: CircularProgressIndicator(),
               ),
             );
@@ -529,7 +518,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
           final item = provider.items[index];
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 8),
             child: ItemCard(
               item: item,
               onTap: () {

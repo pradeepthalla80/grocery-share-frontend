@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/notifications_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../widgets/common/app_drawer.dart';
 import '../items/items_screen.dart';
 import '../requests/requests_screen.dart';
 import '../chat/conversations_screen.dart';
@@ -21,12 +22,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Widget> _screens = [
     const ItemsScreen(),
     const RequestsScreen(),
     const ConversationsScreen(),
     const ProfileScreen(),
+  ];
+
+  final List<String> _titles = [
+    'BaskMate',
+    'Requests',
+    'Messages',
+    'Profile',
   ];
 
   @override
@@ -47,62 +56,55 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _onNavigate(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: Text(_titles[_currentIndex]),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Consumer2<NotificationsProvider, ChatProvider>(
+              builder: (context, notifications, chat, _) {
+                final totalBadge = notifications.unreadCount + chat.unreadCount;
+                return Badge(
+                  isLabelVisible: totalBadge > 0,
+                  label: Text('$totalBadge'),
+                  child: const Icon(Icons.menu),
+                );
+              },
+            ),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        actions: [
+          if (_currentIndex == 0) ...[
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.notifications),
+            ),
+          ],
+          if (_currentIndex == 3) ...[
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
+            ),
+          ],
+        ],
+      ),
+      drawer: AppDrawer(
+        currentIndex: _currentIndex,
+        onNavigate: _onNavigate,
+      ),
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
-      ),
-      bottomNavigationBar: Consumer3<NotificationsProvider, ChatProvider, AuthProvider>(
-        builder: (context, notifications, chat, auth, _) {
-          return BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.list_alt_outlined),
-                activeIcon: Icon(Icons.list_alt),
-                label: 'Requests',
-              ),
-              BottomNavigationBarItem(
-                icon: Badge(
-                  isLabelVisible: chat.unreadCount > 0,
-                  label: Text('${chat.unreadCount}'),
-                  child: const Icon(Icons.chat_bubble_outline),
-                ),
-                activeIcon: Badge(
-                  isLabelVisible: chat.unreadCount > 0,
-                  label: Text('${chat.unreadCount}'),
-                  child: const Icon(Icons.chat_bubble),
-                ),
-                label: 'Chat',
-              ),
-              BottomNavigationBarItem(
-                icon: Badge(
-                  isLabelVisible: notifications.unreadCount > 0,
-                  label: Text('${notifications.unreadCount}'),
-                  child: const Icon(Icons.person_outline),
-                ),
-                activeIcon: Badge(
-                  isLabelVisible: notifications.unreadCount > 0,
-                  label: Text('${notifications.unreadCount}'),
-                  child: const Icon(Icons.person),
-                ),
-                label: 'Profile',
-              ),
-            ],
-          );
-        },
       ),
       floatingActionButton: _currentIndex == 0 || _currentIndex == 1
           ? FloatingActionButton(

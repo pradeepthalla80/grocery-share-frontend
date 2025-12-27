@@ -1,0 +1,103 @@
+Phase 2 – Mobile UI Alignment & UX Density Improvements
+Objective
+
+Align the Flutter mobile app UI with the mobile web experience to improve usability, information density, and navigation consistency across platforms.
+
+The goal is UX parity, not a redesign.
+
+Key Requirements
+1. Dashboard Layout (Primary Screen)
+
+Treat Dashboard as the main landing screen on mobile
+
+Match the mobile web dashboard structure:
+
+Search + filters at the top
+
+Item list immediately visible below
+
+Avoid introducing additional navigation layers or modal-heavy flows
+
+2. Item List Density & Card Layout
+
+Redesign mobile item cards to be more compact, similar to mobile web
+
+Reduce vertical spacing so more items are visible per screen
+
+Preserve all essential information:
+
+Item image
+
+Item name
+
+Price / FREE
+
+Distance
+
+Category
+
+Store indicator (if applicable)
+
+Prefer inline labels / chips over stacked blocks
+
+Keep interaction targets accessible and touch-friendly
+
+3. Navigation Structure
+
+Use a top-right hamburger menu as the primary navigation entry
+
+Menu should include (same as web):
+
+Dashboard
+
+My Listed Items
+
+My Requests
+
+Messages
+
+Pickups
+
+Impact
+
+Admin (role-based)
+
+Logout
+
+Remove navigation responsibility from the Profile screen where possible
+
+Maintain consistent menu structure across web and mobile
+
+4. Visual & Behavioral Consistency
+
+Follow the existing design language (colors, icons, spacing)
+
+Do not introduce new design systems unless necessary
+
+Ensure iOS and Android behave consistently
+
+Avoid platform-specific UI divergence unless technically required
+
+5. Scope Guardrails
+
+No backend changes required for this phase
+
+No feature removals
+
+No major state management refactors
+
+Focus purely on UI layout, spacing, and navigation alignment
+
+Success Criteria
+
+Mobile app visually resembles the mobile web app experience
+
+Users can scan items faster with less scrolling
+
+Navigation feels intuitive and uncluttered
+
+Web and mobile feel like the same product, not two different apps
+
+Notes
+
+Use judgment to implement this cleanly. The intent is clarity, density, and usability—not pixel-perfect duplication.
