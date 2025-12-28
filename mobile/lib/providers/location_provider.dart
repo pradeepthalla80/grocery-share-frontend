@@ -296,10 +296,11 @@ class LocationProvider with ChangeNotifier {
       _isIPLocation = false;
       _isLoading = false;
       
-      if (_currentPosition != null) {
+      final pos = _currentPosition;
+      if (pos != null) {
         await _cacheLocation(
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
+          pos.latitude,
+          pos.longitude,
           _currentAddress ?? 'Your Location',
           false,
         );
@@ -320,12 +321,13 @@ class LocationProvider with ChangeNotifier {
   }
   
   Future<void> _reverseGeocode() async {
-    if (_currentPosition == null) return;
+    final pos = _currentPosition;
+    if (pos == null) return;
     
     try {
       final placemarks = await placemarkFromCoordinates(
-        _currentPosition!.latitude,
-        _currentPosition!.longitude,
+        pos.latitude,
+        pos.longitude,
       );
       
       if (placemarks.isNotEmpty) {
@@ -334,7 +336,7 @@ class LocationProvider with ChangeNotifier {
         _currentAddress = _formatAddress(place);
       }
     } catch (e) {
-      _currentAddress = '${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}';
+      _currentAddress = '${pos.latitude.toStringAsFixed(4)}, ${pos.longitude.toStringAsFixed(4)}';
     }
   }
   
