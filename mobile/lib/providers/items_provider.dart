@@ -242,8 +242,14 @@ class ItemsProvider with ChangeNotifier {
     return null;
   }
   
-  Future<bool> updateItem(String id, Map<String, dynamic> updates) async {
-    final result = await _itemsService.updateItem(id, updates);
+  Future<bool> updateItem(String id, Map<String, dynamic> updates, {List<dynamic>? newImages}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
+    final result = await _itemsService.updateItem(id, updates, newImagePaths: newImages?.map((i) => i.path as String).toList());
+    
+    _isLoading = false;
     
     if (result.success && result.item != null) {
       final index = _myItems.indexWhere((i) => i.id == id);
@@ -257,6 +263,8 @@ class ItemsProvider with ChangeNotifier {
       return true;
     }
     
+    _error = result.error;
+    notifyListeners();
     return false;
   }
   

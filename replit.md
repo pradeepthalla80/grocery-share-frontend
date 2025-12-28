@@ -77,6 +77,14 @@ Preferred communication style: Simple, everyday language.
 - **Add Item Seller Helper**: Added info box below price field showing Stripe account status - links to seller onboarding if not connected, or shows "connected" badge if already set up.
 - **Location Preview**: Added visual preview container showing current location status before address input field.
 
+**Phase 3 Runtime Fixes (December 2025):**
+- **Edit Item Screen**: Complete implementation with form fields, existing image management (keep/remove), new image uploads, location picker, and API integration. Uses multipart form data with `key[]` notation for proper array field parsing.
+- **Buy Now / Request Button**: Fixed dual-flow logic:
+  - Free items: Shows message dialog → creates pickup request → opens chat with seller
+  - Paid items: Initializes Stripe payment sheet → processes payment → creates pickup request → opens chat
+- **Multipart Form Arrays**: Updated ItemsService.updateItem to use `key[]` notation (e.g., `existingImages[]`) for List fields instead of comma-separated strings. This ensures backend properly parses arrays.
+- **Analytics Fallback**: Analytics service returns zeroed fallback data when `/analytics/community-impact` endpoint doesn't exist, preventing crashes.
+
 ### Authorization Patterns
 
 Item ownership verification uses MongoDB ObjectId comparison:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 import '../../config/theme.dart';
 import '../../config/routes.dart';
@@ -9,6 +10,8 @@ import '../../models/item.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../../services/payment_service.dart';
+import '../../services/requests_service.dart';
 import '../../widgets/common/loading_button.dart';
 
 class ItemDetailScreen extends StatefulWidget {
@@ -23,6 +26,9 @@ class ItemDetailScreen extends StatefulWidget {
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   int _currentImageIndex = 0;
   final PageController _pageController = PageController();
+  final PaymentService _paymentService = PaymentService();
+  final RequestsService _requestsService = RequestsService();
+  bool _isProcessingPayment = false;
 
   @override
   void initState() {
@@ -38,7 +44,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     super.dispose();
   }
 
-  Future<void> _contactSeller(Item item) async {
+  Future<void> _handleItemAction(Item item) async {
     final auth = context.read<AuthProvider>();
     if (!auth.isAuthenticated) {
       Navigator.pushNamed(context, AppRoutes.login);
@@ -52,6 +58,127 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       return;
     }
 
+    if (item.isFree) {
+      await _requestFreeItem(item);
+    } else {
+      await _purchasePaidItem(item);
+    }
+  }
+
+  Future<void> _requestFreeItem(Item item) async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => _RequestMessageDialog(),
+    );
+
+    if (result == null || result.isEmpty || !mounted) return;
+
+    final pickupResult = await _requestsService.createPickupRequest(
+      itemId: item.id,
+      message: result,
+      quantity: 1,
+    );
+
+    if (!mounted) return;
+
+    if (pickupResult.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Request sent! The seller will be notified.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      _openChat(item);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(pickupResult.error ?? 'Failed to send request'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _purchasePaidItem(Item item) async {
+    if (_isProcessingPayment) return;
+
+    setState(() => _isProcessingPayment = true);
+
+    try {
+      final paymentResult = await _paymentService.createPaymentIntent(
+        itemId: item.id,
+        amount: item.price ?? 0,
+        quantity: 1,
+      );
+
+      if (!mounted) return;
+
+      if (!paymentResult.success || paymentResult.clientSecret == null) {
+        setState(() => _isProcessingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(paymentResult.error ?? 'Failed to initialize payment'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: paymentResult.clientSecret,
+          merchantDisplayName: 'BaskMate',
+          style: ThemeMode.system,
+        ),
+      );
+
+      await Stripe.instance.presentPaymentSheet();
+
+      if (!mounted) return;
+
+      final pickupResult = await _requestsService.createPickupRequest(
+        itemId: item.id,
+        message: 'Payment completed. Ready for pickup!',
+        quantity: 1,
+      );
+
+      setState(() => _isProcessingPayment = false);
+
+      if (pickupResult.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment successful! Pickup request created.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        _openChat(item);
+      }
+    } on StripeException catch (e) {
+      setState(() => _isProcessingPayment = false);
+      if (e.error.code != FailureCode.Canceled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.error.localizedMessage ?? 'Payment failed'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isProcessingPayment = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An error occurred during payment'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _openChat(Item item) async {
     final chatProvider = context.read<ChatProvider>();
     final conversation = await chatProvider.getOrCreateConversation(
       recipientId: item.ownerId,
@@ -477,8 +604,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ),
                   ),
                   LoadingButton(
-                    onPressed: () => _contactSeller(item),
-                    isLoading: context.watch<ChatProvider>().isLoading,
+                    onPressed: () => _handleItemAction(item),
+                    isLoading: _isProcessingPayment || context.watch<ChatProvider>().isLoading,
                     label: item.isFree ? 'Request Item' : 'Buy Now',
                     width: 150,
                   ),
@@ -511,6 +638,62 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _RequestMessageDialog extends StatefulWidget {
+  @override
+  State<_RequestMessageDialog> createState() => _RequestMessageDialogState();
+}
+
+class _RequestMessageDialogState extends State<_RequestMessageDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Request Item'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Send a message to the seller about why you\'d like this item:',
+            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            decoration: const InputDecoration(
+              hintText: 'Hi! I\'m interested in this item...',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 3,
+            autofocus: true,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_controller.text.trim().isNotEmpty) {
+              Navigator.pop(context, _controller.text.trim());
+            }
+          },
+          child: const Text('Send Request'),
         ),
       ],
     );

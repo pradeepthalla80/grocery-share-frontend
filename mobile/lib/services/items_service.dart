@@ -185,11 +185,38 @@ class ItemsService {
     }
   }
   
-  Future<ItemResult> updateItem(String id, Map<String, dynamic> updates) async {
+  Future<ItemResult> updateItem(String id, Map<String, dynamic> updates, {List<String>? newImagePaths}) async {
     try {
-      final response = await _api.put('/items/$id', data: updates);
-      final item = Item.fromJson(response.data['item'] ?? response.data);
-      return ItemResult(success: true, item: item);
+      if (newImagePaths != null && newImagePaths.isNotEmpty) {
+        final formData = FormData();
+        
+        updates.forEach((key, value) {
+          if (value != null) {
+            if (value is List) {
+              for (var item in value) {
+                formData.fields.add(MapEntry('$key[]', item.toString()));
+              }
+            } else {
+              formData.fields.add(MapEntry(key, value.toString()));
+            }
+          }
+        });
+        
+        for (int i = 0; i < newImagePaths.length; i++) {
+          formData.files.add(MapEntry(
+            'images',
+            await MultipartFile.fromFile(newImagePaths[i]),
+          ));
+        }
+        
+        final response = await _api.uploadFile('/items/$id', formData: formData);
+        final item = Item.fromJson(response.data['item'] ?? response.data);
+        return ItemResult(success: true, item: item);
+      } else {
+        final response = await _api.put('/items/$id', data: updates);
+        final item = Item.fromJson(response.data['item'] ?? response.data);
+        return ItemResult(success: true, item: item);
+      }
     } catch (e) {
       return ItemResult(success: false, error: _parseError(e));
     }
