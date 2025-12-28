@@ -71,6 +71,12 @@ Preferred communication style: Simple, everyday language.
 - Add Item Screen: Tags input, listing validity period, flexible pickup time, improved location picker with "Use Current Location" button
 - Stripe Seller Onboarding: Lifecycle observer for return detection, incomplete setup handling, better UI feedback states
 
+**Phase 2.2 Functional Parity Fixes (December 2025):**
+- **Item Ownership Detection**: Fixed Item model to parse both 'owner' and 'user' fields from backend, with fallbacks for 'ownerId' and 'userId'. This ensures Edit/Delete buttons show for owners, and Request button shows for other users.
+- **GeoJSON Location Parsing**: Added safe coordinate extraction with type checking to prevent runtime crashes when backend sends malformed location data.
+- **Add Item Seller Helper**: Added info box below price field showing Stripe account status - links to seller onboarding if not connected, or shows "connected" badge if already set up.
+- **Location Preview**: Added visual preview container showing current location status before address input field.
+
 ### Authorization Patterns
 
 Item ownership verification uses MongoDB ObjectId comparison:
