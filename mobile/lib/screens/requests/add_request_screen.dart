@@ -70,6 +70,7 @@ class _AddRequestScreenState extends State<AddRequestScreen> {
 
     final requestsProvider = context.read<RequestsProvider>();
     final locationProvider = context.read<LocationProvider>();
+    final coords = locationProvider.coordinates;
 
     final request = await requestsProvider.createRequest(
       title: _titleController.text.trim(),
@@ -81,8 +82,8 @@ class _AddRequestScreenState extends State<AddRequestScreen> {
           ? double.parse(_maxPriceController.text)
           : null,
       address: _addressController.text.trim(),
-      latitude: locationProvider.latitude,
-      longitude: locationProvider.longitude,
+      latitude: coords?.latitude,
+      longitude: coords?.longitude,
       zipCode: locationProvider.zipCode,
       validUntil: _validUntil,
     );

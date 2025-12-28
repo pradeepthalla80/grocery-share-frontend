@@ -229,9 +229,10 @@ class _EditItemScreenState extends State<EditItemScreen> {
       updateData['pickupTimeEnd'] = _pickupTimeEnd;
     }
 
-    if (locationProvider.latitude != null && locationProvider.longitude != null) {
-      updateData['latitude'] = locationProvider.latitude;
-      updateData['longitude'] = locationProvider.longitude;
+    final coords = locationProvider.coordinates;
+    if (coords != null) {
+      updateData['latitude'] = coords.latitude;
+      updateData['longitude'] = coords.longitude;
     }
 
     final success = await itemsProvider.updateItem(

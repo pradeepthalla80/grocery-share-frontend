@@ -73,6 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     final auth = context.read<AuthProvider>();
     final locationProvider = context.read<LocationProvider>();
+    final coords = locationProvider.coordinates;
 
     if (_newImage != null) {
       await auth.updateProfileImage(_newImage!.path);
@@ -89,8 +90,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'address': _addressController.text.trim().isNotEmpty
           ? _addressController.text.trim()
           : null,
-      'latitude': locationProvider.latitude,
-      'longitude': locationProvider.longitude,
+      'latitude': coords?.latitude,
+      'longitude': coords?.longitude,
     });
 
     setState(() => _isLoading = false);

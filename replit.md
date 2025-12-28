@@ -88,6 +88,12 @@ Preferred communication style: Simple, everyday language.
   - User model now has two getters: `hasStripeAccount` (checks if account exists) and `hasActiveStripeAccount` (checks if account is fully active)
   - Add Item screen now shows appropriate messages: "Stripe Account Required" if no account exists, or "Complete Stripe Setup" if account exists but isn't fully active
   - This allows users to understand exactly what step is blocking them from listing paid items
+- **Dart 3.x Field Promotion Fix**:
+  - LocationProvider now exposes `coordinates` getter returning `({double latitude, double longitude})?` record
+  - Added `hasCoordinates` boolean helper
+  - Removed direct `latitude` and `longitude` getters that caused field promotion errors
+  - All consumer screens updated to use `locationProvider.coordinates?.latitude` pattern
+  - Files updated: items_screen.dart, add_item_screen.dart, edit_item_screen.dart, edit_profile_screen.dart, add_request_screen.dart, requests_screen.dart
 
 ### Authorization Patterns
 

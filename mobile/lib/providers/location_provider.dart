@@ -19,13 +19,22 @@ class LocationProvider with ChangeNotifier {
   Position? get currentPosition => _currentPosition;
   String? get currentAddress => _currentAddress;
   String? get zipCode => _zipCode;
-  double? get latitude => _currentPosition?.latitude;
-  double? get longitude => _currentPosition?.longitude;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasLocation => _currentPosition != null;
   bool get permissionGranted => _permissionGranted;
   bool get isIPLocation => _isIPLocation;
+  
+  /// Dart 3.x safe accessor for coordinates.
+  /// Returns a record with latitude and longitude, or null if no position.
+  ({double latitude, double longitude})? get coordinates {
+    final pos = _currentPosition;
+    if (pos == null) return null;
+    return (latitude: pos.latitude, longitude: pos.longitude);
+  }
+  
+  /// Helper to check if coordinates are available.
+  bool get hasCoordinates => _currentPosition != null;
   
   static const String _locationCacheKey = 'cached_location';
   static const int _cacheValidityHours = 24;
