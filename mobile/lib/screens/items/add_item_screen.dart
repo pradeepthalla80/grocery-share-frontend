@@ -524,6 +524,58 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.info.withOpacity(0.3)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline, size: 18, color: AppColors.info),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Minimum \$${AppConfig.minPaidItemPrice.toStringAsFixed(2)} for paid items.',
+                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 4),
+                          if (!auth.hasStripeAccount)
+                            GestureDetector(
+                              onTap: () => Navigator.pushNamed(context, AppRoutes.sellerOnboarding),
+                              child: const Text(
+                                'Setup seller account to receive payments directly.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            )
+                          else
+                            Row(
+                              children: [
+                                const Icon(Icons.check_circle, size: 14, color: AppColors.success),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  'Seller account connected',
+                                  style: TextStyle(fontSize: 13, color: AppColors.success),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 16),
             ],
 
@@ -671,6 +723,68 @@ class _AddItemScreenState extends State<AddItemScreen> {
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
             const SizedBox(height: 8),
+            
+            Consumer<LocationProvider>(
+              builder: (context, locationProvider, _) {
+                final hasLocation = locationProvider.latitude != null && 
+                                    locationProvider.longitude != null;
+                return Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: hasLocation
+                      ? Stack(
+                          children: [
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.location_on, size: 32, color: AppColors.primary),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Location set',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  if (locationProvider.currentAddress != null)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Text(
+                                        locationProvider.currentAddress!,
+                                        style: const TextStyle(fontSize: 11),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.map_outlined, size: 32, color: AppColors.textMuted),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Set your pickup location below',
+                                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            
             TextFormField(
               controller: _addressController,
               decoration: InputDecoration(

@@ -1,0 +1,99 @@
+Phase-2.2: Mobile Functional Parity Fix (Strict Web Parity Required)
+We tested the mobile app thoroughly after Phase-2 updates. While the UI layout is closer to the web mobile view, many core behaviors are still broken or missing.
+This phase is NOT about styling. It is about functional parity with the web app when viewed on a mobile screen.
+Everything listed below already works on the web app and must work the same way in the mobile app.
+
+🔴 Critical Gaps That Must Be Fixed
+1. Own Item Behavior (Blocking Issue)
+* When logged in as an existing user:
+    * Opening my own listed item still shows “Request Item”
+    * Edit Item option is missing
+* Required behavior (same as web):
+    * Own items must show Edit / Delete
+    * “Request Item” must never appear for own items
+* This is a logic / ownership detection issue, not UI.
+
+2. “Want to Become a Store Owner?” Banner Missing
+* On web (mobile viewport), dashboard shows: “Want to become a store owner?” → Learn More 
+* This banner does not appear at all in the mobile app.
+* Required:
+    * Same conditional logic
+    * Same placement on dashboard
+    * Same navigation behavior
+
+3. Drawer Pages Not Loading Data
+The following pages open via hamburger menu but do not load any data:
+* Impact
+* Messages
+* Admin (all admin sections)
+Required:
+* These pages must load and function exactly like web
+* If backend calls are failing:
+    * Fix endpoint usage
+    * Fix auth headers / token handling
+    * Fix role-based access
+* Existing accounts must see their real data, not placeholders
+
+4. Add Item Flow – Major Parity Gaps
+Add Item page is not functionally equivalent to web mobile view.
+Missing / broken items:
+* ❌ Map preview box (not shown)
+* ❌ Address auto-detection when typing
+* ❌ “Set seller account” helper text under price field (Web shows): Minimum $3.00 for paid items. Setup seller account to receive payments directly 
+* ❌ Tags input (if still missing)
+* ❌ Location UI cues (blue clickable text / set location label) IF MISSING
+All Add Item fields, helpers, validations, and flows must match web behavior exactly.
+
+5. Stripe / Seller Payments – Broken Flow
+Two major issues:
+A. From Add Item
+* On web:
+    * If user lists a paid item without Stripe → prompted to set up Stripe
+    * Redirects to Stripe → returns to app → continues listing
+* On mobile:
+    * This flow is broken or missing
+B. From Profile → Seller Payments
+* Clicking Setup Stripe Account does nothing or throws: “Failed to Stripe account” 
+* Required:
+    * Stripe onboarding must work exactly like web
+    * Redirect → return → refresh state correctly
+    * Existing Stripe-linked users must load status correctly
+
+6. Requests Page Parity
+* Requests page exists but is not behaving like web
+* Required:
+    * Same data
+    * Same actions
+    * Same lifecycle behavior
+
+✅ Non-Negotiable Requirement
+Everything in the mobile app must work the same way as the web app viewed on a mobile screen.
+This includes:
+* Data loading
+* Ownership logic
+* Navigation
+* Stripe onboarding
+* Admin features
+* Error handling
+* Backend integration
+If something works on web and not on mobile:
+* Identify why
+* Fix it
+* Do not downgrade behavior
+
+🧭 Guidance (Not Prescriptive)
+* You may inspect all frontend and backend code
+* You may refactor providers, services, or API wiring
+* You may adjust navigation, lifecycle handling, or auth state
+* You may fix missing API calls or incorrect conditions
+But do not change behavior expectations. Web mobile behavior is the source of truth.
+
+🎯 Deliverable
+* Mobile app where:
+    * Existing users can fully operate
+    * Admin users can fully operate
+    * Sellers can onboard via Stripe
+    * Item lifecycle works end-to-end
+* No placeholders
+* No dead buttons
+* No missing flows

@@ -64,6 +64,32 @@ class Item {
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
+    final ownerData = json['owner'] ?? json['user'];
+    
+    double? parseLat() {
+      if (json['latitude'] != null) return json['latitude']?.toDouble();
+      final location = json['location'];
+      if (location is Map && location['coordinates'] is List) {
+        final coords = location['coordinates'] as List;
+        if (coords.length >= 2 && coords[1] is num) {
+          return (coords[1] as num).toDouble();
+        }
+      }
+      return null;
+    }
+    
+    double? parseLng() {
+      if (json['longitude'] != null) return json['longitude']?.toDouble();
+      final location = json['location'];
+      if (location is Map && location['coordinates'] is List) {
+        final coords = location['coordinates'] as List;
+        if (coords.isNotEmpty && coords[0] is num) {
+          return (coords[0] as num).toDouble();
+        }
+      }
+      return null;
+    }
+    
     return Item(
       id: json['_id'] ?? json['id'] ?? '',
       title: json['title'] ?? '',
@@ -78,8 +104,8 @@ class Item {
       price: json['price']?.toDouble(),
       status: json['status'] ?? 'available',
       address: json['address'],
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
+      latitude: parseLat(),
+      longitude: parseLng(),
       zipCode: json['zipCode'],
       distance: json['distance']?.toDouble(),
       pickupTimeStart: json['pickupTimeStart'],
@@ -94,8 +120,8 @@ class Item {
       validUntil: json['validUntil'] != null 
           ? DateTime.parse(json['validUntil']) 
           : null,
-      owner: json['owner'] != null ? User.fromJson(json['owner']) : null,
-      ownerId: json['owner']?['_id'] ?? json['ownerId'] ?? '',
+      owner: ownerData != null ? User.fromJson(ownerData) : null,
+      ownerId: ownerData?['_id'] ?? ownerData?['id'] ?? json['ownerId'] ?? json['userId'] ?? '',
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
     );
