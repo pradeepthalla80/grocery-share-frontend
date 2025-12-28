@@ -112,7 +112,8 @@ class User {
 
   bool get isAdmin => role == 'admin' || role == 'super_admin';
   bool get isSuperAdmin => role == 'super_admin';
-  bool get hasStripeAccount => stripeAccountId != null && stripeAccountStatus == 'active';
+  bool get hasStripeAccount => stripeAccountId != null && stripeAccountId!.isNotEmpty;
+  bool get hasActiveStripeAccount => stripeAccountId != null && stripeAccountStatus == 'active';
 
   User copyWith({
     String? name,

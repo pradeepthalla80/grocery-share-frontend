@@ -84,6 +84,10 @@ Preferred communication style: Simple, everyday language.
   - Paid items: Initializes Stripe payment sheet → processes payment → creates pickup request → opens chat
 - **Multipart Form Arrays**: Updated ItemsService.updateItem to use `key[]` notation (e.g., `existingImages[]`) for List fields instead of comma-separated strings. This ensures backend properly parses arrays.
 - **Analytics Fallback**: Analytics service returns zeroed fallback data when `/analytics/community-impact` endpoint doesn't exist, preventing crashes.
+- **Stripe Account Check Fix**: 
+  - User model now has two getters: `hasStripeAccount` (checks if account exists) and `hasActiveStripeAccount` (checks if account is fully active)
+  - Add Item screen now shows appropriate messages: "Stripe Account Required" if no account exists, or "Complete Stripe Setup" if account exists but isn't fully active
+  - This allows users to understand exactly what step is blocking them from listing paid items
 
 ### Authorization Patterns
 

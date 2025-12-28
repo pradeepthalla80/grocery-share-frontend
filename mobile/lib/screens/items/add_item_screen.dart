@@ -199,31 +199,61 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     final auth = context.read<AuthProvider>();
     
-    if (!_isFree && !auth.hasStripeAccount) {
-      final goToOnboarding = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Stripe Account Required'),
-          content: const Text(
-            'To sell items, you need to set up a Stripe account to receive payments. Would you like to set it up now?',
+    if (!_isFree) {
+      if (!auth.hasStripeAccount) {
+        final goToOnboarding = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Stripe Account Required'),
+            content: const Text(
+              'To sell items, you need to set up a Stripe account to receive payments. Would you like to set it up now?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Set Up'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Set Up'),
-            ),
-          ],
-        ),
-      );
+        );
 
-      if (goToOnboarding == true && mounted) {
-        Navigator.pushNamed(context, AppRoutes.sellerOnboarding);
+        if (goToOnboarding == true && mounted) {
+          Navigator.pushNamed(context, AppRoutes.sellerOnboarding);
+        }
+        return;
       }
-      return;
+      
+      final user = auth.user;
+      if (user != null && !user.hasActiveStripeAccount) {
+        final goToOnboarding = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Complete Stripe Setup'),
+            content: const Text(
+              'Your Stripe account setup is not complete. Please finish setting up your account to sell items.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Complete Setup'),
+              ),
+            ],
+          ),
+        );
+
+        if (goToOnboarding == true && mounted) {
+          Navigator.pushNamed(context, AppRoutes.sellerOnboarding);
+        }
+        return;
+      }
     }
 
     final itemsProvider = context.read<ItemsProvider>();
