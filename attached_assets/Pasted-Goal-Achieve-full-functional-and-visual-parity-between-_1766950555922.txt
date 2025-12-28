@@ -1,0 +1,193 @@
+Goal: Achieve full functional and visual parity between Mobile App and Web App (mobile screen view)
+
+Context
+
+Mobile UI alignment (hamburger menu, compact item cards) is complete and looks good.
+
+Web app on mobile screen is the reference behavior and UI standard.
+
+Login tested with existing user (1@gmail.com) and admin account.
+
+Current gaps are not cosmetic only — they include missing UI blocks, unreadable styles, broken flows, and non-functional features that already work on web.
+
+High-Level Requirement
+
+👉 The mobile app must behave, look, and function the same as the web app when viewed on a mobile screen.
+If something works on web mobile view, it must work the same way on the mobile app unless there is a strong platform constraint.
+
+🔧 Issues to Fix (Grouped by Area)
+1. Missing UI Blocks (Visual Parity)
+
+Restore the “Want to Become a Store Owner?” + “Learn More” banner on the mobile dashboard.
+
+Placement, wording, and behavior should match the web mobile screen.
+
+2. Readability & Styling Issues
+
+Several text fields, dropdowns, labels, and buttons have:
+
+White text on white background
+
+Low contrast making options unreadable
+
+Fix font color, background color, and disabled/active states so all controls are clearly readable.
+
+This applies to:
+
+Search filters
+
+Category selectors
+
+Item add/edit forms
+
+Toggle switches
+
+Buttons and helper labels
+
+3. Item Ownership Logic (Critical Functional Bug)
+
+When a user opens their own listed item:
+
+It should show Edit / Update / Delete actions
+
+It should NOT show “Request Item”
+
+Currently:
+
+“Request Item” appears on own items
+
+Clicking it does nothing
+
+Fix ownership detection and action rendering to match web behavior.
+
+4. Non-Functional Sections (Messages, Impact, Admin)
+
+Hamburger menu routes exist, but:
+
+Messages, Impact, and Admin pages are not loading data or functioning
+
+These sections must:
+
+Load the same data
+
+Use the same APIs
+
+Behave the same as web mobile view
+
+Admin features should work fully when logged in as admin (not just display menu items).
+
+5. Add Item Flow – Major Gaps
+
+The Add Item screen must match web mobile functionality:
+
+Missing / Broken Features
+
+Google Maps address detection not working
+
+No auto-suggestions when typing address
+
+“Use Current Location” option missing or non-functional
+
+No map preview / location confirmation
+
+Missing fields compared to web:
+
+Tags
+
+Listing validity period
+
+Flexible pickup time
+
+Some buttons/labels are invisible due to styling issues
+
+Requirement
+
+👉 All fields, validations, and flows must match the web app’s mobile screen behavior exactly.
+
+6. Stripe / Seller Payments Flow (Very Important)
+
+On web:
+
+If user lists a paid item and has no Stripe account:
+
+App forces Stripe onboarding
+
+Redirects to Stripe
+
+Returns back automatically after completion
+
+On mobile:
+
+Seller Payments option exists under Profile (good)
+
+But Stripe onboarding is not working
+
+Fix Stripe flow so that:
+
+Paid listing triggers onboarding if needed
+
+Stripe account creation works
+
+User is redirected back correctly
+
+Behavior matches web exactly
+
+7. Admin Functional Parity
+
+Admin menu options are visible
+
+But admin actions are not functional
+
+All admin capabilities available on web must work in mobile app as well.
+
+✅ Acceptance Criteria
+
+Phase-2.1 is complete only when:
+
+Mobile app matches web mobile screen in:
+
+UI blocks
+
+Readability
+
+Item flows
+
+Messaging
+
+Admin
+
+Stripe onboarding
+
+Location & maps
+
+No placeholder screens
+
+No visible but non-working features
+
+No platform-specific regressions
+
+🔍 Guidance (Non-Prescriptive)
+
+You are free to:
+
+Refactor screens
+
+Reuse existing web logic
+
+Align API usage
+
+Adjust providers/state handling
+
+Do not remove features to avoid fixing them.
+
+Treat web mobile view as the single source of truth.
+
+🚀 Deliverable
+
+Push fixes directly to GitHub when complete.
+
+Clearly summarize:
+
+What was fixed
+
+Any known limitations (if unavoidable)

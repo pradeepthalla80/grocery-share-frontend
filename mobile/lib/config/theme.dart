@@ -130,11 +130,38 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.divider,
         selectedColor: AppColors.primary.withOpacity(0.2),
-        labelStyle: const TextStyle(fontSize: 14),
+        labelStyle: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+        secondaryLabelStyle: const TextStyle(fontSize: 14, color: Colors.white),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
+        checkmarkColor: Colors.white,
+      ),
+      dropdownMenuTheme: const DropdownMenuThemeData(
+        textStyle: TextStyle(color: AppColors.textPrimary),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.surface,
+        ),
+      ),
+      popupMenuTheme: const PopupMenuThemeData(
+        color: AppColors.surface,
+        textStyle: TextStyle(color: AppColors.textPrimary),
+      ),
+      listTileTheme: const ListTileThemeData(
+        textColor: AppColors.textPrimary,
+        iconColor: AppColors.textSecondary,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return AppColors.primary;
+          return AppColors.textMuted;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return AppColors.primary.withOpacity(0.5);
+          return AppColors.border;
+        }),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,

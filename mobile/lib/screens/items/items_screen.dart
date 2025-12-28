@@ -6,6 +6,7 @@ import '../../config/routes.dart';
 import '../../config/app_config.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/items/item_card.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/search_bar.dart' as custom;
@@ -368,8 +369,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
             });
           }
 
+          final auth = context.read<AuthProvider>();
+          final showStoreBanner = auth.isAuthenticated && !auth.isStoreOwner;
+          
           return Column(
             children: [
+              if (showStoreBanner)
+                _buildStoreOwnerBanner(context),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                 child: Row(
@@ -531,6 +537,79 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+  
+  Widget _buildStoreOwnerBanner(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.store, AppColors.store.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.store,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Want to Become a Store Owner?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Sell your products to the community',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.storeOnboarding),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: Text(
+              'Learn More',
+              style: TextStyle(
+                color: AppColors.store,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
