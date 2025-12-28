@@ -26,6 +26,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController(text: '1');
   final _addressController = TextEditingController();
+  final _tagController = TextEditingController();
   
   List<XFile> _images = [];
   String _selectedCategory = AppConfig.itemCategories.first;
@@ -38,6 +39,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   DateTime? _validUntil;
   String? _pickupTimeStart;
   String? _pickupTimeEnd;
+  bool _isLocatingAddress = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -61,6 +63,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     _priceController.dispose();
     _quantityController.dispose();
     _addressController.dispose();
+    _tagController.dispose();
     super.dispose();
   }
 
@@ -105,6 +108,82 @@ class _AddItemScreenState extends State<AddItemScreen> {
       setState(() {
         _expiryDate = date;
       });
+    }
+  }
+
+  Future<void> _selectValidUntil() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _validUntil ?? DateTime.now().add(const Duration(days: 30)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (date != null) {
+      setState(() {
+        _validUntil = date;
+      });
+    }
+  }
+
+  Future<void> _selectPickupTime() async {
+    final startTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      helpText: 'Select pickup start time',
+    );
+    
+    if (startTime != null && mounted) {
+      final endTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay(
+          hour: (startTime.hour + 2) % 24,
+          minute: startTime.minute,
+        ),
+        helpText: 'Select pickup end time',
+      );
+      
+      if (endTime != null) {
+        setState(() {
+          _pickupTimeStart = startTime.format(context);
+          _pickupTimeEnd = endTime.format(context);
+        });
+      }
+    }
+  }
+
+  void _addTag() {
+    final tag = _tagController.text.trim();
+    if (tag.isNotEmpty && !_selectedTags.contains(tag)) {
+      setState(() {
+        _selectedTags.add(tag);
+        _tagController.clear();
+      });
+    }
+  }
+
+  void _removeTag(String tag) {
+    setState(() {
+      _selectedTags.remove(tag);
+    });
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() => _isLocatingAddress = true);
+    
+    final locationProvider = context.read<LocationProvider>();
+    final success = await locationProvider.getCurrentLocation();
+    
+    setState(() => _isLocatingAddress = false);
+    
+    if (success && locationProvider.currentAddress != null) {
+      setState(() {
+        _addressController.text = locationProvider.currentAddress!;
+      });
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not get current location')),
+      );
     }
   }
 
@@ -263,10 +342,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.add_photo_alternate, size: 32),
+                            Icon(Icons.add_photo_alternate, size: 32, color: AppColors.textSecondary),
                             Text(
                               '${_images.length}/${AppConfig.maxImagesPerItem}',
-                              style: const TextStyle(fontSize: 12),
+                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -311,8 +390,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
             DropdownButtonFormField<String>(
               value: _selectedCategory,
               decoration: const InputDecoration(labelText: 'Category'),
+              dropdownColor: AppColors.surface,
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
               items: AppConfig.itemCategories.map((category) {
-                return DropdownMenuItem(value: category, child: Text(category));
+                return DropdownMenuItem(
+                  value: category, 
+                  child: Text(category, style: TextStyle(color: AppColors.textPrimary)),
+                );
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
@@ -320,6 +404,51 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 }
               },
             ),
+            const SizedBox(height: 16),
+
+            const Text(
+              'Tags (optional)',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _tagController,
+                    decoration: InputDecoration(
+                      hintText: 'Add a tag...',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onSubmitted: (_) => _addTag(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _addTag,
+                  icon: const Icon(Icons.add_circle),
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
+            if (_selectedTags.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _selectedTags.map((tag) {
+                  return Chip(
+                    label: Text(tag),
+                    deleteIcon: const Icon(Icons.close, size: 16),
+                    onDeleted: () => _removeTag(tag),
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    labelStyle: TextStyle(color: AppColors.primary),
+                    deleteIconColor: AppColors.primary,
+                  );
+                }).toList(),
+              ),
+            ],
             const SizedBox(height: 16),
 
             Row(
@@ -349,7 +478,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       child: TextFormField(
                         decoration: InputDecoration(
                           labelText: 'Expiry Date',
-                          hintText: DateFormat('MMM d, yyyy').format(_expiryDate),
                           suffixIcon: const Icon(Icons.calendar_today),
                         ),
                         controller: TextEditingController(
@@ -437,6 +565,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     onSelected: (selected) {
                       setState(() => _deliveryFee = null);
                     },
+                    selectedColor: AppColors.primary.withOpacity(0.2),
+                    labelStyle: TextStyle(
+                      color: _deliveryFee == null ? AppColors.primary : AppColors.textPrimary,
+                    ),
                   ),
                   ...AppConfig.deliveryFeePresets.map((fee) {
                     return ChoiceChip(
@@ -445,6 +577,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       onSelected: (selected) {
                         setState(() => _deliveryFee = selected ? fee : null);
                       },
+                      selectedColor: AppColors.primary.withOpacity(0.2),
+                      labelStyle: TextStyle(
+                        color: _deliveryFee == fee ? AppColors.primary : AppColors.textPrimary,
+                      ),
                     );
                   }),
                 ],
@@ -452,20 +588,127 @@ class _AddItemScreenState extends State<AddItemScreen> {
               const SizedBox(height: 16),
             ],
 
+            const Divider(height: 32),
+            const Text(
+              'Listing Validity (optional)',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _selectValidUntil,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.event, color: AppColors.textMuted),
+                    const SizedBox(width: 12),
+                    Text(
+                      _validUntil != null 
+                          ? 'Valid until ${DateFormat('MMM d, yyyy').format(_validUntil!)}'
+                          : 'Set listing expiration date',
+                      style: TextStyle(
+                        color: _validUntil != null ? AppColors.textPrimary : AppColors.textMuted,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (_validUntil != null)
+                      GestureDetector(
+                        onTap: () => setState(() => _validUntil = null),
+                        child: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            const Text(
+              'Flexible Pickup Time (optional)',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _selectPickupTime,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.access_time, color: AppColors.textMuted),
+                    const SizedBox(width: 12),
+                    Text(
+                      _pickupTimeStart != null && _pickupTimeEnd != null
+                          ? '$_pickupTimeStart - $_pickupTimeEnd'
+                          : 'Set preferred pickup hours',
+                      style: TextStyle(
+                        color: _pickupTimeStart != null ? AppColors.textPrimary : AppColors.textMuted,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (_pickupTimeStart != null)
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _pickupTimeStart = null;
+                          _pickupTimeEnd = null;
+                        }),
+                        child: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(height: 32),
+
+            const Text(
+              'Pickup Location',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _addressController,
               decoration: InputDecoration(
                 labelText: 'Pickup Address',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.my_location),
-                  onPressed: () async {
-                    final locationProvider = context.read<LocationProvider>();
-                    await locationProvider.getCurrentLocation();
-                    if (locationProvider.currentAddress != null) {
-                      _addressController.text = locationProvider.currentAddress!;
-                    }
-                  },
-                ),
+                hintText: 'Enter your pickup address',
+                suffixIcon: _isLocatingAddress 
+                    ? const SizedBox(
+                        width: 24, 
+                        height: 24, 
+                        child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
+              ),
+              maxLines: 2,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a pickup address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _isLocatingAddress ? null : _useCurrentLocation,
+              icon: _isLocatingAddress 
+                  ? const SizedBox(
+                      width: 16, 
+                      height: 16, 
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.my_location),
+              label: Text(_isLocatingAddress ? 'Getting location...' : 'Use Current Location'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 32),

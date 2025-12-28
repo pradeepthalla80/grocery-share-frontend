@@ -49,13 +49,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Future<void> _loadStats() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     _stats = await _adminService.getDashboardStats();
+    if (!mounted) return;
     setState(() => _isLoading = false);
   }
 
   Future<void> _loadUsers({bool refresh = false}) async {
-    if (_isLoadingUsers) return;
+    if (_isLoadingUsers || !mounted) return;
     
     if (refresh) {
       _usersPage = 1;
@@ -70,6 +72,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ? _userSearchController.text.trim() 
           : null,
     );
+    
+    if (!mounted) return;
     
     setState(() {
       _isLoadingUsers = false;
@@ -86,7 +90,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Future<void> _loadItems({bool refresh = false}) async {
-    if (_isLoadingItems) return;
+    if (_isLoadingItems || !mounted) return;
     
     if (refresh) {
       _itemsPage = 1;
@@ -101,6 +105,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           ? _itemSearchController.text.trim() 
           : null,
     );
+    
+    if (!mounted) return;
     
     setState(() {
       _isLoadingItems = false;

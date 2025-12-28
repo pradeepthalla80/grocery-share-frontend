@@ -58,11 +58,18 @@ Preferred communication style: Simple, everyday language.
 - Location services for nearby item discovery
 
 **Mobile UI Navigation (December 2025):**
-- Hamburger menu drawer replaces bottom navigation bar
+- Top-right hamburger menu drawer replaces bottom navigation bar
 - Drawer contains: Dashboard, My Listed Items, My Requests, Messages, Pickups, Impact, Admin (role-based), Profile, Settings, Logout
 - Hamburger icon shows aggregated unread badge (notifications + messages)
 - Item cards use compact horizontal layout (100px image left, details right)
 - Reduced vertical spacing for higher information density
+- "Want to Become a Store Owner?" banner on dashboard for non-store users
+
+**Phase 2.1 Parity Features (December 2025):**
+- Theme fixes: Improved contrast for ChoiceChips, dropdowns, switches, popups
+- Admin Dashboard: Fully functional Users and Items tabs with search, pagination, role changes, suspend/delete actions
+- Add Item Screen: Tags input, listing validity period, flexible pickup time, improved location picker with "Use Current Location" button
+- Stripe Seller Onboarding: Lifecycle observer for return detection, incomplete setup handling, better UI feedback states
 
 ### Authorization Patterns
 
