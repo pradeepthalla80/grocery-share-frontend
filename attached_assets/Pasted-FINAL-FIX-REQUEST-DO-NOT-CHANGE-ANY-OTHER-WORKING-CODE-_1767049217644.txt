@@ -1,0 +1,85 @@
+FINAL FIX REQUEST – DO NOT CHANGE ANY OTHER WORKING CODE
+
+The Flutter mobile app still fails flutter analyze due to TWO SPECIFIC compile errors. Everything else is already working and MUST NOT be modified.
+
+FIX 1 – INVALID ASSIGNMENT TO Map<String, Object>
+
+File:
+mobile/lib/screens/items/edit_item_screen.dart
+
+Current error:
+“A value of type double? / String? can’t be assigned to a variable of type Object”
+
+Root cause:
+The map used to build update payload is inferred as Map<String, Object>, and nullable values are being assigned directly.
+
+Required fix:
+
+Explicitly declare the map as Map<String, dynamic>
+
+Insert nullable values ONLY after null checks
+
+Concrete requirement:
+
+Declare the map like: final Map<String, dynamic> updateData = {};
+
+Add latitude, longitude, address, etc. ONLY if they are not null
+
+Do NOT insert nullable values directly into the map
+
+Do NOT refactor logic, UI, or flows. Only fix the typing issue.
+
+FIX 2 – STRIPE Card NAME CONFLICT
+
+File:
+mobile/lib/screens/items/item_detail_screen.dart
+
+Current error:
+“Card isn’t a function” and “ambiguous_import”
+
+Root cause:
+Name conflict between Flutter Material Card widget and Stripe Card model.
+
+Required fix:
+
+Alias the flutter_stripe import using a prefix (for example: stripe)
+
+Prefix ALL Stripe usages with that alias
+
+Ensure Flutter UI continues to use the Material Card widget without prefix
+
+Do NOT rename Flutter Card widgets.
+Do NOT remove Stripe functionality.
+Do NOT refactor UI.
+
+DO NOT CHANGE ANY OF THE FOLLOWING:
+
+LocationProvider
+
+upgradeToGPS
+
+latitude / longitude getters
+
+Any working screens, flows, or backend calls
+
+iOS / CocoaPods / Podfile / build scripts
+
+Warnings like withOpacity or prefer_const_constructors
+
+DELIVERABLE:
+
+Apply ONLY the two fixes above
+
+Commit ONLY the affected files
+
+Push to main branch
+
+Verify flutter analyze returns ZERO errors (warnings/info are acceptable)
+
+After push, I will verify locally using:
+git pull origin main
+flutter clean
+flutter pub get
+flutter analyze
+
+If you believe these fixes already exist, re-check the EXACT files and line numbers listed above and re-apply explicitly.

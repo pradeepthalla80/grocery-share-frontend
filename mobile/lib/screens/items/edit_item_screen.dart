@@ -200,7 +200,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
     final locationProvider = context.read<LocationProvider>();
     final itemsProvider = context.read<ItemsProvider>();
 
-    final updateData = {
+    final Map<String, dynamic> updateData = {
       'title': _titleController.text.trim(),
       'description': _descriptionController.text.trim(),
       'category': _selectedCategory,
@@ -219,19 +219,19 @@ class _EditItemScreenState extends State<EditItemScreen> {
     }
 
     if (_offersDelivery && _deliveryFee != null) {
-      updateData['deliveryFee'] = _deliveryFee;
+      updateData['deliveryFee'] = _deliveryFee!;
     }
 
     if (_pickupTimeStart != null) {
-      updateData['pickupTimeStart'] = _pickupTimeStart;
+      updateData['pickupTimeStart'] = _pickupTimeStart!;
     }
     if (_pickupTimeEnd != null) {
-      updateData['pickupTimeEnd'] = _pickupTimeEnd;
+      updateData['pickupTimeEnd'] = _pickupTimeEnd!;
     }
 
     if (locationProvider.latitude != null && locationProvider.longitude != null) {
-      updateData['latitude'] = locationProvider.latitude;
-      updateData['longitude'] = locationProvider.longitude;
+      updateData['latitude'] = locationProvider.latitude!;
+      updateData['longitude'] = locationProvider.longitude!;
     }
 
     final success = await itemsProvider.updateItem(
