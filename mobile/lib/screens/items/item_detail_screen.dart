@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 
 import '../../config/theme.dart';
 import '../../config/routes.dart';
@@ -124,15 +124,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         return;
       }
 
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: paymentResult.clientSecret,
           merchantDisplayName: 'BaskMate',
           style: ThemeMode.system,
         ),
       );
 
-      await Stripe.instance.presentPaymentSheet();
+      await stripe.Stripe.instance.presentPaymentSheet();
 
       if (!mounted) return;
 
@@ -153,9 +153,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         );
         _openChat(item);
       }
-    } on StripeException catch (e) {
+    } on stripe.StripeException catch (e) {
       setState(() => _isProcessingPayment = false);
-      if (e.error.code != FailureCode.Canceled) {
+      if (e.error.code != stripe.FailureCode.Canceled) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

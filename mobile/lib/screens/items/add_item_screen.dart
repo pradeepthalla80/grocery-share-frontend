@@ -258,7 +258,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     final itemsProvider = context.read<ItemsProvider>();
     final locationProvider = context.read<LocationProvider>();
-    final coords = locationProvider.coordinates;
 
     final item = await itemsProvider.createItem(
       title: _titleController.text.trim(),
@@ -271,8 +270,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
       isFree: _isFree,
       price: !_isFree ? double.parse(_priceController.text) : null,
       address: _addressController.text.trim(),
-      latitude: coords?.latitude,
-      longitude: coords?.longitude,
+      latitude: locationProvider.latitude,
+      longitude: locationProvider.longitude,
       zipCode: locationProvider.zipCode,
       isStoreItem: _isStoreItem,
       offersDelivery: _offersDelivery,
@@ -757,7 +756,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             
             Consumer<LocationProvider>(
               builder: (context, locationProvider, _) {
-                final hasLocation = locationProvider.hasCoordinates;
+                final hasLocation = locationProvider.hasLocation;
                 return Container(
                   height: 120,
                   decoration: BoxDecoration(

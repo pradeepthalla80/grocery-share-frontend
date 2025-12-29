@@ -31,11 +31,10 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
     if (!mounted) return;
     final locationProvider = context.read<LocationProvider>();
     final requestsProvider = context.read<RequestsProvider>();
-    final coords = locationProvider.coordinates;
     
     requestsProvider.fetchItemRequests(
-      latitude: coords?.latitude,
-      longitude: coords?.longitude,
+      latitude: locationProvider.latitude,
+      longitude: locationProvider.longitude,
     );
     requestsProvider.fetchPickupRequests();
   }
@@ -92,10 +91,9 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
         return RefreshIndicator(
           onRefresh: () async {
             final locationProvider = context.read<LocationProvider>();
-            final coords = locationProvider.coordinates;
             await provider.fetchItemRequests(
-              latitude: coords?.latitude,
-              longitude: coords?.longitude,
+              latitude: locationProvider.latitude,
+              longitude: locationProvider.longitude,
               refresh: true,
             );
           },

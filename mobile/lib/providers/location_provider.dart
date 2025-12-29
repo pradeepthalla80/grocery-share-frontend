@@ -25,20 +25,8 @@ class LocationProvider with ChangeNotifier {
   bool get permissionGranted => _permissionGranted;
   bool get isIPLocation => _isIPLocation;
   
-  /// Backward-compatible getters for latitude and longitude.
   double? get latitude => _currentPosition?.latitude;
   double? get longitude => _currentPosition?.longitude;
-  
-  /// Dart 3.x safe accessor for coordinates.
-  /// Returns a record with latitude and longitude, or null if no position.
-  ({double latitude, double longitude})? get coordinates {
-    final pos = _currentPosition;
-    if (pos == null) return null;
-    return (latitude: pos.latitude, longitude: pos.longitude);
-  }
-  
-  /// Helper to check if coordinates are available.
-  bool get hasCoordinates => _currentPosition != null;
   
   static const String _locationCacheKey = 'cached_location';
   static const int _cacheValidityHours = 24;

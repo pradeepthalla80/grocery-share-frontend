@@ -35,9 +35,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
   void _applyFilters() {
     final itemsProvider = context.read<ItemsProvider>();
     final locationProvider = context.read<LocationProvider>();
-    final coords = locationProvider.coordinates;
 
-    if (coords == null) return;
+    if (locationProvider.latitude == null || locationProvider.longitude == null) return;
 
     itemsProvider.setFilters(
       search: _searchController.text.trim().isNotEmpty
@@ -50,8 +49,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
 
     itemsProvider.fetchItems(
-      latitude: coords.latitude,
-      longitude: coords.longitude,
+      latitude: locationProvider.latitude,
+      longitude: locationProvider.longitude,
       refresh: true,
     );
   }
@@ -67,14 +66,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     final itemsProvider = context.read<ItemsProvider>();
     final locationProvider = context.read<LocationProvider>();
-    final coords = locationProvider.coordinates;
 
-    if (coords == null) return;
+    if (locationProvider.latitude == null || locationProvider.longitude == null) return;
 
     itemsProvider.clearFilters();
     itemsProvider.fetchItems(
-      latitude: coords.latitude,
-      longitude: coords.longitude,
+      latitude: locationProvider.latitude,
+      longitude: locationProvider.longitude,
       refresh: true,
     );
   }
@@ -123,18 +121,17 @@ class _ItemsScreenState extends State<ItemsScreen> {
   void _fetchItemsWithLocation() {
     final locationProvider = context.read<LocationProvider>();
     final itemsProvider = context.read<ItemsProvider>();
-    final coords = locationProvider.coordinates;
 
-    if (coords != null) {
+    if (locationProvider.latitude != null && locationProvider.longitude != null) {
       _hasInitializedItems = true;
       itemsProvider.fetchItems(
-        latitude: coords.latitude,
-        longitude: coords.longitude,
+        latitude: locationProvider.latitude,
+        longitude: locationProvider.longitude,
         refresh: true,
       );
       itemsProvider.fetchRecommendations(
-        latitude: coords.latitude,
-        longitude: coords.longitude,
+        latitude: locationProvider.latitude,
+        longitude: locationProvider.longitude,
       );
     }
   }
@@ -479,10 +476,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
         message: provider.error!,
         actionLabel: 'Try Again',
         onAction: () {
-          final coords = locationProvider.coordinates;
           provider.fetchItems(
-            latitude: coords?.latitude,
-            longitude: coords?.longitude,
+            latitude: locationProvider.latitude,
+            longitude: locationProvider.longitude,
             refresh: true,
           );
         },
@@ -499,12 +495,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
       );
     }
 
-    final coords = locationProvider.coordinates;
     return RefreshIndicator(
       onRefresh: () async {
         await provider.fetchItems(
-          latitude: coords?.latitude,
-          longitude: coords?.longitude,
+          latitude: locationProvider.latitude,
+          longitude: locationProvider.longitude,
           refresh: true,
         );
       },
@@ -515,8 +510,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
           if (index == provider.items.length) {
             if (!provider.isLoadingMore) {
               provider.loadMore(
-                latitude: coords?.latitude,
-                longitude: coords?.longitude,
+                latitude: locationProvider.latitude,
+                longitude: locationProvider.longitude,
               );
             }
             return const Center(
