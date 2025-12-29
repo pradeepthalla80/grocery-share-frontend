@@ -1,0 +1,83 @@
+IMPORTANT:
+Do NOT refactor, redesign, or change any working logic.
+Fix ONLY the compile/analyzer errors listed below.
+Do NOT introduce new APIs or remove existing ones.
+Validate using `flutter analyze` before pushing.
+
+-----------------------------------
+FIX 1 — Map<String, Object> errors
+-----------------------------------
+File:
+mobile/lib/screens/items/edit_item_screen.dart
+
+Errors:
+"A value of type 'double?' can't be assigned to a variable of type 'Object'"
+"A value of type 'String?' can't be assigned to a variable of type 'Object'"
+
+Action:
+- Find any map declared as:
+  Map<String, Object>
+- Change it to:
+  Map<String, dynamic>
+- Do NOT change keys or values
+- Do NOT add null assertions
+- ONLY change the map type
+
+-----------------------------------
+FIX 2 — Stripe Card name conflict
+-----------------------------------
+File:
+mobile/lib/screens/items/item_detail_screen.dart
+
+Errors:
+'Card' isn't a function
+ambiguous_import (Flutter Card vs Stripe Card)
+
+Action:
+- Alias the Stripe import:
+  import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+- Prefix ONLY Stripe-related usages:
+  stripe.Stripe.instance
+  stripe.SetupPaymentSheetParameters
+  stripe.StripeException
+- Do NOT touch Flutter Card widgets
+
+-----------------------------------
+FIX 3 — Missing upgradeToGPS method
+-----------------------------------
+File:
+mobile/lib/providers/location_provider.dart
+
+Error:
+"The method 'upgradeToGPS' isn't defined for the type 'LocationProvider'"
+
+Action:
+- Add this method exactly (do not modify anything else):
+
+  Future<bool> upgradeToGPS() async {
+    return await getCurrentLocation();
+  }
+
+-----------------------------------
+STRICTLY DO NOT:
+-----------------------------------
+- Do NOT remove latitude / longitude getters
+- Do NOT introduce coordinates or record types
+- Do NOT refactor provider APIs
+- Do NOT touch working screens
+- Do NOT suppress analyzer errors
+
+-----------------------------------
+VALIDATION REQUIRED BEFORE PUSH
+-----------------------------------
+Run and confirm ZERO errors from:
+flutter analyze
+
+Warnings and infos are acceptable.
+
+-----------------------------------
+DELIVERABLE
+-----------------------------------
+- Push ONLY the required file changes
+- Commit message must clearly state:
+  "Fix analyzer errors: map typing, Stripe Card conflict, restore upgradeToGPS"
