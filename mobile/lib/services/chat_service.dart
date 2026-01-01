@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 
 import '../models/message.dart';
@@ -8,13 +9,48 @@ class ChatService {
   
   Future<ConversationsResult> getConversations() async {
     try {
+      developer.log('[ChatService] Fetching conversations...');
       final response = await _api.get('/chat/conversations');
-      final conversations = (response.data['conversations'] as List<dynamic>)
-          .map((c) => Conversation.fromJson(c))
+      developer.log('[ChatService] Response type: ${response.data.runtimeType}');
+      developer.log('[ChatService] Response: ${response.data}');
+      
+      List<dynamic>? conversationsData;
+      
+      if (response.data is Map) {
+        conversationsData = response.data['conversations'] as List<dynamic>? 
+            ?? response.data['data'] as List<dynamic>?;
+      } else if (response.data is List) {
+        conversationsData = response.data;
+      }
+      
+      if (conversationsData == null) {
+        developer.log('[ChatService] ERROR: No conversations data found in response');
+        return ConversationsResult(
+          success: false, 
+          error: 'Unexpected response format from server',
+        );
+      }
+      
+      final conversations = conversationsData
+          .map((c) {
+            try {
+              return Conversation.fromJson(c);
+            } catch (e) {
+              developer.log('[ChatService] Error parsing conversation: $e');
+              return null;
+            }
+          })
+          .whereType<Conversation>()
           .toList();
       
+      developer.log('[ChatService] Parsed ${conversations.length} conversations');
       return ConversationsResult(success: true, conversations: conversations);
     } catch (e) {
+      developer.log('[ChatService] ERROR fetching conversations: $e');
+      if (e is DioException) {
+        developer.log('[ChatService] Response status: ${e.response?.statusCode}');
+        developer.log('[ChatService] Response data: ${e.response?.data}');
+      }
       return ConversationsResult(success: false, error: _parseError(e));
     }
   }

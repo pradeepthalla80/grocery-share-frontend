@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 
 import '../models/item_request.dart';
@@ -169,15 +170,25 @@ class RequestsService {
     int quantity = 1,
   }) async {
     try {
+      developer.log('[RequestsService] createPickupRequest: itemId=$itemId, quantity=$quantity');
+      developer.log('[RequestsService] message: $message');
+      
       final response = await _api.post('/pickup-requests', data: {
         'itemId': itemId,
         'message': message,
         'quantity': quantity,
       });
       
+      developer.log('[RequestsService] Pickup request created: ${response.data}');
+      
       final request = PickupRequest.fromJson(response.data['request'] ?? response.data);
       return PickupRequestResult(success: true, request: request);
     } catch (e) {
+      developer.log('[RequestsService] ERROR creating pickup request: $e');
+      if (e is DioException) {
+        developer.log('[RequestsService] Response status: ${e.response?.statusCode}');
+        developer.log('[RequestsService] Response data: ${e.response?.data}');
+      }
       return PickupRequestResult(success: false, error: _parseError(e));
     }
   }

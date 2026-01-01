@@ -90,6 +90,10 @@ class Item {
       return null;
     }
     
+    final price = json['price']?.toDouble();
+    final explicitIsFree = json['isFree'];
+    final computedIsFree = explicitIsFree ?? (price == null || price == 0);
+    
     return Item(
       id: json['_id'] ?? json['id'] ?? '',
       title: json['title'] ?? '',
@@ -100,8 +104,8 @@ class Item {
       quantity: json['quantity'] ?? 1,
       unit: json['unit'] ?? 'items',
       expiryDate: DateTime.parse(json['expiryDate'] ?? DateTime.now().toIso8601String()),
-      isFree: json['isFree'] ?? true,
-      price: json['price']?.toDouble(),
+      isFree: computedIsFree,
+      price: price,
       status: json['status'] ?? 'available',
       address: json['address'],
       latitude: parseLat(),

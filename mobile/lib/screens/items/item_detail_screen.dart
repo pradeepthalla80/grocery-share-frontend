@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -560,12 +561,26 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       bottomSheet: Consumer<ItemsProvider>(
         builder: (context, provider, _) {
           final item = provider.currentItem;
-          if (item == null) return const SizedBox.shrink();
+          if (item == null) {
+            developer.log('[ItemDetailScreen] No item to display button');
+            return const SizedBox.shrink();
+          }
 
           final auth = context.read<AuthProvider>();
-          final isOwner = item.ownerId == auth.user?.id;
+          final currentUserId = auth.user?.id;
+          final isOwner = item.ownerId == currentUserId;
+          
+          developer.log('[ItemDetailScreen] Button visibility check:');
+          developer.log('[ItemDetailScreen] - item.ownerId: ${item.ownerId}');
+          developer.log('[ItemDetailScreen] - auth.user?.id: $currentUserId');
+          developer.log('[ItemDetailScreen] - isOwner: $isOwner');
+          developer.log('[ItemDetailScreen] - item.isFree: ${item.isFree}');
+          developer.log('[ItemDetailScreen] - item.price: ${item.price}');
 
-          if (isOwner) return const SizedBox.shrink();
+          if (isOwner) {
+            developer.log('[ItemDetailScreen] Hiding button - user owns this item');
+            return const SizedBox.shrink();
+          }
 
           return Container(
             padding: const EdgeInsets.all(16),

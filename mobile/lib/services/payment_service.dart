@@ -14,12 +14,17 @@ class PaymentService {
     bool includeDelivery = false,
   }) async {
     try {
+      final amountInCents = (amount * 100).round();
+      developer.log('[PaymentService] createPaymentIntent: itemId=$itemId, amount=$amount, amountInCents=$amountInCents');
+      
       final response = await _api.post('/payments/create-intent', data: {
         'itemId': itemId,
-        'amount': amount,
+        'amount': amountInCents,
         'quantity': quantity,
         'includeDelivery': includeDelivery,
       });
+      
+      developer.log('[PaymentService] Payment intent created: ${response.data}');
       
       return PaymentResult(
         success: true,
@@ -27,6 +32,11 @@ class PaymentService {
         paymentIntentId: response.data['paymentIntentId'],
       );
     } catch (e) {
+      developer.log('[PaymentService] ERROR creating payment intent: $e');
+      if (e is DioException) {
+        developer.log('[PaymentService] Response status: ${e.response?.statusCode}');
+        developer.log('[PaymentService] Response data: ${e.response?.data}');
+      }
       return PaymentResult(success: false, error: _parseError(e));
     }
   }
