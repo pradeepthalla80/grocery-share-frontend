@@ -24,12 +24,11 @@ void main() async {
   ]);
   
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUIOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
-  
+  const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+  ),
+);
   if (!kIsWeb &&
       AppConfig.stripePublishableKey.isNotEmpty &&
       AppConfig.stripePublishableKey.startsWith('pk_')) {
