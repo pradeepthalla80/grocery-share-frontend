@@ -73,6 +73,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   void _onAddressChanged() {
     final query = _addressController.text;
+    
+    if (_selectedPlaceDetails != null) {
+      final selectedAddress = _selectedPlaceDetails!.formattedAddress;
+      if (query != selectedAddress) {
+        setState(() {
+          _selectedPlaceDetails = null;
+          _selectedLat = null;
+          _selectedLng = null;
+          _selectedZipCode = null;
+        });
+      }
+    }
+    
     if (query.length >= 3 && _selectedPlaceDetails == null) {
       _fetchAddressPredictions(query);
     } else if (query.length < 3) {
@@ -110,20 +123,25 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final details = await _placesService.getPlaceDetails(prediction.placeId);
     
     if (details != null && mounted) {
+      _addressController.removeListener(_onAddressChanged);
       setState(() {
-        _addressController.text = details.formattedAddress;
         _selectedPlaceDetails = details;
         _selectedLat = details.latitude;
         _selectedLng = details.longitude;
         _selectedZipCode = details.zipCode;
+        _addressController.text = details.formattedAddress;
+        _addressPredictions = [];
         _isLoadingPredictions = false;
       });
+      _addressController.addListener(_onAddressChanged);
       developer.log('[AddItemScreen] Selected address: ${details.formattedAddress} (${details.latitude}, ${details.longitude})');
     } else {
+      _addressController.removeListener(_onAddressChanged);
       setState(() {
         _addressController.text = prediction.description;
         _isLoadingPredictions = false;
       });
+      _addressController.addListener(_onAddressChanged);
     }
   }
 
@@ -965,18 +983,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             : null),
                   ),
                   onTap: () {
-                    if (_addressController.text.length >= 3) {
+                    if (_addressController.text.length >= 3 && _selectedPlaceDetails == null) {
                       _fetchAddressPredictions(_addressController.text);
-                    }
-                  },
-                  onChanged: (value) {
-                    if (_selectedPlaceDetails != null) {
-                      setState(() {
-                        _selectedPlaceDetails = null;
-                        _selectedLat = null;
-                        _selectedLng = null;
-                        _selectedZipCode = null;
-                      });
                     }
                   },
                   validator: (value) {

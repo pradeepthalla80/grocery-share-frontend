@@ -111,13 +111,14 @@ Preferred communication style: Simple, everyday language.
   - Each suggestion shows main text (street address) and secondary text (city, state)
   - Selecting a suggestion auto-fills address field and captures lat/lng/zipCode
   - Clear button to reset address field and coordinates
+  - **Listener Management**: Removes controller listener during programmatic text updates to prevent race conditions; re-adds after update completes
 - **Location Preview Update**: Now shows coordinates from selected autocomplete result or GPS location
 - **Coordinate Management**: Add Item screen tracks `_selectedLat`, `_selectedLng`, `_selectedZipCode` separately from LocationProvider
 - **Geocoding Fallback**: If user manually types address without selecting from autocomplete, app geocodes the address on submit
 - **Build Configuration**: Google Places API key must be passed at build time: `--dart-define=GOOGLE_PLACES_API_KEY=your_key`
-- **Store Dashboard Fix**: Fixed "Manage Payments" button to actually open Stripe dashboard URL in external browser
-- **Stripe Connect Onboarding**: Already implemented with WidgetsBindingObserver lifecycle detection - refreshes account status when user returns from Stripe
-- **Admin Items Tab**: Debug logging in place for `/admin/items` endpoint - code is correct, verify backend response format if issues persist
+- **Store Dashboard Fix**: Fixed "Manage Payments" button to open Stripe dashboard URL in external browser using url_launcher
+- **Stripe Connect Onboarding**: WidgetsBindingObserver lifecycle detection refreshes account status when user returns from Stripe
+- **Admin Items Tab**: Defensive parsing handles multiple response formats (items, data, or direct array); returns clear error if backend format is unexpected
 
 **iOS Location Permissions (Required for local builds):**
 The iOS folder doesn't exist in Replit since Flutter apps must be built locally. When building locally, ensure Info.plist contains:

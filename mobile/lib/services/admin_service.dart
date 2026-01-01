@@ -81,27 +81,61 @@ class AdminService {
       final response = await _api.get('/admin/items', queryParameters: queryParams);
       
       developer.log('[AdminService] Items response status: ${response.statusCode}');
-      developer.log('[AdminService] Items response data keys: ${response.data?.keys}');
+      developer.log('[AdminService] Items response data type: ${response.data.runtimeType}');
       
-      final itemsData = response.data['items'];
-      if (itemsData == null) {
-        developer.log('[AdminService] ERROR: items key is null in response');
-        developer.log('[AdminService] Full response: ${response.data}');
-        return AdminItemsResult(success: false, error: 'No items key in response');
+      if (response.data == null) {
+        developer.log('[AdminService] ERROR: response.data is null');
+        return AdminItemsResult(success: true, items: [], total: 0, page: 1, totalPages: 1);
       }
       
-      final items = (itemsData as List<dynamic>)
-          .map((i) => Item.fromJson(i))
+      developer.log('[AdminService] Items response data keys: ${response.data is Map ? response.data.keys : 'not a map'}');
+      
+      List<dynamic>? itemsData;
+      if (response.data is Map) {
+        itemsData = response.data['items'] ?? response.data['data'];
+      } else if (response.data is List) {
+        itemsData = response.data;
+      }
+      
+      if (itemsData == null) {
+        developer.log('[AdminService] ERROR: No items/data key found in response');
+        developer.log('[AdminService] Full response: ${response.data}');
+        return AdminItemsResult(
+          success: false, 
+          error: 'Unexpected response format from server. Expected "items" or "data" array.',
+        );
+      }
+      
+      final items = itemsData
+          .map((i) {
+            try {
+              return Item.fromJson(i);
+            } catch (e) {
+              developer.log('[AdminService] Error parsing item: $e');
+              return null;
+            }
+          })
+          .whereType<Item>()
           .toList();
       
       developer.log('[AdminService] Successfully parsed ${items.length} items');
       
+      int total = 0;
+      int currentPage = page;
+      int totalPages = 1;
+      
+      if (response.data is Map) {
+        total = response.data['total'] ?? response.data['count'] ?? items.length;
+        currentPage = response.data['page'] ?? response.data['currentPage'] ?? page;
+        totalPages = response.data['totalPages'] ?? response.data['pages'] ?? 1;
+      }
+      
       return AdminItemsResult(
         success: true,
         items: items,
-        total: response.data['total'],
-        page: response.data['page'],
-        totalPages: response.data['totalPages'],
+        total: total,
+        page: currentPage,
+        totalPages: totalPages,
       );
     } catch (e, stackTrace) {
       developer.log('[AdminService] ERROR fetching items: $e');
