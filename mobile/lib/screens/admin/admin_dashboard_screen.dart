@@ -135,12 +135,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Future<void> _updateUserRole(User user, String newRole) async {
+    developer.log('[AdminDashboard] _updateUserRole: ${user.id} -> $newRole');
     final success = await _adminService.updateUserRole(user.id, newRole);
-    if (success && mounted) {
+    if (!mounted) return;
+    
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${user.name} role updated to $newRole')),
       );
       _loadUsers(refresh: true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update user role. Check console for details.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 
@@ -165,12 +175,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
     
     if (confirm == true) {
+      developer.log('[AdminDashboard] _suspendUser: ${user.id}');
       final success = await _adminService.suspendUser(user.id);
-      if (success && mounted) {
+      if (!mounted) return;
+      
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${user.name} has been suspended')),
         );
         _loadUsers(refresh: true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to suspend user. Check console for details.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
@@ -196,12 +216,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
     
     if (confirm == true) {
+      developer.log('[AdminDashboard] _deleteItem: ${item.id}');
       final success = await _adminService.deleteItem(item.id);
-      if (success && mounted) {
+      if (!mounted) return;
+      
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('"${item.title}" has been deleted')),
         );
         _loadItems(refresh: true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete item. Check console for details.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }

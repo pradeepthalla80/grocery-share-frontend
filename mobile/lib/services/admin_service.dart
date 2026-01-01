@@ -34,36 +34,48 @@ class AdminService {
   
   Future<bool> updateUserRole(String userId, String role) async {
     try {
+      developer.log('[AdminService] updateUserRole: userId=$userId, role=$role');
       await _api.patch('/admin/users/$userId/role', data: {'role': role});
+      developer.log('[AdminService] updateUserRole succeeded');
       return true;
-    } catch (_) {
+    } catch (e) {
+      developer.log('[AdminService] updateUserRole FAILED: $e');
       return false;
     }
   }
   
   Future<bool> suspendUser(String userId) async {
     try {
+      developer.log('[AdminService] suspendUser: userId=$userId');
       await _api.post('/admin/users/$userId/suspend');
+      developer.log('[AdminService] suspendUser succeeded');
       return true;
-    } catch (_) {
+    } catch (e) {
+      developer.log('[AdminService] suspendUser FAILED: $e');
       return false;
     }
   }
   
   Future<bool> unsuspendUser(String userId) async {
     try {
+      developer.log('[AdminService] unsuspendUser: userId=$userId');
       await _api.post('/admin/users/$userId/unsuspend');
+      developer.log('[AdminService] unsuspendUser succeeded');
       return true;
-    } catch (_) {
+    } catch (e) {
+      developer.log('[AdminService] unsuspendUser FAILED: $e');
       return false;
     }
   }
   
   Future<bool> deleteUser(String userId) async {
     try {
+      developer.log('[AdminService] deleteUser: userId=$userId');
       await _api.delete('/admin/users/$userId');
+      developer.log('[AdminService] deleteUser succeeded');
       return true;
-    } catch (_) {
+    } catch (e) {
+      developer.log('[AdminService] deleteUser FAILED: $e');
       return false;
     }
   }
@@ -146,9 +158,12 @@ class AdminService {
   
   Future<bool> deleteItem(String itemId) async {
     try {
+      developer.log('[AdminService] deleteItem: itemId=$itemId');
       await _api.delete('/admin/items/$itemId');
+      developer.log('[AdminService] deleteItem succeeded');
       return true;
-    } catch (_) {
+    } catch (e) {
+      developer.log('[AdminService] deleteItem FAILED: $e');
       return false;
     }
   }
