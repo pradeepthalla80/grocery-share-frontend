@@ -46,7 +46,7 @@ class _StoreOnboardingScreenState extends State<StoreOnboardingScreen> {
     
     await auth.acceptStoreTerms();
     
-    final success = await auth.activateStoreMode(
+    final result = await auth.activateStoreMode(
       storeName: _storeNameController.text.trim(),
       storeDescription: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
@@ -57,7 +57,7 @@ class _StoreOnboardingScreenState extends State<StoreOnboardingScreen> {
 
     if (!mounted) return;
 
-    if (success) {
+    if (result.success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Store activated successfully!')),
       );
@@ -65,7 +65,7 @@ class _StoreOnboardingScreenState extends State<StoreOnboardingScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(auth.error ?? 'Failed to activate store'),
+          content: Text(result.error ?? 'Failed to activate store'),
           backgroundColor: AppColors.error,
         ),
       );

@@ -5,6 +5,8 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
 
+export '../services/user_service.dart' show StoreActivationResult;
+
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
@@ -176,19 +178,19 @@ class AuthProvider with ChangeNotifier {
     return false;
   }
   
-  Future<bool> activateStoreMode({
+  Future<StoreActivationResult> activateStoreMode({
     required String storeName,
     String? storeDescription,
   }) async {
-    final success = await _userService.activateStoreMode(
+    final result = await _userService.activateStoreMode(
       storeName: storeName,
       storeDescription: storeDescription,
     );
     
-    if (success) {
+    if (result.success) {
       await refreshUser();
     }
-    return success;
+    return result;
   }
   
   Future<bool> acceptStoreTerms() async {

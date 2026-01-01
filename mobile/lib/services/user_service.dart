@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 
 import '../models/user.dart';
@@ -41,18 +42,25 @@ class UserService {
     }
   }
   
-  Future<bool> activateStoreMode({
+  Future<StoreActivationResult> activateStoreMode({
     required String storeName,
     String? storeDescription,
   }) async {
     try {
-      await _api.post('/users/activate-store', data: {
+      developer.log('[UserService] activateStoreMode called: storeName=$storeName');
+      final response = await _api.post('/users/activate-store', data: {
         'storeName': storeName,
         if (storeDescription != null) 'storeDescription': storeDescription,
       });
-      return true;
-    } catch (_) {
-      return false;
+      developer.log('[UserService] activateStoreMode success: ${response.data}');
+      return StoreActivationResult(success: true);
+    } catch (e) {
+      developer.log('[UserService] activateStoreMode error: $e');
+      if (e is DioException) {
+        developer.log('[UserService] Response status: ${e.response?.statusCode}');
+        developer.log('[UserService] Response data: ${e.response?.data}');
+      }
+      return StoreActivationResult(success: false, error: _parseError(e));
     }
   }
   
@@ -155,6 +163,16 @@ class RatingsResult {
     this.ratings,
     this.averageRating = 0,
     this.totalRatings = 0,
+    this.error,
+  });
+}
+
+class StoreActivationResult {
+  final bool success;
+  final String? error;
+  
+  StoreActivationResult({
+    required this.success,
     this.error,
   });
 }
