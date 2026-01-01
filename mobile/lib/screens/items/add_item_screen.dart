@@ -29,6 +29,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _quantityController = TextEditingController(text: '1');
   final _addressController = TextEditingController();
   final _tagController = TextEditingController();
+  final _addressFocusNode = FocusNode();
   
   List<XFile> _images = [];
   String _selectedCategory = AppConfig.itemCategories.first;
@@ -69,6 +70,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
       _selectedZipCode = locationProvider.zipCode;
     }
     _addressController.addListener(_onAddressChanged);
+    _addressFocusNode.addListener(_onAddressFocusChanged);
+    
+    developer.log('[AddItemScreen] PlacesService isConfigured: ${_placesService.isConfigured}');
+    if (!_placesService.isConfigured) {
+      developer.log('[AddItemScreen] WARNING: Google Places API key not configured. Pass --dart-define=GOOGLE_PLACES_API_KEY=your_key when building.');
+    }
+  }
+  
+  void _onAddressFocusChanged() {
+    if (!_addressFocusNode.hasFocus) {
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted && !_addressFocusNode.hasFocus) {
+          setState(() => _showAddressSuggestions = false);
+        }
+      });
+    }
   }
 
   void _onAddressChanged() {
@@ -99,16 +116,24 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<void> _fetchAddressPredictions(String query) async {
     if (_isLoadingPredictions) return;
     
+    developer.log('[AddItemScreen] Fetching predictions for: "$query"');
     setState(() => _isLoadingPredictions = true);
     
     final predictions = await _placesService.getAutocompletePredictions(query);
     
-    if (mounted) {
+    developer.log('[AddItemScreen] Got ${predictions.length} predictions');
+    
+    if (!mounted) return;
+    
+    if (_addressFocusNode.hasFocus) {
       setState(() {
         _addressPredictions = predictions;
         _showAddressSuggestions = predictions.isNotEmpty;
         _isLoadingPredictions = false;
       });
+      developer.log('[AddItemScreen] showAddressSuggestions: $_showAddressSuggestions');
+    } else {
+      setState(() => _isLoadingPredictions = false);
     }
   }
 
@@ -148,6 +173,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   void dispose() {
     _addressController.removeListener(_onAddressChanged);
+    _addressFocusNode.removeListener(_onAddressFocusChanged);
+    _addressFocusNode.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
@@ -260,9 +287,17 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   Future<void> _useCurrentLocation() async {
     developer.log('[AddItemScreen] _useCurrentLocation() called');
-    setState(() => _isLocatingAddress = true);
     
     final locationProvider = context.read<LocationProvider>();
+    
+    if (locationProvider.isPermissionDeniedForever) {
+      developer.log('[AddItemScreen] Permission permanently denied, opening settings...');
+      await locationProvider.openAppSettings();
+      return;
+    }
+    
+    setState(() => _isLocatingAddress = true);
+    
     developer.log('[AddItemScreen] Calling locationProvider.getCurrentLocation()...');
     final success = await locationProvider.getCurrentLocation();
     
@@ -290,7 +325,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final errorMsg = locationProvider.error ?? 'Could not get current location';
       developer.log('[AddItemScreen] Showing error: $errorMsg');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg)),
+        SnackBar(
+          content: Text(errorMsg),
+          action: locationProvider.isPermissionDeniedForever 
+              ? SnackBarAction(
+                  label: 'Settings',
+                  onPressed: () => locationProvider.openAppSettings(),
+                )
+              : null,
+        ),
       );
     }
   }
@@ -951,9 +994,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
               children: [
                 TextFormField(
                   controller: _addressController,
+                  focusNode: _addressFocusNode,
                   decoration: InputDecoration(
                     labelText: 'Pickup Address',
-                    hintText: 'Start typing to see suggestions...',
+                    hintText: _placesService.isConfigured 
+                        ? 'Start typing to see suggestions...'
+                        : 'Enter your address',
+                    helperText: !_placesService.isConfigured 
+                        ? 'Address autocomplete unavailable (API key not configured)'
+                        : null,
+                    helperStyle: TextStyle(color: AppColors.warning, fontSize: 11),
                     suffixIcon: _isLocatingAddress || _isLoadingPredictions
                         ? const SizedBox(
                             width: 24, 
@@ -995,43 +1045,59 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   },
                 ),
                 if (_showAddressSuggestions && _addressPredictions.isNotEmpty)
-                  Container(
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    margin: const EdgeInsets.only(top: 4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      itemCount: _addressPredictions.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final prediction = _addressPredictions[index];
-                        return ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.location_on_outlined, size: 20),
-                          title: Text(
-                            prediction.mainText,
-                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          subtitle: Text(
-                            prediction.secondaryText,
-                            style: const TextStyle(fontSize: 12),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onTap: () => _selectAddressPrediction(prediction),
-                        );
-                      },
+                  Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      margin: const EdgeInsets.only(top: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: _addressPredictions.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final prediction = _addressPredictions[index];
+                          return InkWell(
+                            onTap: () {
+                              developer.log('[AddItemScreen] Prediction tapped: ${prediction.description}');
+                              _selectAddressPrediction(prediction);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.location_on_outlined, size: 20, color: AppColors.primary),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          prediction.mainText,
+                                          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                                        ),
+                                        if (prediction.secondaryText.isNotEmpty)
+                                          Text(
+                                            prediction.secondaryText,
+                                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
               ],

@@ -14,6 +14,7 @@ class LocationProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _permissionGranted = false;
+  bool _permissionDeniedForever = false;
   bool _disposed = false;
   bool _isIPLocation = false;
   
@@ -237,42 +238,59 @@ class LocationProvider with ChangeNotifier {
   }
   
   Future<bool> checkPermission() async {
+    developer.log('[LocationProvider] checkPermission() called');
+    
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    developer.log('[LocationProvider] Location services enabled: $serviceEnabled');
+    
     if (!serviceEnabled) {
       _error = 'Location services are disabled. Please enable in Settings.';
       _safeNotify();
+      developer.log('[LocationProvider] Opening location settings...');
       await Geolocator.openLocationSettings();
       return false;
     }
     
     LocationPermission permission = await Geolocator.checkPermission();
+    developer.log('[LocationProvider] Current permission status: $permission');
     
     if (permission == LocationPermission.deniedForever) {
-      _error = 'Location permissions are permanently denied. Please enable in Settings.';
+      _error = 'Location access is blocked. Tap "Use Current Location" again to open Settings.';
+      _permissionDeniedForever = true;
       _safeNotify();
-      await Geolocator.openAppSettings();
       return false;
     }
     
     if (permission == LocationPermission.denied) {
+      developer.log('[LocationProvider] Requesting permission...');
       permission = await Geolocator.requestPermission();
+      developer.log('[LocationProvider] Permission after request: $permission');
+      
       if (permission == LocationPermission.denied) {
         _error = 'Location permission denied. Please try again.';
         _safeNotify();
         return false;
       }
       if (permission == LocationPermission.deniedForever) {
-        _error = 'Location permissions are permanently denied. Please enable in Settings.';
+        _error = 'Location access is blocked. Tap "Use Current Location" again to open Settings.';
+        _permissionDeniedForever = true;
         _safeNotify();
-        await Geolocator.openAppSettings();
         return false;
       }
     }
     
     _permissionGranted = true;
+    _permissionDeniedForever = false;
     _error = null;
     _safeNotify();
     return true;
+  }
+  
+  bool get isPermissionDeniedForever => _permissionDeniedForever;
+  
+  Future<void> openAppSettings() async {
+    developer.log('[LocationProvider] Opening app settings...');
+    await Geolocator.openAppSettings();
   }
   
   Future<bool> getCurrentLocation() async {
