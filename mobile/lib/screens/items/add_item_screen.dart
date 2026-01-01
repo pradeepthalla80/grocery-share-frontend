@@ -44,6 +44,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isLocatingAddress = false;
 
   final ImagePicker _picker = ImagePicker();
+  final PlacesService _placesService = PlacesService();
+  
+  List<PlacePrediction> _addressPredictions = [];
+  bool _showAddressSuggestions = false;
+  bool _isLoadingPredictions = false;
+  PlaceDetails? _selectedPlaceDetails;
+  double? _selectedLat;
+  double? _selectedLng;
+  String? _selectedZipCode;
 
   @override
   void initState() {
@@ -55,11 +64,72 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final locationProvider = context.read<LocationProvider>();
     if (locationProvider.currentAddress != null) {
       _addressController.text = locationProvider.currentAddress!;
+      _selectedLat = locationProvider.latitude;
+      _selectedLng = locationProvider.longitude;
+      _selectedZipCode = locationProvider.zipCode;
+    }
+    _addressController.addListener(_onAddressChanged);
+  }
+
+  void _onAddressChanged() {
+    final query = _addressController.text;
+    if (query.length >= 3 && _selectedPlaceDetails == null) {
+      _fetchAddressPredictions(query);
+    } else if (query.length < 3) {
+      setState(() {
+        _addressPredictions = [];
+        _showAddressSuggestions = false;
+      });
+    }
+  }
+
+  Future<void> _fetchAddressPredictions(String query) async {
+    if (_isLoadingPredictions) return;
+    
+    setState(() => _isLoadingPredictions = true);
+    
+    final predictions = await _placesService.getAutocompletePredictions(query);
+    
+    if (mounted) {
+      setState(() {
+        _addressPredictions = predictions;
+        _showAddressSuggestions = predictions.isNotEmpty;
+        _isLoadingPredictions = false;
+      });
+    }
+  }
+
+  Future<void> _selectAddressPrediction(PlacePrediction prediction) async {
+    developer.log('[AddItemScreen] Selected prediction: ${prediction.description}');
+    
+    setState(() {
+      _showAddressSuggestions = false;
+      _isLoadingPredictions = true;
+    });
+    
+    final details = await _placesService.getPlaceDetails(prediction.placeId);
+    
+    if (details != null && mounted) {
+      setState(() {
+        _addressController.text = details.formattedAddress;
+        _selectedPlaceDetails = details;
+        _selectedLat = details.latitude;
+        _selectedLng = details.longitude;
+        _selectedZipCode = details.zipCode;
+        _isLoadingPredictions = false;
+      });
+      developer.log('[AddItemScreen] Selected address: ${details.formattedAddress} (${details.latitude}, ${details.longitude})');
+    } else {
+      setState(() {
+        _addressController.text = prediction.description;
+        _isLoadingPredictions = false;
+      });
     }
   }
 
   @override
   void dispose() {
+    _addressController.removeListener(_onAddressChanged);
     _titleController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
@@ -187,7 +257,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
     
     if (success && locationProvider.currentAddress != null) {
       setState(() {
+        _addressController.removeListener(_onAddressChanged);
         _addressController.text = locationProvider.currentAddress!;
+        _selectedLat = locationProvider.latitude;
+        _selectedLng = locationProvider.longitude;
+        _selectedZipCode = locationProvider.zipCode;
+        _selectedPlaceDetails = null;
+        _showAddressSuggestions = false;
+        _addressPredictions = [];
+        _addressController.addListener(_onAddressChanged);
       });
       developer.log('[AddItemScreen] Address field updated successfully');
     } else if (mounted) {
@@ -269,22 +347,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
 
     final itemsProvider = context.read<ItemsProvider>();
-    final locationProvider = context.read<LocationProvider>();
 
-    double? lat = locationProvider.latitude;
-    double? lng = locationProvider.longitude;
-    String? zip = locationProvider.zipCode;
+    double? lat = _selectedLat;
+    double? lng = _selectedLng;
+    String? zip = _selectedZipCode;
     final address = _addressController.text.trim();
 
     developer.log('[AddItemScreen] Starting item submission');
-    developer.log('[AddItemScreen] Current location: lat=$lat, lng=$lng, zip=$zip');
+    developer.log('[AddItemScreen] Selected location: lat=$lat, lng=$lng, zip=$zip');
     developer.log('[AddItemScreen] Address: $address');
 
     if ((lat == null || lng == null) && address.isNotEmpty) {
-      developer.log('[AddItemScreen] No coordinates, attempting to geocode address...');
+      developer.log('[AddItemScreen] No coordinates from selection, attempting to geocode address...');
       
-      final placesService = PlacesService();
-      final details = await placesService.geocodeAddress(address);
+      final details = await _placesService.geocodeAddress(address);
       
       if (details != null) {
         lat = details.latitude;
@@ -800,89 +876,157 @@ class _AddItemScreenState extends State<AddItemScreen> {
             ),
             const SizedBox(height: 8),
             
-            Consumer<LocationProvider>(
-              builder: (context, locationProvider, _) {
-                final hasLocation = locationProvider.hasLocation;
-                return Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: AppColors.divider,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: hasLocation
-                      ? Stack(
-                          children: [
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.location_on, size: 32, color: AppColors.primary),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Location set',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  if (locationProvider.currentAddress != null)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      child: Text(
-                                        locationProvider.currentAddress!,
-                                        style: const TextStyle(fontSize: 11),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                ],
-                              ),
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: (_selectedLat != null && _selectedLng != null)
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.location_on, size: 28, color: AppColors.primary),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Location set',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
                             ),
-                          ],
-                        )
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.map_outlined, size: 32, color: AppColors.textMuted),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Set your pickup location below',
-                                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                              ),
-                            ],
                           ),
-                        ),
-                );
-              },
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              _addressController.text.isNotEmpty 
+                                  ? _addressController.text
+                                  : '${_selectedLat!.toStringAsFixed(4)}, ${_selectedLng!.toStringAsFixed(4)}',
+                              style: const TextStyle(fontSize: 11),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.map_outlined, size: 28, color: AppColors.textMuted),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Set your pickup location below',
+                            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
             ),
             const SizedBox(height: 12),
             
-            TextFormField(
-              controller: _addressController,
-              decoration: InputDecoration(
-                labelText: 'Pickup Address',
-                hintText: 'Enter your pickup address',
-                suffixIcon: _isLocatingAddress 
-                    ? const SizedBox(
-                        width: 24, 
-                        height: 24, 
-                        child: Padding(
-                          padding: EdgeInsets.all(12),
-                          child: CircularProgressIndicator(strokeWidth: 2),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _addressController,
+                  decoration: InputDecoration(
+                    labelText: 'Pickup Address',
+                    hintText: 'Start typing to see suggestions...',
+                    suffixIcon: _isLocatingAddress || _isLoadingPredictions
+                        ? const SizedBox(
+                            width: 24, 
+                            height: 24, 
+                            child: Padding(
+                              padding: EdgeInsets.all(12),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : (_addressController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 20),
+                                onPressed: () {
+                                  setState(() {
+                                    _addressController.removeListener(_onAddressChanged);
+                                    _addressController.clear();
+                                    _selectedLat = null;
+                                    _selectedLng = null;
+                                    _selectedZipCode = null;
+                                    _selectedPlaceDetails = null;
+                                    _showAddressSuggestions = false;
+                                    _addressPredictions = [];
+                                    _addressController.addListener(_onAddressChanged);
+                                  });
+                                },
+                              )
+                            : null),
+                  ),
+                  onTap: () {
+                    if (_addressController.text.length >= 3) {
+                      _fetchAddressPredictions(_addressController.text);
+                    }
+                  },
+                  onChanged: (value) {
+                    if (_selectedPlaceDetails != null) {
+                      setState(() {
+                        _selectedPlaceDetails = null;
+                        _selectedLat = null;
+                        _selectedLng = null;
+                        _selectedZipCode = null;
+                      });
+                    }
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a pickup address';
+                    }
+                    return null;
+                  },
+                ),
+                if (_showAddressSuggestions && _addressPredictions.isNotEmpty)
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
-                      )
-                    : null,
-              ),
-              maxLines: 2,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a pickup address';
-                }
-                return null;
-              },
+                      ],
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      itemCount: _addressPredictions.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final prediction = _addressPredictions[index];
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.location_on_outlined, size: 20),
+                          title: Text(
+                            prediction.mainText,
+                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                          ),
+                          subtitle: Text(
+                            prediction.secondaryText,
+                            style: const TextStyle(fontSize: 12),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () => _selectAddressPrediction(prediction),
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(

@@ -104,6 +104,18 @@ Preferred communication style: Simple, everyday language.
 - **Places Service**: Created `places_service.dart` with geocodeAddress() method for address-to-coordinates conversion using the geocoding package
 - **intl Package**: Added to pubspec.yaml for date formatting
 
+**Phase 5 Address Autocomplete (January 2026):**
+- **Google Places Autocomplete**: Full implementation with dropdown suggestions on Add Item screen
+  - PlacesService updated with Google Places Autocomplete API and Place Details API integration
+  - Shows dropdown with up to 5 address suggestions as user types (3+ characters)
+  - Each suggestion shows main text (street address) and secondary text (city, state)
+  - Selecting a suggestion auto-fills address field and captures lat/lng/zipCode
+  - Clear button to reset address field and coordinates
+- **Location Preview Update**: Now shows coordinates from selected autocomplete result or GPS location
+- **Coordinate Management**: Add Item screen tracks `_selectedLat`, `_selectedLng`, `_selectedZipCode` separately from LocationProvider
+- **Geocoding Fallback**: If user manually types address without selecting from autocomplete, app geocodes the address on submit
+- **Build Configuration**: Google Places API key must be passed at build time: `--dart-define=GOOGLE_PLACES_API_KEY=your_key`
+
 **iOS Location Permissions (Required for local builds):**
 The iOS folder doesn't exist in Replit since Flutter apps must be built locally. When building locally, ensure Info.plist contains:
 ```xml
