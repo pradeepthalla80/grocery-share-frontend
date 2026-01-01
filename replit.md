@@ -104,7 +104,7 @@ Preferred communication style: Simple, everyday language.
 - **Places Service**: Created `places_service.dart` with geocodeAddress() method for address-to-coordinates conversion using the geocoding package
 - **intl Package**: Added to pubspec.yaml for date formatting
 
-**Phase 5 Address Autocomplete (January 2026):**
+**Phase 5 Address Autocomplete & Fixes (January 2026):**
 - **Google Places Autocomplete**: Full implementation with dropdown suggestions on Add Item screen
   - PlacesService updated with Google Places Autocomplete API and Place Details API integration
   - Shows dropdown with up to 5 address suggestions as user types (3+ characters)
@@ -115,6 +115,9 @@ Preferred communication style: Simple, everyday language.
 - **Coordinate Management**: Add Item screen tracks `_selectedLat`, `_selectedLng`, `_selectedZipCode` separately from LocationProvider
 - **Geocoding Fallback**: If user manually types address without selecting from autocomplete, app geocodes the address on submit
 - **Build Configuration**: Google Places API key must be passed at build time: `--dart-define=GOOGLE_PLACES_API_KEY=your_key`
+- **Store Dashboard Fix**: Fixed "Manage Payments" button to actually open Stripe dashboard URL in external browser
+- **Stripe Connect Onboarding**: Already implemented with WidgetsBindingObserver lifecycle detection - refreshes account status when user returns from Stripe
+- **Admin Items Tab**: Debug logging in place for `/admin/items` endpoint - code is correct, verify backend response format if issues persist
 
 **iOS Location Permissions (Required for local builds):**
 The iOS folder doesn't exist in Replit since Flutter apps must be built locally. When building locally, ensure Info.plist contains:

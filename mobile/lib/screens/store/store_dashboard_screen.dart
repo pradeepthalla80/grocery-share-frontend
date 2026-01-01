@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/theme.dart';
 import '../../config/routes.dart';
@@ -86,6 +87,8 @@ class _StoreDashboardScreenState extends State<StoreDashboardScreen> {
                         onTap: () async {
                           final url = await _paymentService.getStripeDashboardUrl();
                           if (url != null) {
+                            final uri = Uri.parse(url);
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
                           }
                         },
                       ),
