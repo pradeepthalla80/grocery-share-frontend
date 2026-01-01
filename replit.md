@@ -120,6 +120,14 @@ Preferred communication style: Simple, everyday language.
 - **Stripe Connect Onboarding**: WidgetsBindingObserver lifecycle detection refreshes account status when user returns from Stripe
 - **Admin Items Tab**: Defensive parsing handles multiple response formats (items, data, or direct array); returns clear error if backend format is unexpected
 
+**Phase 6 Workflow Fixes (January 2026):**
+- **ChatService Messages Fix**: Defensive parsing for `/chat/conversations` endpoint - handles multiple response formats (conversations, data, or direct array). Added debug logging to trace response parsing.
+- **Item isFree Computation**: Item model now computes `isFree` from price when not explicitly set - if price is null or 0, item is treated as free. This matches web app behavior and ensures Request Item button appears.
+- **PaymentService Cents Conversion**: Payment intent now converts amount from dollars to cents (amount * 100) before sending to Stripe backend, matching web implementation.
+- **Button Visibility Logging**: ItemDetailScreen has debug logging for button visibility checks (ownerId, userId, isFree, price) to help troubleshoot missing buttons.
+- **PickupRequest Logging**: RequestsService has debug logging for pickup request creation to trace the flow.
+- **StoreActivation Error Messages**: `activateStoreMode` now returns `StoreActivationResult` with actual error messages from backend instead of just true/false.
+
 **iOS Location Permissions (Required for local builds):**
 The iOS folder doesn't exist in Replit since Flutter apps must be built locally. When building locally, ensure Info.plist contains:
 ```xml
