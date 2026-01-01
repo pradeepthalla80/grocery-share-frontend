@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import '../models/user.dart';
 import '../models/item.dart';
 import '../models/item_request.dart';
@@ -75,10 +76,25 @@ class AdminService {
       };
       if (search != null) queryParams['search'] = search;
       
+      developer.log('[AdminService] Fetching items from /admin/items with params: $queryParams');
+      
       final response = await _api.get('/admin/items', queryParameters: queryParams);
-      final items = (response.data['items'] as List<dynamic>)
+      
+      developer.log('[AdminService] Items response status: ${response.statusCode}');
+      developer.log('[AdminService] Items response data keys: ${response.data?.keys}');
+      
+      final itemsData = response.data['items'];
+      if (itemsData == null) {
+        developer.log('[AdminService] ERROR: items key is null in response');
+        developer.log('[AdminService] Full response: ${response.data}');
+        return AdminItemsResult(success: false, error: 'No items key in response');
+      }
+      
+      final items = (itemsData as List<dynamic>)
           .map((i) => Item.fromJson(i))
           .toList();
+      
+      developer.log('[AdminService] Successfully parsed ${items.length} items');
       
       return AdminItemsResult(
         success: true,
@@ -87,7 +103,9 @@ class AdminService {
         page: response.data['page'],
         totalPages: response.data['totalPages'],
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      developer.log('[AdminService] ERROR fetching items: $e');
+      developer.log('[AdminService] Stack trace: $stackTrace');
       return AdminItemsResult(success: false, error: e.toString());
     }
   }

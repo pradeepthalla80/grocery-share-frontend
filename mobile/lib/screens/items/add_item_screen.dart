@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,7 @@ import '../../config/routes.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../services/places_service.dart';
 import '../../widgets/common/loading_button.dart';
 
 class AddItemScreen extends StatefulWidget {
@@ -169,10 +171,17 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   Future<void> _useCurrentLocation() async {
+    developer.log('[AddItemScreen] _useCurrentLocation() called');
     setState(() => _isLocatingAddress = true);
     
     final locationProvider = context.read<LocationProvider>();
+    developer.log('[AddItemScreen] Calling locationProvider.getCurrentLocation()...');
     final success = await locationProvider.getCurrentLocation();
+    
+    developer.log('[AddItemScreen] getCurrentLocation() returned: $success');
+    developer.log('[AddItemScreen] Address: ${locationProvider.currentAddress}');
+    developer.log('[AddItemScreen] Coordinates: ${locationProvider.latitude}, ${locationProvider.longitude}');
+    developer.log('[AddItemScreen] Error: ${locationProvider.error}');
     
     setState(() => _isLocatingAddress = false);
     
@@ -180,9 +189,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
       setState(() {
         _addressController.text = locationProvider.currentAddress!;
       });
+      developer.log('[AddItemScreen] Address field updated successfully');
     } else if (mounted) {
+      final errorMsg = locationProvider.error ?? 'Could not get current location';
+      developer.log('[AddItemScreen] Showing error: $errorMsg');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not get current location')),
+        SnackBar(content: Text(errorMsg)),
       );
     }
   }
@@ -259,6 +271,38 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final itemsProvider = context.read<ItemsProvider>();
     final locationProvider = context.read<LocationProvider>();
 
+    double? lat = locationProvider.latitude;
+    double? lng = locationProvider.longitude;
+    String? zip = locationProvider.zipCode;
+    final address = _addressController.text.trim();
+
+    developer.log('[AddItemScreen] Starting item submission');
+    developer.log('[AddItemScreen] Current location: lat=$lat, lng=$lng, zip=$zip');
+    developer.log('[AddItemScreen] Address: $address');
+
+    if ((lat == null || lng == null) && address.isNotEmpty) {
+      developer.log('[AddItemScreen] No coordinates, attempting to geocode address...');
+      
+      final placesService = PlacesService();
+      final details = await placesService.geocodeAddress(address);
+      
+      if (details != null) {
+        lat = details.latitude;
+        lng = details.longitude;
+        zip = details.zipCode ?? zip;
+        developer.log('[AddItemScreen] Geocoded: lat=$lat, lng=$lng, zip=$zip');
+      } else {
+        developer.log('[AddItemScreen] Geocoding failed, submitting without coordinates');
+      }
+    }
+
+    developer.log('[AddItemScreen] Submitting item with:');
+    developer.log('[AddItemScreen] - title: ${_titleController.text.trim()}');
+    developer.log('[AddItemScreen] - category: $_selectedCategory');
+    developer.log('[AddItemScreen] - isFree: $_isFree, price: ${_priceController.text}');
+    developer.log('[AddItemScreen] - images: ${_images.length}');
+    developer.log('[AddItemScreen] - lat: $lat, lng: $lng');
+
     final item = await itemsProvider.createItem(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
@@ -269,10 +313,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
       expiryDate: _expiryDate,
       isFree: _isFree,
       price: !_isFree ? double.parse(_priceController.text) : null,
-      address: _addressController.text.trim(),
-      latitude: locationProvider.latitude,
-      longitude: locationProvider.longitude,
-      zipCode: locationProvider.zipCode,
+      address: address,
+      latitude: lat,
+      longitude: lng,
+      zipCode: zip,
       isStoreItem: _isStoreItem,
       offersDelivery: _offersDelivery,
       deliveryFee: _offersDelivery ? _deliveryFee : null,
@@ -284,11 +328,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
     if (!mounted) return;
 
     if (item != null) {
+      developer.log('[AddItemScreen] Item created successfully: ${item.id}');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item listed successfully!')),
       );
       Navigator.pop(context);
     } else {
+      developer.log('[AddItemScreen] Item creation failed: ${itemsProvider.error}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(itemsProvider.error ?? 'Failed to list item'),

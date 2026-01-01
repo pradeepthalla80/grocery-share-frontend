@@ -95,6 +95,24 @@ Preferred communication style: Simple, everyday language.
   - All consumer screens updated to use `locationProvider.coordinates?.latitude` pattern
   - Files updated: items_screen.dart, add_item_screen.dart, edit_item_screen.dart, edit_profile_screen.dart, add_request_screen.dart, requests_screen.dart
 
+**Phase 4 Debug Logging (January 2026):**
+- **Admin Items Debugging**: Added comprehensive logging to `admin_service.dart` getAllItems() method to trace API responses and data parsing
+- **Add Item Debugging**: Added detailed payload logging to `items_service.dart` createItem() to track submission with full FormData fields
+- **Add Item Screen**: Added geocoding fallback - if user types address but no GPS coordinates, the app geocodes the address before submission using the geocoding package
+- **Location Provider Debugging**: Added logging to getCurrentLocation() to trace permission checks, GPS acquisition, and reverse geocoding
+- **Payment Service Debugging**: Added logging to Stripe Connect operations (createStripeAccount, getStripeAccountStatus, refreshOnboardingUrl)
+- **Places Service**: Created `places_service.dart` with geocodeAddress() method for address-to-coordinates conversion using the geocoding package
+- **intl Package**: Added to pubspec.yaml for date formatting
+
+**iOS Location Permissions (Required for local builds):**
+The iOS folder doesn't exist in Replit since Flutter apps must be built locally. When building locally, ensure Info.plist contains:
+```xml
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>BaskMate needs your location to show nearby grocery items and set pickup addresses.</string>
+<key>NSLocationAlwaysUsageDescription</key>
+<string>BaskMate needs your location to show nearby grocery items.</string>
+```
+
 ### Authorization Patterns
 
 Item ownership verification uses MongoDB ObjectId comparison:

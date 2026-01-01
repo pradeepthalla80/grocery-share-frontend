@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 
 import '../models/item.dart';
@@ -176,11 +177,31 @@ class ItemsService {
         ));
       }
       
+      developer.log('[ItemsService] Creating item with payload:');
+      developer.log('[ItemsService] - title: $title');
+      developer.log('[ItemsService] - category: $category');
+      developer.log('[ItemsService] - address: $address');
+      developer.log('[ItemsService] - latitude: $latitude, longitude: $longitude');
+      developer.log('[ItemsService] - isFree: $isFree, price: $price');
+      developer.log('[ItemsService] - images count: ${imagePaths.length}');
+      developer.log('[ItemsService] - isStoreItem: $isStoreItem');
+      developer.log('[ItemsService] FormData fields: ${formData.fields.map((e) => '${e.key}=${e.value}').join(', ')}');
+      
       final response = await _api.uploadFile('/items', formData: formData);
+      
+      developer.log('[ItemsService] Create item response status: ${response.statusCode}');
+      developer.log('[ItemsService] Create item response: ${response.data}');
+      
       final item = Item.fromJson(response.data['item'] ?? response.data);
       
       return ItemResult(success: true, item: item);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      developer.log('[ItemsService] ERROR creating item: $e');
+      developer.log('[ItemsService] Stack trace: $stackTrace');
+      if (e is DioException) {
+        developer.log('[ItemsService] Response status: ${e.response?.statusCode}');
+        developer.log('[ItemsService] Response data: ${e.response?.data}');
+      }
       return ItemResult(success: false, error: _parseError(e));
     }
   }

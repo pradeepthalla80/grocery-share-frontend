@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
@@ -90,7 +91,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Future<void> _loadItems({bool refresh = false}) async {
-    if (_isLoadingItems || !mounted) return;
+    developer.log('[AdminDashboard] _loadItems called, refresh: $refresh');
+    if (_isLoadingItems || !mounted) {
+      developer.log('[AdminDashboard] Skipping: isLoading=$_isLoadingItems, mounted=$mounted');
+      return;
+    }
     
     if (refresh) {
       _itemsPage = 1;
@@ -99,12 +104,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     
     setState(() => _isLoadingItems = true);
     
+    developer.log('[AdminDashboard] Calling adminService.getAllItems(page: $_itemsPage)');
     final result = await _adminService.getAllItems(
       page: _itemsPage,
       search: _itemSearchController.text.trim().isNotEmpty 
           ? _itemSearchController.text.trim() 
           : null,
     );
+    
+    developer.log('[AdminDashboard] getAllItems result: success=${result.success}, error=${result.error}');
+    developer.log('[AdminDashboard] Items count: ${result.items?.length ?? 0}, totalPages: ${result.totalPages}');
     
     if (!mounted) return;
     
@@ -118,6 +127,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         }
         _hasMoreItems = _itemsPage < (result.totalPages ?? 1);
         _itemsPage++;
+        developer.log('[AdminDashboard] Items loaded: ${_items.length} total, hasMore: $_hasMoreItems');
+      } else {
+        developer.log('[AdminDashboard] Failed to load items: ${result.error}');
       }
     });
   }

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
@@ -275,24 +276,31 @@ class LocationProvider with ChangeNotifier {
   }
   
   Future<bool> getCurrentLocation() async {
+    developer.log('[LocationProvider] getCurrentLocation() called');
     _isLoading = true;
     _error = null;
     _immediateNotify();
     
     try {
+      developer.log('[LocationProvider] Checking location permission...');
       final hasPermission = await checkPermission();
       if (!hasPermission) {
+        developer.log('[LocationProvider] Permission denied: $_error');
         _isLoading = false;
         _safeNotify();
         return false;
       }
       
+      developer.log('[LocationProvider] Permission granted, getting GPS position...');
       _currentPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 15),
       );
       
+      developer.log('[LocationProvider] Got position: ${_currentPosition?.latitude}, ${_currentPosition?.longitude}');
+      
       await _reverseGeocode();
+      developer.log('[LocationProvider] Reverse geocoded address: $_currentAddress');
       
       _isIPLocation = false;
       _isLoading = false;
@@ -308,9 +316,12 @@ class LocationProvider with ChangeNotifier {
       }
       
       _safeNotify();
+      developer.log('[LocationProvider] getCurrentLocation() success');
       return true;
     } catch (e) {
+      developer.log('[LocationProvider] getCurrentLocation() error: $e');
       _error = _parseLocationError(e);
+      developer.log('[LocationProvider] Parsed error: $_error');
       _isLoading = false;
       _safeNotify();
       return false;

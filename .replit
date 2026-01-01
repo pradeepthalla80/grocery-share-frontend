@@ -15,12 +15,12 @@ args = "mobile-analysis"
 name = "mobile-analysis"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd mobile && dart pub get && echo \"Flutter mobile project ready. Run 'flutter run' locally on iOS/Android simulator.\""
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"Flutter mobile project (BaskMate) - Code updated with Phase 4 debug logging.\" && echo \"Files modified:\" && echo \" - admin_service.dart: Admin items API logging\" && echo \" - items_service.dart: Create item payload logging\" && echo \" - payment_service.dart: Stripe Connect logging (redacted)\" && echo \" - location_provider.dart: GPS permission/location logging\" && echo \" - add_item_screen.dart: Geocoding fallback + logging\" && echo \" - places_service.dart: Address geocoding service\" && echo \"\" && echo \"To build the app, run 'flutter pub get' and 'flutter run' locally.\""
 
 [[ports]]
 localPort = 5000

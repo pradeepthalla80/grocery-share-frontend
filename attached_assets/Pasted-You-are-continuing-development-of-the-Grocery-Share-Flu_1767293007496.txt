@@ -1,0 +1,169 @@
+You are continuing development of the Grocery Share Flutter mobile app.
+The web app is already fully functional and is the source of truth.
+Your task is to bring the mobile app to feature parity with the web app, without refactoring architecture or backend APIs.
+
+The iOS build runs successfully; testing revealed the following functional gaps.
+Fix only these gaps, add temporary logging for verification, and ensure no regression to existing working features (auth, analytics, admin users list).
+
+1️⃣ Admin → Items Page Loads UI but No Data
+
+Admin authentication works and admin users list loads correctly.
+
+Admin items page renders but does not load item data.
+
+Fix requirements
+
+Compare Admin Users API call vs Admin Items API call.
+
+Ensure:
+
+Same backend base URL (Render)
+
+Same Authorization: Bearer <JWT> handling
+
+Correct admin endpoint
+
+Fix any response parsing mismatch.
+
+Add temporary console logging:
+
+Endpoint URL
+
+Status code
+
+Error/response body
+
+Items must load for admin exactly as on web.
+
+2️⃣ Add Item Fails + Address Autocomplete + Location Issues
+A. Address Autocomplete (Critical)
+
+On web, typing an address shows Google Places dropdown.
+
+On mobile, address input does not show suggestions.
+
+Fix requirements
+
+Implement Google Places autocomplete dropdown in Flutter:
+
+Debounce input (after 2–3 characters)
+
+Fetch Places autocomplete suggestions
+
+Show selectable dropdown list
+
+On selection, fetch place details
+
+Populate:
+
+formatted address
+
+latitude
+
+longitude
+
+Block item submission until a valid address + lat/lng exist.
+
+B. “Use Current Location” Not Working
+
+Add proper iOS location permissions:
+
+NSLocationWhenInUseUsageDescription in Info.plist
+
+Request runtime permission before accessing location.
+
+Handle simulator case gracefully (location may be unset).
+
+Show user-facing error if location unavailable.
+
+C. Add Item Submission Failure
+
+Add temporary logging for Add Item POST:
+
+Full payload
+
+Status code
+
+Backend error message
+
+Ensure payload matches web app exactly:
+
+address
+
+lat/lng
+
+images (Cloudinary)
+
+free/price flags
+
+Fix validation failures so item creation succeeds.
+
+3️⃣ Stripe Connect Account Creation Not Opening on Mobile
+
+Stripe onboarding works on web.
+
+On mobile, clicking Stripe account creation fails.
+
+Fix requirements
+
+Open Stripe Connect onboarding link using external browser (url_launcher, external mode).
+
+Ensure onboarding URL is valid HTTPS.
+
+Do NOT embed Stripe in a restricted webview.
+
+After returning to app, refresh Stripe account status from backend.
+
+Match web flow behavior (manual return is acceptable).
+
+4️⃣ “Become Store Owner” Flow Fails
+
+New users cannot successfully become store owners.
+
+Fix requirements
+
+Log the “become store owner” API response.
+
+If Stripe account is not onboarded:
+
+Redirect user to Stripe onboarding flow.
+
+After onboarding:
+
+Refresh user profile
+
+Update role / storeOwner state
+
+Reflect updated permissions in UI
+
+Flow must match web logic exactly.
+
+5️⃣ Implementation Rules (Very Important)
+
+❌ Do NOT refactor backend
+
+❌ Do NOT change API contracts
+
+❌ Do NOT redesign UI
+
+❌ Do NOT regenerate Flutter project
+
+✅ Use web app behavior as reference
+
+✅ Add temporary logs, then keep fixes minimal and stable
+
+✅ Confirm each fix on iOS simulator
+
+6️⃣ Final Verification
+
+After fixes:
+
+Admin items load
+
+Add item works with address dropdown and location
+
+Stripe onboarding opens and completes
+
+Store owner creation succeeds
+
+Existing working features remain unaffected

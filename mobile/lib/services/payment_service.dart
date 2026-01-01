@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
@@ -46,23 +47,39 @@ class PaymentService {
   
   Future<StripeAccountResult> createStripeAccount(String country) async {
     try {
+      developer.log('[PaymentService] createStripeAccount called with country: $country');
       final response = await _api.post('/stripe-connect/create-account', data: {
         'country': country,
       });
       
+      final accountId = response.data['accountId'];
+      final hasOnboardingUrl = response.data['onboardingUrl'] != null;
+      developer.log('[PaymentService] Create account success: accountId=$accountId, hasOnboardingUrl=$hasOnboardingUrl');
+      
       return StripeAccountResult(
         success: true,
-        accountId: response.data['accountId'],
+        accountId: accountId,
         onboardingUrl: response.data['onboardingUrl'],
       );
     } catch (e) {
+      developer.log('[PaymentService] createStripeAccount error: $e');
+      if (e is DioException) {
+        developer.log('[PaymentService] Response status: ${e.response?.statusCode}');
+        final errorData = e.response?.data;
+        if (errorData is Map) {
+          developer.log('[PaymentService] Error message: ${errorData['message'] ?? errorData['error']}');
+        }
+      }
       return StripeAccountResult(success: false, error: _parseError(e));
     }
   }
   
   Future<StripeAccountResult> getStripeAccountStatus() async {
     try {
+      developer.log('[PaymentService] getStripeAccountStatus called');
       final response = await _api.get('/stripe-connect/account-status');
+      
+      developer.log('[PaymentService] Account status response: ${response.data}');
       
       return StripeAccountResult(
         success: true,
@@ -72,6 +89,7 @@ class PaymentService {
         chargesEnabled: response.data['chargesEnabled'] ?? false,
       );
     } catch (e) {
+      developer.log('[PaymentService] getStripeAccountStatus error: $e');
       return StripeAccountResult(success: false, error: _parseError(e));
     }
   }
@@ -102,9 +120,13 @@ class PaymentService {
   
   Future<String?> refreshOnboardingUrl() async {
     try {
+      developer.log('[PaymentService] refreshOnboardingUrl called');
       final response = await _api.post('/stripe-connect/refresh-onboarding');
+      final hasUrl = response.data['onboardingUrl'] != null;
+      developer.log('[PaymentService] Refresh onboarding success: hasUrl=$hasUrl');
       return response.data['onboardingUrl'];
-    } catch (_) {
+    } catch (e) {
+      developer.log('[PaymentService] refreshOnboardingUrl error: $e');
       return null;
     }
   }
