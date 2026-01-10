@@ -338,12 +338,64 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
+  String? _getValidationErrors() {
+    final errors = <String>[];
+    
     if (_images.isEmpty) {
+      errors.add('At least one image is required');
+    }
+    
+    if (_titleController.text.trim().isEmpty) {
+      errors.add('Title is required');
+    }
+    
+    if (_descriptionController.text.trim().isEmpty) {
+      errors.add('Description is required');
+    }
+    
+    final qty = int.tryParse(_quantityController.text);
+    if (qty == null || qty < 1) {
+      errors.add('Valid quantity is required');
+    }
+    
+    if (!_isFree) {
+      final price = double.tryParse(_priceController.text);
+      if (price == null || price < AppConfig.minPaidItemPrice) {
+        errors.add('Price must be at least \$${AppConfig.minPaidItemPrice.toStringAsFixed(2)}');
+      }
+    }
+    
+    if (_addressController.text.trim().isEmpty && _selectedLat == null) {
+      errors.add('Pickup location is required');
+    }
+    
+    if (errors.isEmpty) return null;
+    return errors.first;
+  }
+
+  Future<void> _submit() async {
+    developer.log('[AddItemScreen] _submit() called');
+    
+    final validationError = _getValidationErrors();
+    if (validationError != null) {
+      developer.log('[AddItemScreen] Validation failed: $validationError');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one image')),
+        SnackBar(
+          content: Text(validationError),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      _formKey.currentState?.validate();
+      return;
+    }
+    
+    if (!_formKey.currentState!.validate()) {
+      developer.log('[AddItemScreen] Form validation failed');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -435,10 +487,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     developer.log('[AddItemScreen] Submitting item with:');
     developer.log('[AddItemScreen] - title: ${_titleController.text.trim()}');
+    developer.log('[AddItemScreen] - description length: ${_descriptionController.text.trim().length}');
     developer.log('[AddItemScreen] - category: $_selectedCategory');
     developer.log('[AddItemScreen] - isFree: $_isFree, price: ${_priceController.text}');
     developer.log('[AddItemScreen] - images: ${_images.length}');
+    developer.log('[AddItemScreen] - image paths: ${_images.map((img) => img.path).toList()}');
     developer.log('[AddItemScreen] - lat: $lat, lng: $lng');
+    developer.log('[AddItemScreen] - expiryDate: $_expiryDate');
 
     final item = await itemsProvider.createItem(
       title: _titleController.text.trim(),
@@ -471,11 +526,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
       );
       Navigator.pop(context);
     } else {
-      developer.log('[AddItemScreen] Item creation failed: ${itemsProvider.error}');
+      final errorMessage = itemsProvider.error ?? 'Failed to list item. Please try again.';
+      developer.log('[AddItemScreen] Item creation failed: $errorMessage');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(itemsProvider.error ?? 'Failed to list item'),
+          content: Text(errorMessage),
           backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
@@ -572,11 +629,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
-                labelText: 'Title',
+                labelText: 'Title *',
                 hintText: 'e.g., Fresh Organic Apples',
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
+                if (value == null || value.trim().isEmpty) {
                   return 'Please enter a title';
                 }
                 return null;
@@ -588,11 +645,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
               controller: _descriptionController,
               maxLines: 3,
               decoration: const InputDecoration(
-                labelText: 'Description',
+                labelText: 'Description *',
                 hintText: 'Describe the item condition, quantity, etc.',
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
+                if (value == null || value.trim().isEmpty) {
                   return 'Please enter a description';
                 }
                 return null;
@@ -670,7 +727,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   child: TextFormField(
                     controller: _quantityController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Quantity'),
+                    decoration: const InputDecoration(labelText: 'Quantity *'),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Required';
@@ -690,7 +747,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     child: AbsorbPointer(
                       child: TextFormField(
                         decoration: InputDecoration(
-                          labelText: 'Expiry Date',
+                          labelText: 'Expiry Date *',
                           suffixIcon: const Icon(Icons.calendar_today),
                         ),
                         controller: TextEditingController(
@@ -720,7 +777,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 controller: _priceController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
-                  labelText: 'Price',
+                  labelText: 'Price *',
                   prefixText: '\$ ',
                   hintText: 'Minimum \$3.00',
                 ),
@@ -932,7 +989,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             const Divider(height: 32),
 
             const Text(
-              'Pickup Location',
+              'Pickup Location *',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -996,7 +1053,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   controller: _addressController,
                   focusNode: _addressFocusNode,
                   decoration: InputDecoration(
-                    labelText: 'Pickup Address',
+                    labelText: 'Pickup Address *',
                     hintText: _placesService.isConfigured 
                         ? 'Start typing to see suggestions...'
                         : 'Enter your address',
@@ -1038,8 +1095,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     }
                   },
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a pickup address';
+                    if ((value == null || value.trim().isEmpty) && _selectedLat == null) {
+                      return 'Please enter a pickup address or use current location';
                     }
                     return null;
                   },
