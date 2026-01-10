@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 
 import '../models/item.dart';
@@ -200,6 +201,23 @@ class ItemsProvider with ChangeNotifier {
     double? deliveryFee,
     DateTime? validUntil,
   }) async {
+    developer.log('[ItemsProvider] ========== CREATE ITEM ==========');
+    developer.log('[ItemsProvider] Title: $title');
+    developer.log('[ItemsProvider] Description length: ${description.length}');
+    developer.log('[ItemsProvider] Category: $category');
+    developer.log('[ItemsProvider] Image paths: $imagePaths');
+    developer.log('[ItemsProvider] Tags: $tags');
+    developer.log('[ItemsProvider] Quantity: $quantity, Unit: $unit');
+    developer.log('[ItemsProvider] Expiry: $expiryDate');
+    developer.log('[ItemsProvider] isFree: $isFree, Price: $price');
+    developer.log('[ItemsProvider] Address: $address');
+    developer.log('[ItemsProvider] Location: lat=$latitude, lng=$longitude');
+    developer.log('[ItemsProvider] ZipCode: $zipCode');
+    developer.log('[ItemsProvider] Pickup: $pickupTimeStart - $pickupTimeEnd on $pickupDays');
+    developer.log('[ItemsProvider] Store item: $isStoreItem, Stock: $stockQuantity');
+    developer.log('[ItemsProvider] Delivery: $offersDelivery, Fee: $deliveryFee');
+    developer.log('[ItemsProvider] Valid until: $validUntil');
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -231,23 +249,42 @@ class ItemsProvider with ChangeNotifier {
     
     _isLoading = false;
     
+    developer.log('[ItemsProvider] Create result - success: ${result.success}');
+    developer.log('[ItemsProvider] Create result - error: ${result.error}');
+    developer.log('[ItemsProvider] Create result - item: ${result.item?.id}');
+    
     if (result.success && result.item != null) {
       _myItems.insert(0, result.item!);
+      developer.log('[ItemsProvider] Item added to myItems list');
       notifyListeners();
       return result.item;
     }
     
-    _error = result.error;
+    _error = result.error ?? 'Failed to create item. Please try again.';
+    developer.log('[ItemsProvider] Setting error: $_error');
     notifyListeners();
     return null;
   }
   
   Future<bool> updateItem(String id, Map<String, dynamic> updates, {List<dynamic>? newImages}) async {
+    developer.log('[ItemsProvider] Updating item $id');
+    developer.log('[ItemsProvider] Updates: $updates');
+    developer.log('[ItemsProvider] New images: ${newImages?.length ?? 0}');
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
     
-    final result = await _itemsService.updateItem(id, updates, newImagePaths: newImages?.map((i) => i.path as String).toList());
+    List<String>? imagePaths;
+    if (newImages != null && newImages.isNotEmpty) {
+      imagePaths = newImages.map((i) {
+        if (i is String) return i;
+        if (i.path != null) return i.path as String;
+        return i.toString();
+      }).toList();
+    }
+    
+    final result = await _itemsService.updateItem(id, updates, newImagePaths: imagePaths);
     
     _isLoading = false;
     

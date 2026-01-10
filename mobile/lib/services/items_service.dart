@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'dart:io';
 import 'package:dio/dio.dart';
 
 import '../models/item.dart';
@@ -39,7 +40,6 @@ class ItemsService {
       final response = await _api.get('/items', queryParameters: queryParams);
       final data = response.data;
       
-      // Handle null or missing items array gracefully
       final itemsList = data['items'] as List<dynamic>? ?? [];
       final items = itemsList
           .map((item) => Item.fromJson(item))
@@ -85,7 +85,6 @@ class ItemsService {
       
       return ItemsResult(success: true, items: items);
     } catch (e) {
-      // Recommendations are non-critical, return empty list on failure
       return ItemsResult(success: true, items: []);
     }
   }
@@ -143,6 +142,55 @@ class ItemsService {
     DateTime? validUntil,
   }) async {
     try {
+      developer.log('[ItemsService] ========== CREATE ITEM START ==========');
+      developer.log('[ItemsService] Title: $title');
+      developer.log('[ItemsService] Category: $category');
+      developer.log('[ItemsService] Address: $address');
+      developer.log('[ItemsService] Lat/Lng: $latitude, $longitude');
+      developer.log('[ItemsService] isFree: $isFree, price: $price');
+      developer.log('[ItemsService] Image paths received: $imagePaths');
+      developer.log('[ItemsService] Image count: ${imagePaths.length}');
+      
+      if (imagePaths.isEmpty) {
+        developer.log('[ItemsService] ERROR: No images provided');
+        return ItemResult(success: false, error: 'At least one image is required');
+      }
+      
+      final validImagePaths = <String>[];
+      for (int i = 0; i < imagePaths.length; i++) {
+        String path = imagePaths[i];
+        
+        if (path.startsWith('file://')) {
+          path = path.replaceFirst('file://', '');
+          developer.log('[ItemsService] Stripped file:// prefix from path $i: $path');
+        }
+        
+        final file = File(path);
+        final exists = await file.exists();
+        developer.log('[ItemsService] Image $i path: $path');
+        developer.log('[ItemsService] Image $i exists: $exists');
+        
+        if (exists) {
+          final fileSize = await file.length();
+          developer.log('[ItemsService] Image $i size: $fileSize bytes');
+          
+          if (fileSize > 0) {
+            validImagePaths.add(path);
+          } else {
+            developer.log('[ItemsService] WARNING: Image $i is empty (0 bytes)');
+          }
+        } else {
+          developer.log('[ItemsService] WARNING: Image $i does not exist at path: $path');
+        }
+      }
+      
+      if (validImagePaths.isEmpty) {
+        developer.log('[ItemsService] ERROR: No valid images found');
+        return ItemResult(success: false, error: 'Could not access selected images. Please try selecting them again.');
+      }
+      
+      developer.log('[ItemsService] Valid images to upload: ${validImagePaths.length}');
+      
       final formData = FormData();
       
       formData.fields.addAll([
@@ -154,60 +202,147 @@ class ItemsService {
         MapEntry('isFree', isFree.toString()),
       ]);
       
-      if (tags != null) formData.fields.add(MapEntry('tags', tags.join(',')));
-      if (unit != null) formData.fields.add(MapEntry('unit', unit));
-      if (price != null) formData.fields.add(MapEntry('price', price.toString()));
-      if (address != null) formData.fields.add(MapEntry('address', address));
-      if (latitude != null) formData.fields.add(MapEntry('latitude', latitude.toString()));
-      if (longitude != null) formData.fields.add(MapEntry('longitude', longitude.toString()));
-      if (zipCode != null) formData.fields.add(MapEntry('zipCode', zipCode));
-      if (pickupTimeStart != null) formData.fields.add(MapEntry('pickupTimeStart', pickupTimeStart));
-      if (pickupTimeEnd != null) formData.fields.add(MapEntry('pickupTimeEnd', pickupTimeEnd));
-      if (pickupDays != null) formData.fields.add(MapEntry('pickupDays', pickupDays.join(',')));
-      if (isStoreItem != null) formData.fields.add(MapEntry('isStoreItem', isStoreItem.toString()));
-      if (stockQuantity != null) formData.fields.add(MapEntry('stockQuantity', stockQuantity.toString()));
-      if (offersDelivery != null) formData.fields.add(MapEntry('offersDelivery', offersDelivery.toString()));
-      if (deliveryFee != null) formData.fields.add(MapEntry('deliveryFee', deliveryFee.toString()));
-      if (validUntil != null) formData.fields.add(MapEntry('validUntil', validUntil.toIso8601String()));
-      
-      for (int i = 0; i < imagePaths.length; i++) {
-        formData.files.add(MapEntry(
-          'images',
-          await MultipartFile.fromFile(imagePaths[i]),
-        ));
+      if (tags != null && tags.isNotEmpty) {
+        formData.fields.add(MapEntry('tags', tags.join(',')));
+      }
+      if (unit != null && unit.isNotEmpty) {
+        formData.fields.add(MapEntry('unit', unit));
+      }
+      if (!isFree && price != null) {
+        formData.fields.add(MapEntry('price', price.toString()));
+      }
+      if (address != null && address.isNotEmpty) {
+        formData.fields.add(MapEntry('address', address));
+      }
+      if (latitude != null) {
+        formData.fields.add(MapEntry('latitude', latitude.toString()));
+      }
+      if (longitude != null) {
+        formData.fields.add(MapEntry('longitude', longitude.toString()));
+      }
+      if (zipCode != null && zipCode.isNotEmpty) {
+        formData.fields.add(MapEntry('zipCode', zipCode));
+      }
+      if (pickupTimeStart != null && pickupTimeStart.isNotEmpty) {
+        formData.fields.add(MapEntry('pickupTimeStart', pickupTimeStart));
+      }
+      if (pickupTimeEnd != null && pickupTimeEnd.isNotEmpty) {
+        formData.fields.add(MapEntry('pickupTimeEnd', pickupTimeEnd));
+      }
+      if (pickupDays != null && pickupDays.isNotEmpty) {
+        formData.fields.add(MapEntry('pickupDays', pickupDays.join(',')));
+      }
+      if (isStoreItem != null) {
+        formData.fields.add(MapEntry('isStoreItem', isStoreItem.toString()));
+      }
+      if (stockQuantity != null) {
+        formData.fields.add(MapEntry('stockQuantity', stockQuantity.toString()));
+      }
+      if (offersDelivery != null) {
+        formData.fields.add(MapEntry('offersDelivery', offersDelivery.toString()));
+      }
+      if (deliveryFee != null) {
+        formData.fields.add(MapEntry('deliveryFee', deliveryFee.toString()));
+      }
+      if (validUntil != null) {
+        formData.fields.add(MapEntry('validUntil', validUntil.toIso8601String()));
       }
       
-      developer.log('[ItemsService] Creating item with payload:');
-      developer.log('[ItemsService] - title: $title');
-      developer.log('[ItemsService] - category: $category');
-      developer.log('[ItemsService] - address: $address');
-      developer.log('[ItemsService] - latitude: $latitude, longitude: $longitude');
-      developer.log('[ItemsService] - isFree: $isFree, price: $price');
-      developer.log('[ItemsService] - images count: ${imagePaths.length}');
-      developer.log('[ItemsService] - isStoreItem: $isStoreItem');
-      developer.log('[ItemsService] FormData fields: ${formData.fields.map((e) => '${e.key}=${e.value}').join(', ')}');
+      developer.log('[ItemsService] FormData fields:');
+      for (final field in formData.fields) {
+        developer.log('[ItemsService]   ${field.key}: ${field.value}');
+      }
+      
+      for (int i = 0; i < validImagePaths.length; i++) {
+        try {
+          final filePath = validImagePaths[i];
+          final fileName = filePath.split('/').last;
+          
+          String contentType = 'image/jpeg';
+          final lowerFileName = fileName.toLowerCase();
+          if (lowerFileName.endsWith('.png')) {
+            contentType = 'image/png';
+          } else if (lowerFileName.endsWith('.gif')) {
+            contentType = 'image/gif';
+          } else if (lowerFileName.endsWith('.webp')) {
+            contentType = 'image/webp';
+          } else if (lowerFileName.endsWith('.heic') || lowerFileName.endsWith('.heif')) {
+            contentType = 'image/heic';
+          }
+          
+          developer.log('[ItemsService] Adding image $i: $fileName (type: $contentType)');
+          
+          final multipartFile = await MultipartFile.fromFile(
+            filePath,
+            filename: fileName,
+            contentType: DioMediaType.parse(contentType),
+          );
+          
+          formData.files.add(MapEntry('images', multipartFile));
+          developer.log('[ItemsService] Image $i added successfully');
+        } catch (e, stack) {
+          developer.log('[ItemsService] ERROR adding image $i: $e');
+          developer.log('[ItemsService] Stack: $stack');
+          return ItemResult(success: false, error: 'Failed to process image ${i + 1}. Please try again.');
+        }
+      }
+      
+      developer.log('[ItemsService] Total files in FormData: ${formData.files.length}');
+      developer.log('[ItemsService] Sending request to /items...');
       
       final response = await _api.uploadFile('/items', formData: formData);
       
-      developer.log('[ItemsService] Create item response status: ${response.statusCode}');
-      developer.log('[ItemsService] Create item response: ${response.data}');
+      developer.log('[ItemsService] Response status: ${response.statusCode}');
+      developer.log('[ItemsService] Response data type: ${response.data.runtimeType}');
+      developer.log('[ItemsService] Response data: ${response.data}');
       
-      final item = Item.fromJson(response.data['item'] ?? response.data);
+      dynamic itemData;
+      if (response.data is Map) {
+        itemData = response.data['item'] ?? response.data;
+      } else {
+        developer.log('[ItemsService] ERROR: Unexpected response format');
+        return ItemResult(success: false, error: 'Unexpected server response format');
+      }
+      
+      final item = Item.fromJson(itemData);
+      developer.log('[ItemsService] Item created successfully with ID: ${item.id}');
+      developer.log('[ItemsService] ========== CREATE ITEM END ==========');
       
       return ItemResult(success: true, item: item);
-    } catch (e, stackTrace) {
-      developer.log('[ItemsService] ERROR creating item: $e');
+    } on DioException catch (e, stackTrace) {
+      developer.log('[ItemsService] ========== DIO ERROR ==========');
+      developer.log('[ItemsService] Error type: ${e.type}');
+      developer.log('[ItemsService] Error message: ${e.message}');
+      developer.log('[ItemsService] Response status: ${e.response?.statusCode}');
+      developer.log('[ItemsService] Response headers: ${e.response?.headers}');
+      developer.log('[ItemsService] Response data: ${e.response?.data}');
+      developer.log('[ItemsService] Request path: ${e.requestOptions.path}');
       developer.log('[ItemsService] Stack trace: $stackTrace');
-      if (e is DioException) {
-        developer.log('[ItemsService] Response status: ${e.response?.statusCode}');
-        developer.log('[ItemsService] Response data: ${e.response?.data}');
-      }
+      
+      return ItemResult(success: false, error: _parseError(e));
+    } on FileSystemException catch (e, stackTrace) {
+      developer.log('[ItemsService] ========== FILE SYSTEM ERROR ==========');
+      developer.log('[ItemsService] Error: $e');
+      developer.log('[ItemsService] Path: ${e.path}');
+      developer.log('[ItemsService] Stack trace: $stackTrace');
+      
+      return ItemResult(success: false, error: 'Could not access image file. Please try selecting the image again.');
+    } catch (e, stackTrace) {
+      developer.log('[ItemsService] ========== UNEXPECTED ERROR ==========');
+      developer.log('[ItemsService] Error type: ${e.runtimeType}');
+      developer.log('[ItemsService] Error: $e');
+      developer.log('[ItemsService] Stack trace: $stackTrace');
+      
       return ItemResult(success: false, error: _parseError(e));
     }
   }
   
   Future<ItemResult> updateItem(String id, Map<String, dynamic> updates, {List<String>? newImagePaths}) async {
     try {
+      developer.log('[ItemsService] Updating item $id');
+      developer.log('[ItemsService] Updates: $updates');
+      developer.log('[ItemsService] New image paths: $newImagePaths');
+      
       if (newImagePaths != null && newImagePaths.isNotEmpty) {
         final formData = FormData();
         
@@ -217,6 +352,8 @@ class ItemsService {
               for (var item in value) {
                 formData.fields.add(MapEntry('$key[]', item.toString()));
               }
+            } else if (value is DateTime) {
+              formData.fields.add(MapEntry(key, value.toIso8601String()));
             } else {
               formData.fields.add(MapEntry(key, value.toString()));
             }
@@ -224,10 +361,20 @@ class ItemsService {
         });
         
         for (int i = 0; i < newImagePaths.length; i++) {
-          formData.files.add(MapEntry(
-            'images',
-            await MultipartFile.fromFile(newImagePaths[i]),
-          ));
+          String path = newImagePaths[i];
+          
+          if (path.startsWith('file://')) {
+            path = path.replaceFirst('file://', '');
+          }
+          
+          final file = File(path);
+          if (await file.exists()) {
+            final fileName = path.split('/').last;
+            formData.files.add(MapEntry(
+              'images',
+              await MultipartFile.fromFile(path, filename: fileName),
+            ));
+          }
         }
         
         final response = await _api.uploadFile('/items/$id', formData: formData);
@@ -239,6 +386,7 @@ class ItemsService {
         return ItemResult(success: true, item: item);
       }
     } catch (e) {
+      developer.log('[ItemsService] Update error: $e');
       return ItemResult(success: false, error: _parseError(e));
     }
   }
@@ -247,7 +395,8 @@ class ItemsService {
     try {
       await _api.delete('/items/$id');
       return true;
-    } catch (_) {
+    } catch (e) {
+      developer.log('[ItemsService] Delete error: $e');
       return false;
     }
   }
@@ -262,12 +411,76 @@ class ItemsService {
   }
   
   String _parseError(dynamic e) {
-    if (e is DioException && e.response?.data != null) {
-      final data = e.response?.data;
-      if (data is Map && data['message'] != null) {
-        return data['message'];
+    developer.log('[ItemsService] Parsing error: $e');
+    
+    if (e is DioException) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return 'Connection timed out. Please check your internet connection.';
+      }
+      
+      if (e.type == DioExceptionType.connectionError) {
+        return 'Could not connect to server. Please check your internet connection.';
+      }
+      
+      if (e.response?.data != null) {
+        final data = e.response?.data;
+        developer.log('[ItemsService] Error response data: $data');
+        
+        if (data is Map) {
+          final message = data['message'] ?? data['error'] ?? data['msg'];
+          if (message != null && message.toString().isNotEmpty) {
+            return message.toString();
+          }
+          
+          if (data['errors'] is List && (data['errors'] as List).isNotEmpty) {
+            final errors = data['errors'] as List;
+            if (errors.first is Map && errors.first['msg'] != null) {
+              return errors.first['msg'].toString();
+            }
+            return errors.first.toString();
+          }
+          
+          if (data['errors'] is Map) {
+            final errorMap = data['errors'] as Map;
+            final firstError = errorMap.values.first;
+            if (firstError is String) return firstError;
+            if (firstError is List && firstError.isNotEmpty) {
+              return firstError.first.toString();
+            }
+          }
+        }
+        
+        if (data is String && data.isNotEmpty) {
+          return data;
+        }
+      }
+      
+      switch (e.response?.statusCode) {
+        case 400:
+          return 'Invalid request. Please check your input.';
+        case 401:
+          return 'Please log in again to continue.';
+        case 403:
+          return 'You do not have permission to perform this action.';
+        case 404:
+          return 'The requested resource was not found.';
+        case 413:
+          return 'Image file is too large. Please choose a smaller image.';
+        case 500:
+          return 'Server error. Please try again later.';
+        case 502:
+        case 503:
+        case 504:
+          return 'Server is temporarily unavailable. Please try again.';
       }
     }
+    
+    if (e is FileSystemException) {
+      return 'Could not access file: ${e.message}';
+    }
+    
     return 'An error occurred. Please try again.';
   }
 }
