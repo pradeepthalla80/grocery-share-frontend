@@ -12,6 +12,9 @@ const SUPPORTED_COUNTRIES = [
   'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'CH', 'NZ', 'SG', 'HK', 'JP', 'MY', 'MX', 'BR'
 ];
 
+// Backend base URL for mobile callbacks
+const BACKEND_URL = process.env.BACKEND_URL || 'https://grocery-share-backend.onrender.com';
+
 // Create a Stripe Express connected account for a seller
 const createConnectedAccount = async (req, res) => {
   try {
@@ -140,6 +143,105 @@ const createAccountLink = async (req, res) => {
       error: error.message || 'Failed to create onboarding link' 
     });
   }
+};
+
+// Mobile-specific onboarding endpoint
+// Creates account if needed and returns onboarding URL with backend-hosted callbacks
+const mobileOnboarding = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { country } = req.body;
+    
+    console.log(`[Mobile Onboarding] Starting for user ${userId}`);
+    
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    let stripeAccountId = user.stripeAccountId;
+
+    // Create Stripe account if it doesn't exist
+    if (!stripeAccountId) {
+      // Default to US if no country provided for mobile
+      const countryCode = country ? country.toUpperCase() : 'US';
+      
+      if (!SUPPORTED_COUNTRIES.includes(countryCode)) {
+        return res.status(400).json({ 
+          success: false,
+          error: `Country '${countryCode}' is not supported for Stripe Connect.` 
+        });
+      }
+
+      console.log(`[Mobile Onboarding] Creating new Stripe account for user ${userId} in ${countryCode}`);
+
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: countryCode,
+        email: user.email,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        business_type: 'individual',
+        business_profile: {
+          product_description: 'Selling surplus groceries on BaskMate marketplace',
+        },
+        metadata: {
+          userId: userId.toString(),
+          userName: user.name,
+          platform: 'BaskMate',
+          country: countryCode,
+          source: 'mobile'
+        }
+      });
+
+      stripeAccountId = account.id;
+      user.stripeAccountId = account.id;
+      user.stripeAccountStatus = 'pending';
+      await user.save();
+
+      console.log(`[Mobile Onboarding] Created Stripe account ${account.id}`);
+    } else {
+      console.log(`[Mobile Onboarding] Using existing Stripe account ${stripeAccountId}`);
+    }
+
+    // Create account link with backend-hosted URLs (no frontend dependency)
+    const accountLink = await stripe.accountLinks.create({
+      account: stripeAccountId,
+      refresh_url: `${BACKEND_URL}/api/v1/stripe-connect/mobile-refresh`,
+      return_url: `${BACKEND_URL}/api/v1/stripe-connect/mobile-complete`,
+      type: 'account_onboarding',
+      collect: 'eventually_due',
+    });
+
+    console.log(`[Mobile Onboarding] Created account link, expires at ${accountLink.expires_at}`);
+
+    res.json({
+      success: true,
+      url: accountLink.url
+    });
+
+  } catch (error) {
+    console.error('[Mobile Onboarding] Error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Failed to create mobile onboarding link' 
+    });
+  }
+};
+
+// Mobile refresh handler - called when onboarding link expires or user needs to restart
+const mobileRefresh = async (req, res) => {
+  console.log('[Mobile Refresh] User needs to refresh onboarding');
+  res.json({ status: 'refresh' });
+};
+
+// Mobile complete handler - called when user completes onboarding
+const mobileComplete = async (req, res) => {
+  console.log('[Mobile Complete] User completed Stripe onboarding');
+  res.json({ status: 'complete' });
 };
 
 // Get connected account status
@@ -340,5 +442,8 @@ module.exports = {
   getSellerBalance,
   handleConnectWebhook,
   calculatePlatformFee,
+  mobileOnboarding,
+  mobileRefresh,
+  mobileComplete,
   PLATFORM_COMMISSION_RATE
 };
