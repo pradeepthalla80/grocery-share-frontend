@@ -100,7 +100,11 @@ class PaymentService {
             developer.log('[PaymentService] Got URL from getOnboardingLink: $linkUrl');
             onboardingUrl = linkUrl;
           } else {
-            developer.log('[PaymentService] WARNING: Could not get onboarding URL from any endpoint');
+            developer.log('[PaymentService] ERROR: Could not get onboarding URL from any endpoint');
+            return StripeAccountResult(
+              success: false,
+              error: 'Stripe onboarding link could not be generated. Please try again.',
+            );
           }
         }
       }
