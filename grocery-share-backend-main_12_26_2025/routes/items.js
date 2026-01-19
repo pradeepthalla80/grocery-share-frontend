@@ -106,6 +106,20 @@ router.get('/my-items', authMiddleware, getMyItems);
 
 /**
  * @swagger
+ * /items/recommendations:
+ *   get:
+ *     summary: Redirect to recommendations endpoint (safety catch)
+ *     tags: [Items]
+ *     responses:
+ *       301:
+ *         description: Redirects to /api/v1/recommendations
+ */
+router.get('/recommendations', (req, res) => {
+  res.redirect(301, '/api/v1/recommendations');
+});
+
+/**
+ * @swagger
  * /items/{id}:
  *   get:
  *     summary: Get a single item by ID

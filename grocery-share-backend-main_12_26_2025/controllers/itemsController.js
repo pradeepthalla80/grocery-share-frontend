@@ -1,5 +1,6 @@
 const Item = require('../models/Item');
 const SearchLog = require('../models/SearchLog');
+const mongoose = require('mongoose');
 
 // ============================================================================
 // HELPER FUNCTION: Calculate distance between two coordinates (Haversine formula)
@@ -405,6 +406,11 @@ const getItemsByLocation = async (req, res) => {
 const getItemById = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate ObjectId to prevent CastError on invalid IDs like "recommendations"
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid item id' });
+    }
     
     // ========== UPDATED: Added averageRating and ratingCount to populate ==========
     const item = await Item.findById(id).populate('user', 'name email storeName averageRating ratingCount');
