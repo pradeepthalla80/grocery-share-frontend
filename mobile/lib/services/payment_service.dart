@@ -43,14 +43,17 @@ class PaymentService {
   
   Future<bool> confirmPayment(String clientSecret) async {
     try {
+      developer.log('[PaymentService] confirmPayment called');
       await Stripe.instance.confirmPayment(
         paymentIntentClientSecret: clientSecret,
         data: const PaymentMethodParams.card(
           paymentMethodData: PaymentMethodData(),
         ),
       );
+      developer.log('[PaymentService] Payment confirmed successfully');
       return true;
     } catch (e) {
+      developer.log('[PaymentService] ERROR confirming payment: $e');
       return false;
     }
   }
@@ -62,22 +65,45 @@ class PaymentService {
         'country': country,
       });
       
-      final accountId = response.data['accountId'];
-      final hasOnboardingUrl = response.data['onboardingUrl'] != null;
-      developer.log('[PaymentService] Create account success: accountId=$accountId, hasOnboardingUrl=$hasOnboardingUrl');
+      developer.log('[PaymentService] Raw response: ${response.data}');
+      developer.log('[PaymentService] Response type: ${response.data.runtimeType}');
+      
+      final data = response.data;
+      String? accountId;
+      String? onboardingUrl;
+      
+      if (data is Map) {
+        accountId = data['accountId']?.toString();
+        onboardingUrl = data['onboardingUrl']?.toString() ?? data['url']?.toString();
+        developer.log('[PaymentService] Parsed accountId: $accountId');
+        developer.log('[PaymentService] Parsed onboardingUrl: $onboardingUrl');
+      }
+      
+      if (accountId == null) {
+        developer.log('[PaymentService] ERROR: No accountId in response');
+        return StripeAccountResult(
+          success: false,
+          error: 'No account ID returned from server',
+        );
+      }
       
       return StripeAccountResult(
         success: true,
         accountId: accountId,
-        onboardingUrl: response.data['onboardingUrl'],
+        onboardingUrl: onboardingUrl,
       );
     } catch (e) {
       developer.log('[PaymentService] createStripeAccount error: $e');
       if (e is DioException) {
         developer.log('[PaymentService] Response status: ${e.response?.statusCode}');
+        developer.log('[PaymentService] Response headers: ${e.response?.headers}');
         final errorData = e.response?.data;
+        developer.log('[PaymentService] Response data: $errorData');
+        developer.log('[PaymentService] Response data type: ${errorData.runtimeType}');
+        
         if (errorData is Map) {
-          developer.log('[PaymentService] Error message: ${errorData['message'] ?? errorData['error']}');
+          final errorMsg = errorData['message'] ?? errorData['error'] ?? errorData['msg'];
+          developer.log('[PaymentService] Parsed error message: $errorMsg');
         }
       }
       return StripeAccountResult(success: false, error: _parseError(e));
@@ -91,31 +117,43 @@ class PaymentService {
       
       developer.log('[PaymentService] Account status response: ${response.data}');
       
+      final data = response.data;
       return StripeAccountResult(
         success: true,
-        accountId: response.data['accountId'],
-        status: response.data['status'],
-        payoutsEnabled: response.data['payoutsEnabled'] ?? false,
-        chargesEnabled: response.data['chargesEnabled'] ?? false,
+        accountId: data['accountId']?.toString(),
+        status: data['status']?.toString(),
+        payoutsEnabled: data['payoutsEnabled'] == true,
+        chargesEnabled: data['chargesEnabled'] == true,
       );
     } catch (e) {
       developer.log('[PaymentService] getStripeAccountStatus error: $e');
+      if (e is DioException) {
+        developer.log('[PaymentService] Status response code: ${e.response?.statusCode}');
+        developer.log('[PaymentService] Status response data: ${e.response?.data}');
+      }
       return StripeAccountResult(success: false, error: _parseError(e));
     }
   }
   
   Future<String?> getStripeDashboardUrl() async {
     try {
+      developer.log('[PaymentService] getStripeDashboardUrl called');
       final response = await _api.get('/stripe-connect/dashboard-link');
-      return response.data['url'];
-    } catch (_) {
+      final url = response.data['url']?.toString();
+      developer.log('[PaymentService] Dashboard URL: $url');
+      return url;
+    } catch (e) {
+      developer.log('[PaymentService] getStripeDashboardUrl error: $e');
       return null;
     }
   }
   
   Future<StripeBalanceResult> getStripeBalance() async {
     try {
+      developer.log('[PaymentService] getStripeBalance called');
       final response = await _api.get('/stripe-connect/balance');
+      
+      developer.log('[PaymentService] Balance response: ${response.data}');
       
       return StripeBalanceResult(
         success: true,
@@ -124,6 +162,7 @@ class PaymentService {
         currency: response.data['currency'] ?? 'usd',
       );
     } catch (e) {
+      developer.log('[PaymentService] getStripeBalance error: $e');
       return StripeBalanceResult(success: false, error: _parseError(e));
     }
   }
@@ -132,11 +171,23 @@ class PaymentService {
     try {
       developer.log('[PaymentService] refreshOnboardingUrl called');
       final response = await _api.post('/stripe-connect/refresh-onboarding');
-      final hasUrl = response.data['onboardingUrl'] != null;
-      developer.log('[PaymentService] Refresh onboarding success: hasUrl=$hasUrl');
-      return response.data['onboardingUrl'];
+      
+      developer.log('[PaymentService] Refresh response: ${response.data}');
+      
+      final data = response.data;
+      String? url;
+      if (data is Map) {
+        url = data['onboardingUrl']?.toString() ?? data['url']?.toString();
+      }
+      
+      developer.log('[PaymentService] Refresh onboarding URL: $url');
+      return url;
     } catch (e) {
       developer.log('[PaymentService] refreshOnboardingUrl error: $e');
+      if (e is DioException) {
+        developer.log('[PaymentService] Refresh error status: ${e.response?.statusCode}');
+        developer.log('[PaymentService] Refresh error data: ${e.response?.data}');
+      }
       return null;
     }
   }
@@ -187,10 +238,19 @@ class PaymentService {
   String _parseError(dynamic e) {
     if (e is DioException && e.response?.data != null) {
       final data = e.response?.data;
-      if (data is Map && data['message'] != null) {
-        return data['message'];
+      if (data is Map) {
+        final message = data['message'] ?? data['error'] ?? data['msg'];
+        if (message != null) {
+          developer.log('[PaymentService] Parsed error: $message');
+          return message.toString();
+        }
+      }
+      if (data is String && data.isNotEmpty) {
+        developer.log('[PaymentService] Parsed string error: $data');
+        return data;
       }
     }
+    developer.log('[PaymentService] Using default error message');
     return 'An error occurred. Please try again.';
   }
 }
