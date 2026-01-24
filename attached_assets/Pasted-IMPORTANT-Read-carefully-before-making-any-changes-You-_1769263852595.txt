@@ -1,0 +1,83 @@
+IMPORTANT: Read carefully before making any changes.
+
+You are working on a Flutter mobile app (Android + iOS). The workspace now contains a synced local version inside:
+
+mobile_local_sync/
+
+DO NOT modify any files outside mobile_local_sync/.
+DO NOT refactor authentication, Stripe, deep linking, geolocation services, or platform build configs.
+
+TASK 1 — FIX POST REQUEST SCREEN (MOBILE)
+
+On Android and iOS mobile app, the "Create Request" screen is missing several fields that already exist in the Web app.
+
+Update the mobile "Post Request" screen so it matches the following UI fields exactly:
+
+Create Request
+- Item Name (text input)
+- Quantity (text input)
+- Category (dropdown selector)
+- Location section:
+  - Button: Use Current Location
+  - Address input field with autocomplete suggestions
+  - Map preview (same widget logic used on Add Item screen)
+- Payment Preference:
+  - Free Only (toggle / checkbox)
+- Request Validity Period:
+  - Dropdown (Never expires default)
+- Notes (Optional multiline text)
+
+IMPORTANT:
+- Reuse existing location + address + map widgets already implemented in the "Add Item" page.
+- Do NOT create new geolocation logic.
+- Do NOT change backend API contracts.
+- Only UI + form binding should be updated.
+
+---
+
+TASK 2 — FIX ANDROID DASHBOARD STORE OWNER BANNER
+
+On iOS dashboard this banner is visible:
+
+"Want to Become a Store Owner?
+Sell groceries, track inventory, and build revenue"
+
+But it does NOT appear on Android.
+
+Fix this so:
+
+- Android dashboard displays the same banner
+- Same conditions (only when user is not store owner)
+- Same styling and click navigation behavior
+
+DO NOT modify business logic — only fix UI/platform rendering inconsistency.
+
+---
+
+TASK 3 — UPDATE APP ICON (BASKMATE)
+
+Update app launcher icon for BOTH platforms:
+
+Android:
+- mipmap icons
+iOS:
+- AppIcon asset catalog
+
+Use the existing BaskMate logo asset already in the project (do not download external icons).
+
+Ensure:
+- Correct adaptive icon support on Android
+- No build errors introduced
+
+---
+
+OUTPUT REQUIREMENTS:
+
+After changes:
+
+1. List modified files
+2. Explain what was changed (brief)
+3. Do NOT auto-run flutter build
+4. Do NOT touch Stripe, auth, payment, deep linking, backend calls
+
+This is a targeted UI fix only.
