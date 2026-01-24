@@ -1,0 +1,104 @@
+IMPORTANT: Do NOT refactor architecture, dependencies, or working flows.
+ONLY fix the specific issues listed below.
+Preserve all existing Stripe, authentication, geolocation, and Add Item functionality.
+
+PROJECT CONTEXT:
+This is a Flutter mobile app (BaskMate) with Android + iOS builds.
+Local machine already has:
+- Stripe Connect deep-link auto return working
+- Add Item page location autocomplete working (Google Places)
+- Store owner onboarding working
+- Authentication stable
+
+Your task is to align Post Request flow + UI parity and fix Android UI issues WITHOUT breaking existing features.
+
+--------------------------------
+ISSUES TO FIX
+--------------------------------
+
+1) POST REQUEST LOCATION INPUT (CRITICAL)
+
+Problem:
+- "Create Request" screen shows address field but:
+  - Google Places autocomplete dropdown does NOT appear
+  - Current Location button sometimes fails
+  - Request submission fails ("Please try again")
+
+Requirement:
+- Reuse the SAME location + PlacesService logic already used on Add Item screen
+- Must support:
+  - "Use Current Location"
+  - Address autocomplete dropdown
+  - Lat/Lng + zip code capture
+- Behavior must match Add Item page exactly
+
+Files likely involved:
+lib/screens/requests/add_request_screen.dart
+lib/providers/location_provider.dart
+lib/services/places_service.dart
+
+--------------------------------
+
+2) ANDROID DASHBOARD BANNER MISSING
+
+Problem:
+- Android does NOT show banner:
+  "Want to Become a Store Owner? Sell groceries, track inventory, and build revenue"
+- iOS shows correctly
+
+Root cause suspicion:
+- Using context.read<AuthProvider>() instead of Consumer/Selector causing widget not rebuilding
+
+Requirement:
+- Fix rebuild logic so banner appears reliably on Android
+- DO NOT change business logic
+
+--------------------------------
+
+3) APP ICON NOT UPDATING ON ANDROID
+
+Problem:
+- New BaskMate app icon not showing on Android launcher
+- iOS icon appears correct
+
+Requirement:
+- Verify Android mipmap icons are properly referenced
+- Ensure launcher uses updated assets
+- Do not regenerate icons unless required
+- Do not change package name or manifest structure
+
+--------------------------------
+
+4) iOS REGRESSION SAFETY
+
+Requirement:
+- After fixes:
+  - iOS must still build
+  - Stripe deep link return must still open BaskMate
+  - Add Item location autocomplete must remain working
+
+--------------------------------
+
+IMPORTANT RULES
+
+- Do NOT upgrade Flutter version
+- Do NOT upgrade Gradle or Pods
+- Do NOT change Stripe deep linking logic
+- Do NOT modify backend API contracts
+- Only touch UI + provider rebuild logic where necessary
+- Keep changes minimal and isolated
+
+--------------------------------
+
+DELIVERABLE
+
+For each fix provide:
+
+1) Exact file name
+2) Old code block
+3) New replacement code block
+4) Short explanation of WHY change is required
+
+Do NOT commit unless explicitly told.
+
+Start by analyzing Post Request screen first.

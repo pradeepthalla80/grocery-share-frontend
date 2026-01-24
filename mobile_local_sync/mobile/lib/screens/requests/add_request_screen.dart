@@ -390,14 +390,21 @@ class _AddRequestScreenState extends State<AddRequestScreen> {
             const SizedBox(height: 12),
 
             Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
                   controller: _addressController,
                   focusNode: _addressFocusNode,
                   decoration: InputDecoration(
                     labelText: 'Address',
-                    hintText: 'Enter your address',
-                    suffixIcon: _isLoadingPredictions
+                    hintText: _placesService.isConfigured
+                        ? 'Start typing to see suggestions...'
+                        : 'Enter your address',
+                    helperText: !_placesService.isConfigured
+                        ? 'Address autocomplete unavailable (API key not configured)'
+                        : null,
+                    helperStyle: const TextStyle(color: Colors.orange, fontSize: 11),
+                    suffixIcon: _isLoadingPredictions || _isLocatingAddress
                         ? const Padding(
                             padding: EdgeInsets.all(12),
                             child: SizedBox(
@@ -410,6 +417,11 @@ class _AddRequestScreenState extends State<AddRequestScreen> {
                             ? const Icon(Icons.check_circle, color: Colors.green)
                             : null),
                   ),
+                  onTap: () {
+                    if (_addressController.text.length >= 3 && _selectedPlaceDetails == null) {
+                      _fetchAddressPredictions(_addressController.text);
+                    }
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter an address';
@@ -419,41 +431,39 @@ class _AddRequestScreenState extends State<AddRequestScreen> {
                 ),
 
                 if (_showAddressSuggestions && _addressPredictions.isNotEmpty)
-                  Container(
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(8),
-                        bottomRight: Radius.circular(8),
+                  Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      margin: const EdgeInsets.only(top: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _addressPredictions.length,
-                      itemBuilder: (context, index) {
-                        final prediction = _addressPredictions[index];
-                        return ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.location_on_outlined, size: 20),
-                          title: Text(
-                            prediction.mainText,
-                            style: const TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: Text(
-                            prediction.secondaryText,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          onTap: () => _selectAddressPrediction(prediction),
-                        );
-                      },
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: _addressPredictions.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final prediction = _addressPredictions[index];
+                          return ListTile(
+                            dense: true,
+                            leading: const Icon(Icons.location_on_outlined, size: 20),
+                            title: Text(
+                              prediction.mainText,
+                              style: const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            subtitle: Text(
+                              prediction.secondaryText,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            onTap: () => _selectAddressPrediction(prediction),
+                          );
+                        },
+                      ),
                     ),
                   ),
               ],
