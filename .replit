@@ -11,6 +11,10 @@ author = "agent"
 task = "workflow.run"
 args = "mobile-analysis"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "pwa-frontend"
+
 [[workflows.workflow]]
 name = "mobile-analysis"
 author = "agent"
@@ -21,6 +25,18 @@ outputType = "console"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"Flutter mobile project (BaskMate) - Code updated with Phase 4 debug logging.\" && echo \"Files modified:\" && echo \" - admin_service.dart: Admin items API logging\" && echo \" - items_service.dart: Create item payload logging\" && echo \" - payment_service.dart: Stripe Connect logging (redacted)\" && echo \" - location_provider.dart: GPS permission/location logging\" && echo \" - add_item_screen.dart: Geocoding fallback + logging\" && echo \" - places_service.dart: Address geocoding service\" && echo \"\" && echo \"To build the app, run 'flutter pub get' and 'flutter run' locally.\""
+
+[[workflows.workflow]]
+name = "pwa-frontend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd grocery-share-backend-main_12_26_2025/grocery-share-frontend && npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[ports]]
 localPort = 5000
