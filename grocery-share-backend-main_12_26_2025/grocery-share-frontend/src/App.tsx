@@ -24,6 +24,7 @@ import { RequestDetail } from './pages/RequestDetail';
 import { MyStore } from './pages/MyStore';
 import { StoreSetup } from './pages/StoreSetup';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { StripeOnboardingCallback } from './pages/StripeOnboardingCallback';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
@@ -138,6 +139,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/onboarding/complete"
+              element={
+                <ProtectedRoute>
+                  <StripeOnboardingCallback type="complete" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/onboarding/refresh"
+              element={
+                <ProtectedRoute>
+                  <StripeOnboardingCallback type="refresh" />
                 </ProtectedRoute>
               }
             />
