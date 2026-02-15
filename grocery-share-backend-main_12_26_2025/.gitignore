@@ -24,8 +24,8 @@ node_modules/
 .env.production.local
 .env.local
 
-# Frontend folder (separate repository)
-grocery-share-frontend/
+# Frontend folder (included for deployment)
+# grocery-share-frontend/
 
 # Replit specific
 .replit
