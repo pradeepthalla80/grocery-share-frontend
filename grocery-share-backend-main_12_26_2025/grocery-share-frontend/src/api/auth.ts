@@ -19,7 +19,7 @@ export interface AuthResponse {
     name: string;
     email: string;
     createdAt?: string;
-    role?: string;
+    role?: 'user' | 'admin' | 'super_admin';
     isStoreOwner?: boolean;
     storeMode?: boolean;
     storeName?: string;
