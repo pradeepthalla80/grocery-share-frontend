@@ -6,7 +6,7 @@ import { useToast } from '../hooks/useToast';
 import { ArrowLeft, Store, CheckCircle, FileText } from 'lucide-react';
 
 export const StoreSetup = () => {
-  const { user, login } = useAuth();
+  const { user, login, checkAuth } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [terms, setTerms] = useState<string>('');
@@ -56,6 +56,8 @@ export const StoreSetup = () => {
       if (token && response.data.user) {
         login(token, response.data.user);
       }
+      
+      await checkAuth();
       
       showToast('Store mode activated! Welcome aboard!', 'success');
       navigate('/my-store');

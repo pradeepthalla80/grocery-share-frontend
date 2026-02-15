@@ -62,13 +62,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const token = getToken();
     if (!token) return;
     try {
-      const response = await apiClient.get('/auth/me');
-      const userData = response.data.user || response.data;
-      localStorage.setItem('grocery_share_user', JSON.stringify(userData));
-      setUser(userData);
-      setIsAuthenticated(true);
+      let userData = null;
+      try {
+        const response = await apiClient.get('/auth/me');
+        userData = response.data.user || response.data;
+      } catch {
+        const response = await apiClient.get('/users/me');
+        userData = response.data.user || response.data;
+      }
+      if (userData && userData.id) {
+        localStorage.setItem('grocery_share_user', JSON.stringify(userData));
+        setUser(userData);
+        setIsAuthenticated(true);
+      }
     } catch {
-      logout();
+      // Both endpoints failed - keep current state
     }
   }, []);
 
