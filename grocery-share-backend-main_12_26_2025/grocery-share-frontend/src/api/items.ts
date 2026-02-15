@@ -12,6 +12,7 @@ export interface Item {
   imageURL: string;
   images: string[];
   category: string | null;
+  customCategory?: string;
   tags: string[];
   expiryDate: string;
   price: number;
@@ -28,6 +29,11 @@ export interface Item {
   notified: boolean;
   distance?: number;
   isStoreItem?: boolean;
+  status?: string;
+  buyerId?: string;
+  offerDelivery?: boolean;
+  deliveryFee?: number;
+  refundReason?: string;
   createdAt: string;
   updatedAt: string;
 }

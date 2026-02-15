@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { saveToken, getToken, removeToken } from '../utils/token';
+import { apiClient } from '../api/config';
 
 interface User {
   id: string;
@@ -7,7 +8,7 @@ interface User {
   email: string;
   createdAt?: string;
   googleId?: string;
-  role?: string;
+  role?: 'user' | 'admin' | 'super_admin';
   isStoreOwner?: boolean;
   storeMode?: boolean;
   storeName?: string;
@@ -15,12 +16,13 @@ interface User {
   storeActivatedAt?: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  checkAuth: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,8 +58,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsAuthenticated(false);
   };
 
+  const checkAuth = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const response = await apiClient.get('/auth/me');
+      const userData = response.data.user || response.data;
+      localStorage.setItem('grocery_share_user', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch {
+      logout();
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );
