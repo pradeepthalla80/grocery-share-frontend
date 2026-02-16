@@ -17,19 +17,21 @@ const BARCODE_FORMATS = [
   Html5QrcodeSupportedFormats.ITF,
 ];
 
+const isIOS = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
 export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(true);
-  const [status, setStatus] = useState('Initializing...');
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
-  const [frameCount, setFrameCount] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
   const stoppedRef = useRef(false);
   const onScanRef = useRef(onScan);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const frameCountRef = useRef(0);
   onScanRef.current = onScan;
 
   const stopAndClean = useCallback(async () => {
@@ -47,37 +49,30 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
     const scannerId = 'barcode-reader';
     stoppedRef.current = false;
     hasScannedRef.current = false;
-    frameCountRef.current = 0;
 
     const startScanner = async () => {
       try {
-        setStatus('Requesting camera...');
-        console.log('[BarcodeScanner] Creating scanner instance');
+        const ios = isIOS();
 
         const scanner = new Html5Qrcode(scannerId, {
           formatsToSupport: BARCODE_FORMATS,
-          useBarCodeDetectorIfSupported: false,
+          useBarCodeDetectorIfSupported: true,
           verbose: false,
         });
         scannerRef.current = scanner;
 
-        setStatus('Starting camera feed...');
-        console.log('[BarcodeScanner] Starting camera with facingMode: environment');
-
         await scanner.start(
           { facingMode: 'environment' },
           {
-            fps: 5,
+            fps: ios ? 5 : 10,
             qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              const w = Math.floor(viewfinderWidth * 0.85);
-              const h = Math.floor(viewfinderHeight * 0.4);
-              console.log(`[BarcodeScanner] Scan region: ${w}x${h} (viewfinder: ${viewfinderWidth}x${viewfinderHeight})`);
-              return { width: Math.max(w, 200), height: Math.max(h, 80) };
+              const w = Math.floor(viewfinderWidth * 0.9);
+              const h = Math.floor(viewfinderHeight * 0.35);
+              return { width: Math.max(w, 250), height: Math.max(h, 100) };
             },
             disableFlip: true,
-          },
+          } as any,
           (decodedText) => {
-            console.log('[BarcodeScanner] SUCCESS - Decoded:', decodedText);
             if (hasScannedRef.current) return;
             hasScannedRef.current = true;
             if (navigator.vibrate) navigator.vibrate(100);
@@ -90,27 +85,9 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
               onScanRef.current(decodedText);
             });
           },
-          (errorMessage) => {
-            frameCountRef.current++;
-            if (frameCountRef.current % 50 === 0) {
-              console.log(`[BarcodeScanner] ${frameCountRef.current} frames scanned, no barcode found yet. Last: ${errorMessage}`);
-              if (!cancelled) setFrameCount(frameCountRef.current);
-            }
-          }
+          () => {}
         );
-
-        if (!cancelled) {
-          setStarting(false);
-          setStatus('Scanning...');
-          console.log('[BarcodeScanner] Camera started successfully, scanning for barcodes');
-
-          const videoEl = document.querySelector('#barcode-reader video') as HTMLVideoElement;
-          if (videoEl) {
-            const settings = videoEl.srcObject && (videoEl.srcObject as MediaStream).getVideoTracks()[0]?.getSettings();
-            console.log('[BarcodeScanner] Video dimensions:', videoEl.videoWidth, 'x', videoEl.videoHeight);
-            console.log('[BarcodeScanner] Track settings:', JSON.stringify(settings));
-          }
-        }
+        if (!cancelled) setStarting(false);
       } catch (err: any) {
         console.error('[BarcodeScanner] Error:', err);
         if (cancelled) return;
@@ -122,7 +99,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         } else if (msg.includes('NotReadable') || msg.includes('Could not start')) {
           setError('Camera is being used by another app. Close other apps using the camera and try again.');
         } else {
-          setError(`Camera error: ${msg.substring(0, 100)}`);
+          setError('Could not start camera. Try using manual entry or photo scan instead.');
         }
         setStarting(false);
       }
@@ -161,7 +138,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
     try {
       const tempScanner = new Html5Qrcode('barcode-file-reader', {
         formatsToSupport: BARCODE_FORMATS,
-        useBarCodeDetectorIfSupported: false,
+        useBarCodeDetectorIfSupported: true,
         verbose: false,
       });
       const result = await tempScanner.scanFile(file, true);
@@ -196,7 +173,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         {starting && !error && (
           <div className="flex flex-col items-center gap-3 text-white mb-4">
             <Loader2 className="h-8 w-8 animate-spin" />
-            <p className="text-sm">{status}</p>
+            <p className="text-sm">Starting camera...</p>
           </div>
         )}
 
@@ -252,19 +229,12 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
           <div className="relative w-full max-w-sm">
             <div
               id="barcode-reader"
-              className="overflow-hidden"
               style={{ width: '100%', minHeight: '300px' }}
             />
             <div id="barcode-file-reader" style={{ display: 'none' }} />
             {!starting && (
               <>
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-white/50 text-[10px] font-mono">
-                    {status} | frames: {frameCount}
-                  </p>
-                </div>
-
-                <p className="text-white/70 text-xs text-center mt-2">
+                <p className="text-white/70 text-xs text-center mt-3">
                   Align the barcode within the scan area and hold steady
                 </p>
 
