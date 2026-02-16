@@ -25,6 +25,7 @@ import { MyStore } from './pages/MyStore';
 import { StoreSetup } from './pages/StoreSetup';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { StripeOnboardingCallback } from './pages/StripeOnboardingCallback';
+import { Impact } from './pages/Impact';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
@@ -131,6 +132,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <StoreSetup />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/impact"
+              element={
+                <ProtectedRoute>
+                  <Impact />
                 </ProtectedRoute>
               }
             />

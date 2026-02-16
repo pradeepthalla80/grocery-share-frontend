@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, User, Home, Package, MessageCircle, HandHeart, Menu, X, Store, Shield } from 'lucide-react';
+import { LogOut, User, Home, Package, MessageCircle, HandHeart, Menu, X, Store, Shield, Leaf } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 export const Navbar = () => {
@@ -27,6 +27,7 @@ export const Navbar = () => {
     { path: '/my-items', icon: Package, label: 'My Items' },
     { path: '/chat', icon: MessageCircle, label: 'Messages' },
     { path: '/item-requests', icon: HandHeart, label: 'Requests' },
+    { path: '/impact', icon: Leaf, label: 'Impact' },
   ];
 
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
