@@ -61,6 +61,7 @@ export const AddItem = () => {
   const [scanLoading, setScanLoading] = useState(false);
   const [scanResult, setScanResult] = useState<{ status: 'success' | 'not_found' | 'error'; product?: ProductInfo } | null>(null);
   const [showNutrition, setShowNutrition] = useState(false);
+  const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
 
   useEffect(() => {
     const checkStripe = async () => {
@@ -125,9 +126,11 @@ export const AddItem = () => {
     setScanLoading(true);
     setScanResult(null);
     setShowNutrition(false);
+    setScannedBarcode(null);
     try {
       const product = await lookupBarcode(barcode);
       if (product.found) {
+        setScannedBarcode(barcode);
         if (product.name) {
           const displayName = product.brand
             ? `${product.brand} ${product.name}`
@@ -208,6 +211,9 @@ export const AddItem = () => {
       const tags = data.tags
         ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean)
         : [];
+      if (scannedBarcode) {
+        tags.push(`barcode:${scannedBarcode}`);
+      }
       formData.append('tags', JSON.stringify(tags));
       
       formData.append('address', data.address);

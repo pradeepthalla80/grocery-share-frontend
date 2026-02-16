@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, AlertCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
+import { lookupBarcode, type ProductInfo } from '../api/openFoodFacts';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +25,11 @@ export const ItemDetail = () => {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [refundReason, setRefundReason] = useState('');
   const [refundLoading, setRefundLoading] = useState(false);
+  const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
+  const [nutritionLoading, setNutritionLoading] = useState(false);
+  const [showNutritionDetail, setShowNutritionDetail] = useState(false);
+  const [hasBarcode, setHasBarcode] = useState(false);
+  const [nutritionFailed, setNutritionFailed] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -61,6 +67,34 @@ export const ItemDetail = () => {
 
     fetchItem();
   }, [id, navigate, showToast]);
+
+  useEffect(() => {
+    if (!item?.tags) return;
+    const barcodeTag = item.tags.find(t => t.startsWith('barcode:'));
+    if (!barcodeTag) return;
+    const barcode = barcodeTag.replace('barcode:', '');
+    if (!barcode) return;
+
+    setHasBarcode(true);
+    let cancelled = false;
+    setNutritionLoading(true);
+    setNutritionFailed(false);
+    lookupBarcode(barcode).then(info => {
+      if (!cancelled) {
+        if (info.found) {
+          setProductInfo(info);
+        } else {
+          setNutritionFailed(true);
+        }
+      }
+    }).catch(() => {
+      if (!cancelled) setNutritionFailed(true);
+    }).finally(() => {
+      if (!cancelled) setNutritionLoading(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [item?.tags]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 3959;
@@ -283,9 +317,9 @@ export const ItemDetail = () => {
                 </div>
               </div>
 
-              {item.tags && item.tags.length > 0 && (
+              {item.tags && item.tags.filter(t => !t.startsWith('barcode:')).length > 0 && (
                 <div className="mb-3 flex flex-wrap gap-1.5">
-                  {item.tags.map((tag, idx) => (
+                  {item.tags.filter(t => !t.startsWith('barcode:')).map((tag, idx) => (
                     <span key={idx} className="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full text-xs">
                       #{tag}
                     </span>
@@ -377,11 +411,113 @@ export const ItemDetail = () => {
               <div className="border-t border-gray-100 pt-4 md:pt-6">
                 <h2 className="text-base md:text-xl font-semibold text-gray-900 mb-2 md:mb-4">Description</h2>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  {item.category ? `${item.category} item` : 'Grocery item'} available for pickup. 
-                  {item.isFree ? ' This item is being offered for free!' : ` Available for $${item.price.toFixed(2)}.`}
-                  {item.flexiblePickup ? ' Flexible pickup times available.' : ' Please check the pickup window above.'}
+                  {item.description || (
+                    <>
+                      {item.category ? `${item.category} item` : 'Grocery item'} available for pickup. 
+                      {item.isFree ? ' This item is being offered for free!' : ` Available for $${item.price.toFixed(2)}.`}
+                      {item.flexiblePickup ? ' Flexible pickup times available.' : ' Please check the pickup window above.'}
+                    </>
+                  )}
                 </p>
               </div>
+
+              {hasBarcode && (
+                <div className="border-t border-gray-100 pt-4 md:pt-6">
+                  <button
+                    onClick={() => !nutritionLoading && setShowNutritionDetail(!showNutritionDetail)}
+                    className="w-full flex items-center justify-between text-left"
+                  >
+                    <h2 className="text-base md:text-xl font-semibold text-gray-900">Nutrition & Allergens</h2>
+                    {nutritionLoading ? (
+                      <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />
+                    ) : (
+                      showNutritionDetail ? <ChevronUp className="h-5 w-5 text-gray-400" /> : <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+
+                  {showNutritionDetail && nutritionFailed && !productInfo && (
+                    <div className="mt-3 bg-gray-50 rounded-xl p-4 text-center">
+                      <p className="text-sm text-gray-500">Nutrition information is not available for this product at the moment.</p>
+                    </div>
+                  )}
+
+                  {showNutritionDetail && productInfo && (
+                    <div className="mt-3 space-y-3">
+                      {productInfo.nutrition && (
+                        <div className="bg-gray-50 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-semibold text-gray-900">Nutrition Facts</span>
+                            {productInfo.nutrition.servingSize && (
+                              <span className="text-xs text-gray-500">Per {productInfo.nutrition.servingSize}</span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-4 gap-2">
+                            {productInfo.nutrition.calories != null && (
+                              <div className="bg-white rounded-lg p-2.5 text-center border border-gray-100">
+                                <p className="text-lg font-bold text-gray-900">{Math.round(productInfo.nutrition.calories)}</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Calories</p>
+                              </div>
+                            )}
+                            {productInfo.nutrition.protein != null && (
+                              <div className="bg-white rounded-lg p-2.5 text-center border border-gray-100">
+                                <p className="text-lg font-bold text-blue-600">{productInfo.nutrition.protein}g</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Protein</p>
+                              </div>
+                            )}
+                            {productInfo.nutrition.carbs != null && (
+                              <div className="bg-white rounded-lg p-2.5 text-center border border-gray-100">
+                                <p className="text-lg font-bold text-amber-600">{productInfo.nutrition.carbs}g</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Carbs</p>
+                              </div>
+                            )}
+                            {productInfo.nutrition.fat != null && (
+                              <div className="bg-white rounded-lg p-2.5 text-center border border-gray-100">
+                                <p className="text-lg font-bold text-orange-600">{productInfo.nutrition.fat}g</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Fat</p>
+                              </div>
+                            )}
+                          </div>
+                          {(productInfo.nutrition.fiber != null || productInfo.nutrition.sugar != null || productInfo.nutrition.sodium != null) && (
+                            <div className="flex gap-4 mt-3 pt-3 border-t border-gray-200">
+                              {productInfo.nutrition.fiber != null && (
+                                <span className="text-gray-600 text-xs">Fiber: {productInfo.nutrition.fiber}g</span>
+                              )}
+                              {productInfo.nutrition.sugar != null && (
+                                <span className="text-gray-600 text-xs">Sugar: {productInfo.nutrition.sugar}g</span>
+                              )}
+                              {productInfo.nutrition.sodium != null && (
+                                <span className="text-gray-600 text-xs">Sodium: {productInfo.nutrition.sodium}mg</span>
+                              )}
+                            </div>
+                          )}
+                          <p className="text-[10px] text-gray-400 mt-2">Source: {productInfo.source || 'Open Food Facts'}</p>
+                        </div>
+                      )}
+
+                      {productInfo.allergens && productInfo.allergens.length > 0 && (
+                        <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <AlertCircle className="h-4 w-4 text-red-500" />
+                            <span className="text-sm font-semibold text-red-800">Allergen Information</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {productInfo.allergens.map((allergen, i) => (
+                              <span key={i} className="inline-block bg-white text-red-700 text-xs px-2.5 py-1 rounded-lg border border-red-200 font-medium">
+                                {allergen}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-[10px] text-red-400 mt-2">May contain traces. Always check the product label.</p>
+                        </div>
+                      )}
+
+                      {!productInfo.nutrition && (!productInfo.allergens || productInfo.allergens.length === 0) && (
+                        <p className="text-sm text-gray-500">No detailed nutrition or allergen information available for this product.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {!isMyItem && !item.isFree && !isSoldItem && (item as any)?.status !== 'refunded' && (item as any).status === 'available' && (
                 <div className="border-t border-gray-100 mt-5 pt-5">

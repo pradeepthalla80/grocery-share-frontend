@@ -9,6 +9,7 @@ export interface Location {
 export interface Item {
   id: string;
   name: string;
+  description?: string;
   imageURL: string;
   images: string[];
   category: string | null;

@@ -22,6 +22,14 @@ const isIOS = () => {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 };
 
+const isAndroid = () => /Android/i.test(navigator.userAgent);
+
+const isFirefox = () => /Firefox/i.test(navigator.userAgent);
+
+const hasCameraSupport = () => {
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+};
+
 export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(true);
@@ -51,31 +59,42 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
     hasScannedRef.current = false;
 
     const startScanner = async () => {
+      if (!hasCameraSupport()) {
+        setError('Camera is not supported on this browser. Use manual entry or scan a photo of the barcode.');
+        setStarting(false);
+        return;
+      }
+
       try {
         const ios = isIOS();
+        const android = isAndroid();
+        const firefox = isFirefox();
 
         const scanner = new Html5Qrcode(scannerId, {
           formatsToSupport: BARCODE_FORMATS,
-          useBarCodeDetectorIfSupported: true,
+          useBarCodeDetectorIfSupported: !firefox,
           verbose: false,
         });
         scannerRef.current = scanner;
 
+        const fps = ios ? 5 : android ? 8 : 10;
+
         await scanner.start(
           { facingMode: 'environment' },
           {
-            fps: ios ? 5 : 10,
+            fps,
             qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
               const w = Math.floor(viewfinderWidth * 0.9);
-              const h = Math.floor(viewfinderHeight * 0.35);
-              return { width: Math.max(w, 250), height: Math.max(h, 100) };
+              const h = Math.floor(viewfinderHeight * (ios ? 0.3 : 0.35));
+              return { width: Math.max(w, 200), height: Math.max(h, 80) };
             },
             disableFlip: true,
+            aspectRatio: ios ? 1.333 : undefined,
           } as any,
           (decodedText) => {
             if (hasScannedRef.current) return;
             hasScannedRef.current = true;
-            if (navigator.vibrate) navigator.vibrate(100);
+            try { navigator.vibrate(100); } catch {}
             stoppedRef.current = true;
             scanner.stop().then(() => {
               try { scanner.clear(); } catch {}
@@ -98,6 +117,8 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
           setError('No camera found. Make sure your device has a camera.');
         } else if (msg.includes('NotReadable') || msg.includes('Could not start')) {
           setError('Camera is being used by another app. Close other apps using the camera and try again.');
+        } else if (msg.includes('OverconstrainedError') || msg.includes('Overconstrained')) {
+          setError('Camera settings not supported on this device. Try scanning a photo or entering the barcode manually.');
         } else {
           setError('Could not start camera. Try using manual entry or photo scan instead.');
         }
@@ -258,7 +279,6 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={handleFileScan}
                   className="hidden"
                 />
