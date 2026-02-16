@@ -20,14 +20,16 @@ const BARCODE_FORMATS = [
 export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(true);
+  const [status, setStatus] = useState('Initializing...');
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
-  const [scanAttempts, setScanAttempts] = useState(0);
+  const [frameCount, setFrameCount] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
   const stoppedRef = useRef(false);
   const onScanRef = useRef(onScan);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const frameCountRef = useRef(0);
   onScanRef.current = onScan;
 
   const stopAndClean = useCallback(async () => {
@@ -45,9 +47,13 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
     const scannerId = 'barcode-reader';
     stoppedRef.current = false;
     hasScannedRef.current = false;
+    frameCountRef.current = 0;
 
     const startScanner = async () => {
       try {
+        setStatus('Requesting camera...');
+        console.log('[BarcodeScanner] Creating scanner instance');
+
         const scanner = new Html5Qrcode(scannerId, {
           formatsToSupport: BARCODE_FORMATS,
           useBarCodeDetectorIfSupported: false,
@@ -55,36 +61,23 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         });
         scannerRef.current = scanner;
 
-        let cameraConfig: any = { facingMode: 'environment' };
-
-        try {
-          const cameras = await Html5Qrcode.getCameras();
-          if (cameras && cameras.length > 0) {
-            const backCamera = cameras.find(c =>
-              c.label.toLowerCase().includes('back') ||
-              c.label.toLowerCase().includes('rear') ||
-              c.label.toLowerCase().includes('environment')
-            );
-            if (backCamera) {
-              cameraConfig = backCamera.id;
-            }
-          }
-        } catch {}
-
-        const screenWidth = Math.min(window.innerWidth, 500);
-        const qrboxWidth = Math.floor(screenWidth * 0.8);
-        const qrboxHeight = Math.floor(qrboxWidth * 0.35);
+        setStatus('Starting camera feed...');
+        console.log('[BarcodeScanner] Starting camera with facingMode: environment');
 
         await scanner.start(
-          cameraConfig,
+          { facingMode: 'environment' },
           {
-            fps: 10,
-            qrbox: { width: qrboxWidth, height: qrboxHeight },
+            fps: 5,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const w = Math.floor(viewfinderWidth * 0.85);
+              const h = Math.floor(viewfinderHeight * 0.4);
+              console.log(`[BarcodeScanner] Scan region: ${w}x${h} (viewfinder: ${viewfinderWidth}x${viewfinderHeight})`);
+              return { width: Math.max(w, 200), height: Math.max(h, 80) };
+            },
             disableFlip: true,
-            defaultZoomValueIfSupported: 2,
-            willReadFrequently: true,
-          } as any,
+          },
           (decodedText) => {
+            console.log('[BarcodeScanner] SUCCESS - Decoded:', decodedText);
             if (hasScannedRef.current) return;
             hasScannedRef.current = true;
             if (navigator.vibrate) navigator.vibrate(100);
@@ -97,15 +90,29 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
               onScanRef.current(decodedText);
             });
           },
-          () => {
-            if (!cancelled) {
-              setScanAttempts(prev => prev + 1);
+          (errorMessage) => {
+            frameCountRef.current++;
+            if (frameCountRef.current % 50 === 0) {
+              console.log(`[BarcodeScanner] ${frameCountRef.current} frames scanned, no barcode found yet. Last: ${errorMessage}`);
+              if (!cancelled) setFrameCount(frameCountRef.current);
             }
           }
         );
-        if (!cancelled) setStarting(false);
+
+        if (!cancelled) {
+          setStarting(false);
+          setStatus('Scanning...');
+          console.log('[BarcodeScanner] Camera started successfully, scanning for barcodes');
+
+          const videoEl = document.querySelector('#barcode-reader video') as HTMLVideoElement;
+          if (videoEl) {
+            const settings = videoEl.srcObject && (videoEl.srcObject as MediaStream).getVideoTracks()[0]?.getSettings();
+            console.log('[BarcodeScanner] Video dimensions:', videoEl.videoWidth, 'x', videoEl.videoHeight);
+            console.log('[BarcodeScanner] Track settings:', JSON.stringify(settings));
+          }
+        }
       } catch (err: any) {
-        console.error('Scanner error:', err);
+        console.error('[BarcodeScanner] Error:', err);
         if (cancelled) return;
         const msg = err?.toString() || '';
         if (msg.includes('NotAllowed') || msg.includes('Permission')) {
@@ -115,7 +122,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         } else if (msg.includes('NotReadable') || msg.includes('Could not start')) {
           setError('Camera is being used by another app. Close other apps using the camera and try again.');
         } else {
-          setError('Could not start camera. Try using manual entry or photo scan instead.');
+          setError(`Camera error: ${msg.substring(0, 100)}`);
         }
         setStarting(false);
       }
@@ -165,12 +172,10 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         });
       }
     } catch {
-      setError('Could not read barcode from image. Try pointing the camera directly at the barcode, or enter the number manually.');
+      setError('Could not read barcode from image. Try entering the number manually.');
       setTimeout(() => setError(''), 4000);
     }
   };
-
-  const showHelpHint = !starting && !error && scanAttempts > 50;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
@@ -191,7 +196,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         {starting && !error && (
           <div className="flex flex-col items-center gap-3 text-white mb-4">
             <Loader2 className="h-8 w-8 animate-spin" />
-            <p className="text-sm">Starting camera...</p>
+            <p className="text-sm">{status}</p>
           </div>
         )}
 
@@ -247,24 +252,20 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
           <div className="relative w-full max-w-sm">
             <div
               id="barcode-reader"
-              className="rounded-xl overflow-hidden"
-              style={{ width: '100%' }}
+              className="overflow-hidden"
+              style={{ width: '100%', minHeight: '300px' }}
             />
             <div id="barcode-file-reader" style={{ display: 'none' }} />
             {!starting && (
               <>
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-3/4 h-px bg-red-500/70 animate-pulse" />
+                <div className="mt-2 flex items-center justify-between">
+                  <p className="text-white/50 text-[10px] font-mono">
+                    {status} | frames: {frameCount}
+                  </p>
                 </div>
 
-                {showHelpHint && (
-                  <div className="mt-3 bg-amber-500/20 border border-amber-400/30 rounded-lg p-2.5 text-center">
-                    <p className="text-amber-200 text-xs">Having trouble? Try holding the barcode closer or use manual entry.</p>
-                  </div>
-                )}
-
-                <p className="text-white/70 text-xs text-center mt-3">
-                  Hold steady - align the barcode within the box
+                <p className="text-white/70 text-xs text-center mt-2">
+                  Align the barcode within the scan area and hold steady
                 </p>
 
                 <div className="flex gap-2 mt-4">
