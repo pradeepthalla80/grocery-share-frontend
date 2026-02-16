@@ -86,8 +86,13 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
           { facingMode: 'environment' },
           {
             fps,
-            qrbox: undefined,
-            disableFlip: false,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              const w = Math.floor(viewfinderWidth * 0.85);
+              const h = Math.floor(Math.min(viewfinderHeight * 0.35, 120));
+              return { width: w, height: h };
+            },
+            disableFlip: true,
+            aspectRatio: ios ? 1.333 : 1.777,
             experimentalFeatures: { useBarCodeDetectorIfSupported: !firefox },
           } as any,
           (decodedText) => {
@@ -267,24 +272,9 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
             <div className="relative">
               <div
                 id="barcode-reader"
+                className="barcode-reader-container"
                 style={{ width: '100%', minHeight: '300px' }}
               />
-              {!starting && (
-                <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
-                  <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 h-32">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-green-400 rounded-tl-lg" />
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-green-400 rounded-tr-lg" />
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-green-400 rounded-bl-lg" />
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-green-400 rounded-br-lg" />
-                    <div
-                      className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-green-400 to-transparent opacity-80"
-                      style={{
-                        animation: 'scanLine 2s ease-in-out infinite',
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
             <div id="barcode-file-reader" style={{ display: 'none' }} />
             {!starting && (
@@ -332,9 +322,11 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
       </div>
 
       <style>{`
-        @keyframes scanLine {
-          0%, 100% { top: 0; }
-          50% { top: calc(100% - 2px); }
+        .barcode-reader-container video {
+          border-radius: 12px;
+        }
+        #qr-shaded-region {
+          border-color: rgba(74, 222, 128, 0.6) !important;
         }
       `}</style>
     </div>
