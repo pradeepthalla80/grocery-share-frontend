@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 
@@ -40,12 +41,24 @@ class BarcodeService {
     },
   ));
 
+  static final Dio _fsDio = Dio(BaseOptions(
+    baseUrl: 'https://platform.fatsecret.com/rest',
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+
+  static String? _fsToken;
+  static DateTime? _fsTokenExpiry;
+
   static Future<ProductInfo> lookupBarcode(String barcode) async {
     final offResult = await _lookupOpenFoodFacts(barcode);
     if (offResult.found) return offResult;
 
     final upcResult = await _lookupUPCitemdb(barcode);
     if (upcResult.found) return upcResult;
+
+    final fsResult = await _lookupFatSecret(barcode);
+    if (fsResult.found) return fsResult;
 
     return ProductInfo(found: false);
   }
@@ -146,6 +159,100 @@ class BarcodeService {
       );
     } catch (e) {
       developer.log('[BarcodeService] UPC Database error: $e');
+      return ProductInfo(found: false);
+    }
+  }
+
+  static Future<String> _getFatSecretToken() async {
+    if (_fsToken != null && _fsTokenExpiry != null && DateTime.now().isBefore(_fsTokenExpiry!)) {
+      return _fsToken!;
+    }
+
+    const clientId = String.fromEnvironment('FATSECRET_CLIENT_ID');
+    const clientSecret = String.fromEnvironment('FATSECRET_CLIENT_SECRET');
+
+    if (clientId.isEmpty || clientSecret.isEmpty) {
+      throw Exception('FatSecret credentials not configured');
+    }
+
+    final authString = base64Encode(utf8.encode('$clientId:$clientSecret'));
+
+    final tokenDio = Dio();
+    final response = await tokenDio.post(
+      'https://oauth.fatsecret.com/connect/token',
+      data: 'grant_type=client_credentials&scope=barcode',
+      options: Options(
+        headers: {
+          'Authorization': 'Basic $authString',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      ),
+    );
+
+    _fsToken = response.data['access_token'];
+    final expiresIn = response.data['expires_in'] as int;
+    _fsTokenExpiry = DateTime.now().add(Duration(seconds: expiresIn - 60));
+    return _fsToken!;
+  }
+
+  static Future<ProductInfo> _lookupFatSecret(String barcode) async {
+    try {
+      developer.log('[BarcodeService] Trying FatSecret for: $barcode');
+
+      final token = await _getFatSecretToken();
+      final gtin = barcode.padLeft(13, '0');
+
+      final response = await _fsDio.post(
+        '/server.api',
+        queryParameters: {
+          'method': 'food.find_id_for_barcode.v2',
+          'barcode': gtin,
+          'format': 'json',
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      final data = response.data;
+      if (data['error'] != null || data['food'] == null) {
+        developer.log('[BarcodeService] Not found in FatSecret');
+        return ProductInfo(found: false);
+      }
+
+      final food = data['food'];
+      String? category;
+      final tags = <String>[];
+
+      if (food['food_type'] != null) {
+        tags.add(food['food_type'].toString().toLowerCase());
+      }
+
+      final subCats = food['food_sub_categories']?['food_sub_category'];
+      if (subCats != null) {
+        final subList = subCats is List ? subCats : [subCats];
+        if (subList.isNotEmpty) {
+          category = subList[0].toString();
+          for (final s in subList.take(4)) {
+            tags.add(s.toString().toLowerCase());
+          }
+        }
+      }
+
+      developer.log('[BarcodeService] Found in FatSecret: ${food['food_name']}');
+      return ProductInfo(
+        found: true,
+        name: food['food_name']?.toString(),
+        category: category,
+        tags: tags.isNotEmpty ? tags : null,
+        brand: food['brand_name']?.toString(),
+        source: 'FatSecret',
+      );
+    } catch (e) {
+      developer.log('[BarcodeService] FatSecret error: $e');
       return ProductInfo(found: false);
     }
   }

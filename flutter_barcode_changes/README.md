@@ -3,7 +3,11 @@
 ## Overview
 These files add barcode scanning functionality to the BaskMate Flutter app.
 Users can scan product barcodes on the Add Item screen to auto-fill item details
-using the Open Food Facts database (free, no API key needed).
+using a 3-database lookup chain for maximum product coverage:
+
+1. **Open Food Facts** - 4M+ food products, free, no API key needed
+2. **UPC Item DB** - 681M+ products (all categories), free trial, no key needed
+3. **FatSecret** - 1.9M+ foods across 56 markets including Asian groceries (requires API key)
 
 ## Files to Add/Modify
 
@@ -28,15 +32,24 @@ Add inside `<manifest>` (if not already present):
 ```
 
 ### 4. New file: lib/services/open_food_facts_service.dart
-Copy from this folder - handles barcode lookup via Open Food Facts API.
+Copy from this folder - handles barcode lookup via 3-database chain
+(Open Food Facts -> UPC Item DB -> FatSecret).
 
 ### 5. New file: lib/widgets/barcode_scanner_screen.dart
 Copy from this folder - full-screen camera barcode scanner widget.
 
 ### 6. Modify: lib/screens/items/add_item_screen.dart
 Add a "Scan Barcode" button in the AppBar or above the form.
-When scanned, call OpenFoodFactsService.lookupBarcode() and
+When scanned, call BarcodeService.lookupBarcode() and
 set the form field controllers with the result.
+
+### 7. FatSecret API Keys (for Flutter)
+Pass as compile-time constants via `--dart-define`:
+```bash
+flutter run \
+  --dart-define=FATSECRET_CLIENT_ID=your_client_id \
+  --dart-define=FATSECRET_CLIENT_SECRET=your_client_secret
+```
 
 ## What Gets Auto-filled
 - Item Name (product name + brand)
@@ -50,5 +63,5 @@ set the form field controllers with the result.
 - Images (user takes photos)
 
 ## No Backend Changes Required
-The Open Food Facts API is called directly from the app.
+All barcode APIs are called directly from the app.
 No new backend endpoints needed.

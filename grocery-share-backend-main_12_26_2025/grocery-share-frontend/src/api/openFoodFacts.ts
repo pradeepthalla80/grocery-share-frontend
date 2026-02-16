@@ -93,9 +93,50 @@ const lookupUPCitemdb = async (barcode: string, signal: AbortSignal): Promise<Pr
   };
 };
 
+const lookupFatSecret = async (barcode: string, signal: AbortSignal): Promise<ProductInfo> => {
+  const response = await fetch(
+    `/api/fatsecret/barcode/${barcode}`,
+    { signal }
+  );
+
+  if (!response.ok) {
+    return { found: false };
+  }
+
+  const data = await response.json();
+
+  if (data.error || !data.food) {
+    return { found: false };
+  }
+
+  const food = data.food;
+
+  let category: string | undefined;
+  const tags: string[] = [];
+  if (food.food_type) {
+    tags.push(food.food_type.toLowerCase());
+  }
+  if (food.food_sub_categories?.food_sub_category) {
+    const subs = Array.isArray(food.food_sub_categories.food_sub_category)
+      ? food.food_sub_categories.food_sub_category
+      : [food.food_sub_categories.food_sub_category];
+    category = subs[0];
+    subs.slice(0, 4).forEach((s: string) => tags.push(s.toLowerCase()));
+  }
+
+  return {
+    found: true,
+    name: food.food_name || undefined,
+    category: category,
+    tags: tags.length > 0 ? tags : undefined,
+    brand: food.brand_name || undefined,
+    source: 'FatSecret',
+  };
+};
+
 export const lookupBarcode = async (barcode: string): Promise<ProductInfo> => {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
     const offResult = await lookupOpenFoodFacts(barcode, controller.signal);
@@ -106,6 +147,11 @@ export const lookupBarcode = async (barcode: string): Promise<ProductInfo> => {
     const upcResult = await lookupUPCitemdb(barcode, controller.signal);
     if (upcResult.found) {
       return upcResult;
+    }
+
+    const fsResult = await lookupFatSecret(barcode, controller.signal);
+    if (fsResult.found) {
+      return fsResult;
     }
 
     return { found: false };

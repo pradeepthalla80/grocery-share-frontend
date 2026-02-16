@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/fatsecret/:match*",
+      "destination": "/api/fatsecret"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
