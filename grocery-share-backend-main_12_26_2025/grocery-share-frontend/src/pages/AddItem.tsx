@@ -121,6 +121,27 @@ export const AddItem = () => {
     return 30;
   };
 
+  const shortenProductName = (name: string, brand?: string): string => {
+    let display = brand ? `${brand} ${name}` : name;
+
+    display = display.replace(/\b(flavored|flavoured)\b/gi, '');
+    display = display.replace(/\b(potato|tortilla|corn)\s+chips\b/gi, 'Chips');
+    display = display.replace(/\b\d+(\.\d+)?\s*(oz|g|kg|lb|ml|l|fl\s*oz|ct|count|pack|pk)\b/gi, '');
+    display = display.replace(/\s*-\s*/g, ' ');
+    display = display.replace(/\s{2,}/g, ' ').trim();
+
+    if (display.length <= 40) return display;
+
+    const words = display.split(' ');
+    let result = '';
+    for (const word of words) {
+      const test = result ? `${result} ${word}` : word;
+      if (test.length > 40) break;
+      result = test;
+    }
+    return result || words.slice(0, 3).join(' ');
+  };
+
   const handleBarcodeScan = useCallback(async (barcode: string) => {
     setShowScanner(false);
     setScanLoading(true);
@@ -132,9 +153,7 @@ export const AddItem = () => {
       if (product.found) {
         setScannedBarcode(barcode);
         if (product.name) {
-          const displayName = product.brand
-            ? `${product.brand} ${product.name}`
-            : product.name;
+          const displayName = shortenProductName(product.name, product.brand);
           setValue('name', displayName);
         }
         if (product.category) {

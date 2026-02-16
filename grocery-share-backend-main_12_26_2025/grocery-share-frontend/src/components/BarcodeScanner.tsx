@@ -35,11 +35,13 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const [starting, setStarting] = useState(true);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
+  const [scanAttempts, setScanAttempts] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
   const stoppedRef = useRef(false);
   const onScanRef = useRef(onScan);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const attemptCounterRef = useRef(0);
   onScanRef.current = onScan;
 
   const stopAndClean = useCallback(async () => {
@@ -57,6 +59,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
     const scannerId = 'barcode-reader';
     stoppedRef.current = false;
     hasScannedRef.current = false;
+    attemptCounterRef.current = 0;
 
     const startScanner = async () => {
       if (!hasCameraSupport()) {
@@ -100,7 +103,14 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
               onScanRef.current(decodedText);
             });
           },
-          () => {}
+          () => {
+            if (!hasScannedRef.current) {
+              attemptCounterRef.current++;
+              if (attemptCounterRef.current % fps === 0) {
+                setScanAttempts(prev => prev + 1);
+              }
+            }
+          }
         );
         if (!cancelled) setStarting(false);
       } catch (err: any) {
@@ -170,6 +180,16 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
       setTimeout(() => setError(''), 4000);
     }
   };
+
+  const scanTips = [
+    'Hold steady and keep barcode in frame',
+    'Try moving closer to the barcode',
+    'Make sure barcode is well lit',
+    'Flatten the package if folded',
+    'Try tilting the product slightly',
+  ];
+
+  const currentTip = scanTips[Math.floor(scanAttempts / 3) % scanTips.length];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
@@ -244,15 +264,42 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
           </div>
         ) : (
           <div className="relative w-full max-w-sm">
-            <div
-              id="barcode-reader"
-              style={{ width: '100%', minHeight: '300px' }}
-            />
+            <div className="relative">
+              <div
+                id="barcode-reader"
+                style={{ width: '100%', minHeight: '300px' }}
+              />
+              {!starting && (
+                <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
+                  <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 h-32">
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-green-400 rounded-tl-lg" />
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-green-400 rounded-tr-lg" />
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-green-400 rounded-bl-lg" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-green-400 rounded-br-lg" />
+                    <div
+                      className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-green-400 to-transparent opacity-80"
+                      style={{
+                        animation: 'scanLine 2s ease-in-out infinite',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
             <div id="barcode-file-reader" style={{ display: 'none' }} />
             {!starting && (
               <>
-                <p className="text-white/70 text-xs text-center mt-3">
-                  Point camera at the barcode — works at any angle
+                <div className="mt-3 flex items-center justify-center gap-2">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }} />
+                  </div>
+                  <p className="text-green-300 text-xs font-medium">Scanning...</p>
+                </div>
+
+                <p className="text-white/50 text-[11px] text-center mt-2 transition-all duration-500">
+                  {currentTip}
                 </p>
 
                 <div className="flex gap-2 mt-4">
@@ -283,6 +330,13 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes scanLine {
+          0%, 100% { top: 0; }
+          50% { top: calc(100% - 2px); }
+        }
+      `}</style>
     </div>
   );
 };

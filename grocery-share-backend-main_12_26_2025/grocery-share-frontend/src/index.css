@@ -213,4 +213,50 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: none;
   }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+
+  .notification-dot {
+    position: relative;
+  }
+
+  .notification-dot::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+
+  @media (max-width: 767px) {
+    .chat-input-area {
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+    }
+  }
+
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scroll-snap-x > * {
+    scroll-snap-align: start;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

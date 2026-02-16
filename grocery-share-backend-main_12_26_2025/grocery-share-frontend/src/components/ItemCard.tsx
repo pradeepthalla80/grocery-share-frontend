@@ -173,9 +173,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           )}
         </div>
 
-        {item.tags && item.tags.length > 0 && (
+        {item.tags && item.tags.filter(t => !t.startsWith('barcode:')).length > 0 && (
           <div className="mt-2.5 flex flex-wrap gap-1">
-            {item.tags.slice(0, 3).map((tag, idx) => (
+            {item.tags.filter(t => !t.startsWith('barcode:')).slice(0, 3).map((tag, idx) => (
               <span
                 key={idx}
                 className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-[10px]"
@@ -183,8 +183,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
                 #{tag}
               </span>
             ))}
-            {item.tags.length > 3 && (
-              <span className="text-gray-400 text-[10px] self-center">+{item.tags.length - 3}</span>
+            {item.tags.filter(t => !t.startsWith('barcode:')).length > 3 && (
+              <span className="text-gray-400 text-[10px] self-center">+{item.tags.filter(t => !t.startsWith('barcode:')).length - 3}</span>
             )}
           </div>
         )}

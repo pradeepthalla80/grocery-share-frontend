@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getConversations, getMessages, sendMessage, markMessagesAsRead, confirmPickup, type Conversation, type Message } from '../api/chat';
 import { revealAddress } from '../api/address';
@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { RatingModal } from '../components/RatingModal';
-import { Send, MessageSquare, MapPin, Eye, CheckCircle } from 'lucide-react';
+import { Send, MessageSquare, MapPin, Eye, CheckCircle, ChevronDown } from 'lucide-react';
 
 export const Chat = () => {
   const { user } = useAuth();
@@ -27,18 +27,29 @@ export const Chat = () => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [ratingUserId, setRatingUserId] = useState('');
   const [ratingUserName, setRatingUserName] = useState('');
-  const [userHasScrolled, setUserHasScrolled] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const userScrolledRef = useRef(false);
+  const lastMessageCountRef = useRef(0);
+  const scrollLockRef = useRef(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const receiverId = searchParams.get('receiverId');
   const itemId = searchParams.get('itemId');
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    if (scrollLockRef.current) return;
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior });
+    });
+  }, []);
 
   useEffect(() => {
     if (receiverId) {
       setSelectedConversation(null);
       setMessages([]);
       setIsNewConversation(true);
-      setUserHasScrolled(false); // Reset scroll state for new conversation
+      userScrolledRef.current = false;
+      lastMessageCountRef.current = 0;
       fetchConversations(true);
     } else {
       fetchConversations(true);
@@ -53,6 +64,8 @@ export const Chat = () => {
 
   useEffect(() => {
     if (selectedConversation) {
+      userScrolledRef.current = false;
+      lastMessageCountRef.current = 0;
       fetchMessages(selectedConversation.id);
       markMessagesAsRead(selectedConversation.id);
       
@@ -65,19 +78,26 @@ export const Chat = () => {
   }, [selectedConversation]);
 
   useEffect(() => {
-    // Only auto-scroll if user hasn't manually scrolled up
-    if (!userHasScrolled) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, userHasScrolled]);
+    const newCount = messages.length;
+    const hadMessages = lastMessageCountRef.current > 0;
+    const hasNewMessages = newCount > lastMessageCountRef.current;
+    lastMessageCountRef.current = newCount;
 
-  const handleScroll = () => {
+    if (!hadMessages && newCount > 0) {
+      scrollToBottom('instant' as ScrollBehavior);
+    } else if (hasNewMessages && !userScrolledRef.current) {
+      scrollToBottom('smooth');
+    }
+  }, [messages.length, scrollToBottom]);
+
+  const handleScroll = useCallback(() => {
     if (messagesContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-      setUserHasScrolled(!isAtBottom);
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 80;
+      userScrolledRef.current = !isAtBottom;
+      setShowScrollButton(!isAtBottom && messages.length > 5);
     }
-  };
+  }, [messages.length]);
 
   const fetchConversations = async (selectFirstOrMatch = false) => {
     try {
@@ -107,7 +127,14 @@ export const Chat = () => {
   const fetchMessages = async (conversationId: string) => {
     try {
       const response = await getMessages(conversationId);
-      setMessages(response.messages);
+      setMessages(prev => {
+        if (prev.length === response.messages.length &&
+            prev.length > 0 &&
+            prev[prev.length - 1]?.id === response.messages[response.messages.length - 1]?.id) {
+          return prev;
+        }
+        return response.messages;
+      });
     } catch (err) {
       showToast('Failed to load messages', 'error');
     }
@@ -119,7 +146,7 @@ export const Chat = () => {
 
     const messageText = newMessage.trim();
     setNewMessage('');
-    setUserHasScrolled(false); // Reset scroll state to auto-scroll to new message
+    userScrolledRef.current = false;
 
     try {
       setSendingMessage(true);
@@ -163,7 +190,8 @@ export const Chat = () => {
     setSelectedConversation(conversation);
     setIsNewConversation(false);
     setRevealedAddress(null);
-    setUserHasScrolled(false); // Reset scroll state to show latest messages
+    userScrolledRef.current = false;
+    lastMessageCountRef.current = 0;
     if (receiverId) {
       navigate('/chat', { replace: true });
     }
@@ -356,30 +384,40 @@ export const Chat = () => {
                     )}
                   </div>
 
-                  <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-50 native-scroll">
-                    {messages.map((msg) => {
-                      const isMyMessage = msg.sender.id === user?.id;
-                      return (
-                        <div
-                          key={msg.id}
-                          className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
-                        >
+                  <div className="relative flex-1">
+                    <div ref={messagesContainerRef} onScroll={handleScroll} className="absolute inset-0 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-50 native-scroll">
+                      {messages.map((msg) => {
+                        const isMyMessage = msg.sender.id === user?.id;
+                        return (
                           <div
-                            className={`max-w-[75%] md:max-w-xs lg:max-w-md px-3.5 py-2 rounded-2xl ${
-                              isMyMessage
-                                ? 'bg-green-600 text-white rounded-br-md'
-                                : 'bg-white text-gray-900 border border-gray-100 rounded-bl-md'
-                            }`}
+                            key={msg.id}
+                            className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                           >
-                            <p className="text-sm">{msg.message}</p>
-                            <p className={`text-[10px] mt-0.5 ${isMyMessage ? 'text-green-200' : 'text-gray-400'}`}>
-                              {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
+                            <div
+                              className={`max-w-[75%] md:max-w-xs lg:max-w-md px-3.5 py-2 rounded-2xl ${
+                                isMyMessage
+                                  ? 'bg-green-600 text-white rounded-br-md'
+                                  : 'bg-white text-gray-900 border border-gray-100 rounded-bl-md'
+                              }`}
+                            >
+                              <p className="text-sm break-words">{msg.message}</p>
+                              <p className={`text-[10px] mt-0.5 ${isMyMessage ? 'text-green-200' : 'text-gray-400'}`}>
+                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                    <div ref={messagesEndRef} />
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </div>
+                    {showScrollButton && (
+                      <button
+                        onClick={() => { userScrolledRef.current = false; setShowScrollButton(false); scrollToBottom('smooth'); }}
+                        className="absolute bottom-3 right-3 w-8 h-8 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform z-10 animate-scale-in"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
 
                   <form onSubmit={handleSendMessage} className="p-3 md:p-4 border-t border-gray-200 bg-white safe-area-bottom">
