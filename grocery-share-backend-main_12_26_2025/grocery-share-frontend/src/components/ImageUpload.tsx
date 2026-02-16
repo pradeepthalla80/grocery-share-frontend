@@ -11,12 +11,13 @@ interface ImageUploadProps {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-const processImageFile = (file: File): Promise<{ processedFile: File; previewUrl: string }> => {
-  if (file.size > MAX_FILE_SIZE) {
-    return Promise.reject(new Error(`${file.name} is too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum is 10MB.`));
-  }
-  const previewUrl = URL.createObjectURL(file);
-  return Promise.resolve({ processedFile: file, previewUrl });
+const readFileAsDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 };
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -36,12 +37,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setDisplayedExisting(existingImages);
   }, [existingImages]);
 
-  useEffect(() => {
-    return () => {
-      previews.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, []);
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const totalImages = displayedExisting.length + files.length + selectedFiles.length;
@@ -52,6 +47,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     }
 
     const validFiles = selectedFiles.filter(file => {
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`${file.name} is too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum is 10MB.`);
+        return false;
+      }
       const isImage = file.type.startsWith('image/') || file.name.toLowerCase().match(/\.(heic|heif|jpg|jpeg|png|gif|webp|bmp)$/);
       if (!isImage) {
         alert(`${file.name} is not a valid image file`);
@@ -63,23 +62,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
     setProcessing(true);
     try {
-      const processed = await Promise.all(validFiles.map(f => processImageFile(f)));
-      const processedFiles = processed.map(p => p.processedFile);
-      const processedPreviews = processed.map(p => p.previewUrl);
-
-      const newFiles = [...files, ...processedFiles];
-      setFiles(newFiles);
-      setPreviews(prev => [...prev, ...processedPreviews]);
-      onChange(newFiles, deletedPublicIds);
-    } catch (err: any) {
-      if (err?.message?.includes('too large')) {
-        alert(err.message);
-        return;
-      }
+      const dataUrls = await Promise.all(validFiles.map(f => readFileAsDataURL(f)));
       const newFiles = [...files, ...validFiles];
       setFiles(newFiles);
-      const newPreviews = validFiles.map(file => URL.createObjectURL(file));
-      setPreviews(prev => [...prev, ...newPreviews]);
+      setPreviews(prev => [...prev, ...dataUrls]);
+      onChange(newFiles, deletedPublicIds);
+    } catch {
+      const fallbackUrls = validFiles.map(f => URL.createObjectURL(f));
+      const newFiles = [...files, ...validFiles];
+      setFiles(newFiles);
+      setPreviews(prev => [...prev, ...fallbackUrls]);
       onChange(newFiles, deletedPublicIds);
     } finally {
       setProcessing(false);
@@ -91,7 +83,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const removeNewImage = (index: number) => {
-    URL.revokeObjectURL(previews[index]);
     const newPreviews = previews.filter((_, i) => i !== index);
     const newFiles = files.filter((_, i) => i !== index);
     setPreviews(newPreviews);
@@ -137,7 +128,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,.heic,.heif"
+        accept="image/*"
         multiple
         onChange={handleFileChange}
         className="hidden"
@@ -161,10 +152,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         >
           <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
           <p className="mt-2 text-sm text-gray-600">
-            Click to upload images or drag and drop
+            Tap to upload photos
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            PNG, JPG, GIF up to 5MB each (max {maxImages} images)
+            JPG, PNG, HEIC up to 10MB each (max {maxImages} images)
           </p>
         </div>
       )}
@@ -172,44 +163,40 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {totalImages > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {displayedExisting.map((url, index) => (
-            <div key={`existing-${index}`} className="relative group">
+            <div key={`existing-${index}`} className="relative">
               <img
                 src={url}
                 alt={`Existing ${index + 1}`}
                 className="w-full h-32 object-cover rounded-lg border-2 border-green-500"
               />
-              <div className="absolute top-0 right-0 left-0 bottom-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={() => removeExistingImage(url)}
-                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <span className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded">
-                Existing
+              <button
+                type="button"
+                onClick={() => removeExistingImage(url)}
+                className="absolute -top-2 -right-2 w-7 h-7 flex items-center justify-center bg-red-500 text-white rounded-full shadow-md active:bg-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-green-600/80 text-white text-[10px] rounded">
+                Saved
               </span>
             </div>
           ))}
 
           {previews.map((preview, index) => (
-            <div key={`new-${index}`} className="relative group">
+            <div key={`new-${index}`} className="relative">
               <img
                 src={preview}
                 alt={`Preview ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg border-2 border-blue-500"
+                className="w-full h-32 object-cover rounded-lg border-2 border-blue-400"
               />
-              <div className="absolute top-0 right-0 left-0 bottom-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={() => removeNewImage(index)}
-                  className="opacity-0 group-hover:opacity-100 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <span className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+              <button
+                type="button"
+                onClick={() => removeNewImage(index)}
+                className="absolute -top-2 -right-2 w-7 h-7 flex items-center justify-center bg-red-500 text-white rounded-full shadow-md active:bg-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-blue-500/80 text-white text-[10px] rounded">
                 New
               </span>
             </div>
