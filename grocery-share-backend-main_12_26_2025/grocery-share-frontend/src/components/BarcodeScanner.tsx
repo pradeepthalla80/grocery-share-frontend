@@ -11,18 +11,28 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(true);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const hasScannedRef = useRef(false);
-  const mountedRef = useRef(true);
+  const stoppedRef = useRef(false);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
   useEffect(() => {
-    mountedRef.current = true;
+    let cancelled = false;
+    const scannerId = 'barcode-reader';
+
+    const stopAndClean = async () => {
+      if (stoppedRef.current) return;
+      stoppedRef.current = true;
+      const s = scannerRef.current;
+      if (!s) return;
+      try { await s.stop(); } catch {}
+      try { s.clear(); } catch {}
+      scannerRef.current = null;
+    };
 
     const startScanner = async () => {
-      const scannerId = 'barcode-reader';
-      let scanner: Html5Qrcode | null = null;
       try {
-        scanner = new Html5Qrcode(scannerId);
+        const scanner = new Html5Qrcode(scannerId);
         scannerRef.current = scanner;
 
         await scanner.start(
@@ -32,25 +42,22 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
             qrbox: { width: 280, height: 150 },
             aspectRatio: 1.0,
           },
-          async (decodedText) => {
-            if (!hasScannedRef.current) {
-              hasScannedRef.current = true;
-              if (navigator.vibrate) navigator.vibrate(100);
-              try {
-                if (scannerRef.current) {
-                  await scannerRef.current.stop();
-                }
-              } catch {}
-              onScan(decodedText);
-            }
+          (decodedText) => {
+            if (hasScannedRef.current) return;
+            hasScannedRef.current = true;
+            if (navigator.vibrate) navigator.vibrate(100);
+            stopAndClean().then(() => {
+              onScanRef.current(decodedText);
+            });
           },
           () => {}
         );
-        if (mountedRef.current) setStarting(false);
+        if (!cancelled) setStarting(false);
       } catch (err: any) {
         console.error('Scanner error:', err);
-        if (!mountedRef.current) return;
-        if (err?.toString().includes('NotAllowed') || err?.toString().includes('Permission')) {
+        if (cancelled) return;
+        const msg = err?.toString() || '';
+        if (msg.includes('NotAllowed') || msg.includes('Permission')) {
           setError('Camera permission denied. Please allow camera access and try again.');
         } else {
           setError('Could not start camera. Make sure no other app is using it.');
@@ -62,22 +69,10 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
     startScanner();
 
     return () => {
-      mountedRef.current = false;
-      const cleanup = async () => {
-        if (scannerRef.current) {
-          try {
-            const state = scannerRef.current.getState();
-            if (state === 2) {
-              await scannerRef.current.stop();
-            }
-            scannerRef.current.clear();
-          } catch {}
-          scannerRef.current = null;
-        }
-      };
-      cleanup();
+      cancelled = true;
+      stopAndClean();
     };
-  }, [onScan]);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
@@ -94,8 +89,8 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4" ref={containerRef}>
-        {starting && (
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        {starting && !error && (
           <div className="flex flex-col items-center gap-3 text-white mb-4">
             <Loader2 className="h-8 w-8 animate-spin" />
             <p className="text-sm">Starting camera...</p>
