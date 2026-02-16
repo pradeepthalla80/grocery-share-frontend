@@ -1,6 +1,17 @@
 const OFF_API_BASE = 'https://world.openfoodfacts.org/api/v2';
 const UPC_ITEMDB_BASE = 'https://api.upcitemdb.com/prod/trial';
 
+export interface NutritionInfo {
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  servingSize?: string;
+}
+
 export interface ProductInfo {
   found: boolean;
   name?: string;
@@ -10,11 +21,12 @@ export interface ProductInfo {
   brand?: string;
   quantity?: string;
   source?: string;
+  nutrition?: NutritionInfo;
 }
 
 const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promise<ProductInfo> => {
   const response = await fetch(
-    `${OFF_API_BASE}/product/${barcode}?fields=product_name,categories_tags_en,brands,quantity,image_front_url`,
+    `${OFF_API_BASE}/product/${barcode}?fields=product_name,categories_tags_en,brands,quantity,image_front_url,nutriments,serving_size`,
     { signal }
   );
 
@@ -39,6 +51,25 @@ const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promis
     .slice(0, 5)
     .map((tag: string) => tag.replace(/^en:/, '').replace(/-/g, ' '));
 
+  let nutrition: NutritionInfo | undefined;
+  const n = product.nutriments;
+  if (n) {
+    const cal = n['energy-kcal_100g'] ?? n['energy-kcal_serving'];
+    const hasData = cal != null || n.proteins_100g != null || n.carbohydrates_100g != null || n.fat_100g != null;
+    if (hasData) {
+      nutrition = {
+        calories: cal != null ? Math.round(Number(cal)) : undefined,
+        protein: n.proteins_100g != null ? Math.round(Number(n.proteins_100g) * 10) / 10 : undefined,
+        carbs: n.carbohydrates_100g != null ? Math.round(Number(n.carbohydrates_100g) * 10) / 10 : undefined,
+        fat: n.fat_100g != null ? Math.round(Number(n.fat_100g) * 10) / 10 : undefined,
+        fiber: n.fiber_100g != null ? Math.round(Number(n.fiber_100g) * 10) / 10 : undefined,
+        sugar: n.sugars_100g != null ? Math.round(Number(n.sugars_100g) * 10) / 10 : undefined,
+        sodium: n.sodium_100g != null ? Math.round(Number(n.sodium_100g) * 1000) : undefined,
+        servingSize: product.serving_size || 'per 100g',
+      };
+    }
+  }
+
   return {
     found: true,
     name: product.product_name || undefined,
@@ -48,6 +79,7 @@ const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promis
     brand: product.brands || undefined,
     quantity: product.quantity || undefined,
     source: 'Open Food Facts',
+    nutrition,
   };
 };
 
@@ -124,6 +156,26 @@ const lookupFatSecret = async (barcode: string, signal: AbortSignal): Promise<Pr
     subs.slice(0, 4).forEach((s: string) => tags.push(s.toLowerCase()));
   }
 
+  let nutrition: NutritionInfo | undefined;
+  const servings = food.servings?.serving;
+  if (servings) {
+    const serving = Array.isArray(servings) ? servings[0] : servings;
+    if (serving) {
+      nutrition = {
+        calories: serving.calories != null ? Math.round(Number(serving.calories)) : undefined,
+        protein: serving.protein != null ? Math.round(Number(serving.protein) * 10) / 10 : undefined,
+        carbs: serving.carbohydrate != null ? Math.round(Number(serving.carbohydrate) * 10) / 10 : undefined,
+        fat: serving.fat != null ? Math.round(Number(serving.fat) * 10) / 10 : undefined,
+        fiber: serving.fiber != null ? Math.round(Number(serving.fiber) * 10) / 10 : undefined,
+        sugar: serving.sugar != null ? Math.round(Number(serving.sugar) * 10) / 10 : undefined,
+        sodium: serving.sodium != null ? Math.round(Number(serving.sodium)) : undefined,
+        servingSize: serving.serving_description || serving.metric_serving_amount
+          ? `${serving.serving_description || ''}${serving.metric_serving_amount ? ` (${serving.metric_serving_amount}${serving.metric_serving_unit || 'g'})` : ''}`
+          : undefined,
+      };
+    }
+  }
+
   return {
     found: true,
     name: food.food_name || undefined,
@@ -131,6 +183,7 @@ const lookupFatSecret = async (barcode: string, signal: AbortSignal): Promise<Pr
     tags: tags.length > 0 ? tags : undefined,
     brand: food.brand_name || undefined,
     source: 'FatSecret',
+    nutrition,
   };
 };
 

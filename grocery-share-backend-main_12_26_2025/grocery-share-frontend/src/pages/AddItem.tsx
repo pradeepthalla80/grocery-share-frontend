@@ -11,7 +11,7 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
 import { BarcodeScanner } from '../components/BarcodeScanner';
-import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -60,6 +60,7 @@ export const AddItem = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
   const [scanResult, setScanResult] = useState<{ status: 'success' | 'not_found' | 'error'; product?: ProductInfo } | null>(null);
+  const [showNutrition, setShowNutrition] = useState(false);
 
   useEffect(() => {
     const checkStripe = async () => {
@@ -108,6 +109,7 @@ export const AddItem = () => {
     setShowScanner(false);
     setScanLoading(true);
     setScanResult(null);
+    setShowNutrition(false);
     try {
       const product = await lookupBarcode(barcode);
       if (product.found) {
@@ -256,7 +258,7 @@ export const AddItem = () => {
               {scanResult.status === 'success' ? (
                 <>
                   <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-green-800 font-medium">Product found!</p>
                     <p className="text-green-700 mt-0.5">
                       {scanResult.product?.name}
@@ -266,6 +268,66 @@ export const AddItem = () => {
                     <p className="text-green-600 text-xs mt-1">
                       Form fields have been auto-filled{scanResult.product?.source && ` via ${scanResult.product.source}`}. You can still edit them.
                     </p>
+                    {scanResult.product?.nutrition && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setShowNutrition(!showNutrition)}
+                          className="mt-2 flex items-center gap-1 text-green-700 text-xs font-medium hover:text-green-900 transition-colors"
+                        >
+                          {showNutrition ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                          {showNutrition ? 'Hide' : 'View'} Nutrition Info
+                        </button>
+                        {showNutrition && (
+                          <div className="mt-2 bg-white/60 rounded-lg p-2.5 border border-green-100">
+                            {scanResult.product.nutrition.servingSize && (
+                              <p className="text-green-600 text-[10px] mb-1.5 uppercase tracking-wide font-medium">
+                                {scanResult.product.nutrition.servingSize}
+                              </p>
+                            )}
+                            <div className="grid grid-cols-4 gap-1.5">
+                              {scanResult.product.nutrition.calories != null && (
+                                <div className="text-center bg-green-50 rounded-md py-1.5 px-1">
+                                  <p className="text-green-900 font-bold text-sm">{scanResult.product.nutrition.calories}</p>
+                                  <p className="text-green-600 text-[10px]">Cal</p>
+                                </div>
+                              )}
+                              {scanResult.product.nutrition.protein != null && (
+                                <div className="text-center bg-blue-50 rounded-md py-1.5 px-1">
+                                  <p className="text-blue-900 font-bold text-sm">{scanResult.product.nutrition.protein}g</p>
+                                  <p className="text-blue-600 text-[10px]">Protein</p>
+                                </div>
+                              )}
+                              {scanResult.product.nutrition.carbs != null && (
+                                <div className="text-center bg-amber-50 rounded-md py-1.5 px-1">
+                                  <p className="text-amber-900 font-bold text-sm">{scanResult.product.nutrition.carbs}g</p>
+                                  <p className="text-amber-600 text-[10px]">Carbs</p>
+                                </div>
+                              )}
+                              {scanResult.product.nutrition.fat != null && (
+                                <div className="text-center bg-orange-50 rounded-md py-1.5 px-1">
+                                  <p className="text-orange-900 font-bold text-sm">{scanResult.product.nutrition.fat}g</p>
+                                  <p className="text-orange-600 text-[10px]">Fat</p>
+                                </div>
+                              )}
+                            </div>
+                            {(scanResult.product.nutrition.fiber != null || scanResult.product.nutrition.sugar != null || scanResult.product.nutrition.sodium != null) && (
+                              <div className="flex gap-3 mt-1.5 pt-1.5 border-t border-green-100">
+                                {scanResult.product.nutrition.fiber != null && (
+                                  <span className="text-green-700 text-[10px]">Fiber: {scanResult.product.nutrition.fiber}g</span>
+                                )}
+                                {scanResult.product.nutrition.sugar != null && (
+                                  <span className="text-green-700 text-[10px]">Sugar: {scanResult.product.nutrition.sugar}g</span>
+                                )}
+                                {scanResult.product.nutrition.sodium != null && (
+                                  <span className="text-green-700 text-[10px]">Sodium: {scanResult.product.nutrition.sodium}mg</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </>
               ) : (
