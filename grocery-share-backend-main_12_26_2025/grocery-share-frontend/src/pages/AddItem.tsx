@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { itemsAPI } from '../api/items';
+import { getAccountStatus } from '../api/stripeConnect';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -53,6 +54,29 @@ export const AddItem = () => {
   const [isFree, setIsFree] = useState(false);
   const [flexiblePickup, setFlexiblePickup] = useState(true);
   const [locationError, setLocationError] = useState('');
+  const [stripeStatus, setStripeStatus] = useState<'loading' | 'active' | 'pending' | 'incomplete' | 'none'>('loading');
+
+  useEffect(() => {
+    const checkStripe = async () => {
+      try {
+        const data = await getAccountStatus();
+        if (data.hasAccount) {
+          if (data.chargesEnabled && data.payoutsEnabled) {
+            setStripeStatus('active');
+          } else if (data.detailsSubmitted) {
+            setStripeStatus('pending');
+          } else {
+            setStripeStatus('incomplete');
+          }
+        } else {
+          setStripeStatus('none');
+        }
+      } catch {
+        setStripeStatus('none');
+      }
+    };
+    checkStripe();
+  }, []);
 
   const {
     register,
@@ -249,14 +273,44 @@ export const AddItem = () => {
               <input type="hidden" {...register('isFree')} />
 
               {!isFree && (
-                <FormInput
-                  label="Price ($)"
-                  type="number"
-                  step="0.01"
-                  {...register('price')}
-                  error={errors.price?.message}
-                  placeholder="9.99"
-                />
+                <>
+                  <FormInput
+                    label="Price ($)"
+                    type="number"
+                    step="0.01"
+                    {...register('price')}
+                    error={errors.price?.message}
+                    placeholder="9.99"
+                  />
+                  {stripeStatus !== 'loading' && stripeStatus !== 'active' && (
+                    <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
+                      <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        {stripeStatus === 'none' && (
+                          <p className="text-amber-800">
+                            You need a Stripe account to receive payments for paid items.{' '}
+                            <Link to="/my-store" className="text-green-600 font-medium underline">
+                              Set up Stripe in My Store
+                            </Link>
+                          </p>
+                        )}
+                        {stripeStatus === 'incomplete' && (
+                          <p className="text-amber-800">
+                            Your Stripe setup is incomplete. Buyers won't be able to pay you until it's finished.{' '}
+                            <Link to="/my-store" className="text-green-600 font-medium underline">
+                              Complete Stripe setup
+                            </Link>
+                          </p>
+                        )}
+                        {stripeStatus === 'pending' && (
+                          <p className="text-amber-800">
+                            Your Stripe account is under review. You can list items, but payments may be delayed until verification is complete.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
