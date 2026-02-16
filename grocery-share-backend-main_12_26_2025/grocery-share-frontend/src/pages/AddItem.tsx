@@ -263,7 +263,9 @@ export const AddItem = () => {
                       {scanResult.product?.brand && ` by ${scanResult.product.brand}`}
                       {scanResult.product?.quantity && ` (${scanResult.product.quantity})`}
                     </p>
-                    <p className="text-green-600 text-xs mt-1">Form fields have been auto-filled. You can still edit them.</p>
+                    <p className="text-green-600 text-xs mt-1">
+                      Form fields have been auto-filled{scanResult.product?.source && ` via ${scanResult.product.source}`}. You can still edit them.
+                    </p>
                   </div>
                 </>
               ) : (
