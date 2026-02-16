@@ -77,19 +77,15 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         });
         scannerRef.current = scanner;
 
-        const fps = ios ? 5 : android ? 8 : 10;
+        const fps = ios ? 8 : android ? 10 : 15;
 
         await scanner.start(
           { facingMode: 'environment' },
           {
             fps,
-            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              const w = Math.floor(viewfinderWidth * 0.9);
-              const h = Math.floor(viewfinderHeight * (ios ? 0.3 : 0.35));
-              return { width: Math.max(w, 200), height: Math.max(h, 80) };
-            },
-            disableFlip: true,
-            aspectRatio: ios ? 1.333 : undefined,
+            qrbox: undefined,
+            disableFlip: false,
+            experimentalFeatures: { useBarCodeDetectorIfSupported: !firefox },
           } as any,
           (decodedText) => {
             if (hasScannedRef.current) return;
@@ -256,7 +252,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
             {!starting && (
               <>
                 <p className="text-white/70 text-xs text-center mt-3">
-                  Align the barcode within the scan area and hold steady
+                  Point camera at the barcode — works at any angle
                 </p>
 
                 <div className="flex gap-2 mt-4">

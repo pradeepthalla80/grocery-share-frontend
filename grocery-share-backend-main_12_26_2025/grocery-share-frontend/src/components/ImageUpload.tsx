@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { extractCloudinaryPublicId } from '../utils/cloudinary';
 
 interface ImageUploadProps {
@@ -8,6 +8,66 @@ interface ImageUploadProps {
   onChange: (files: File[], deletedPublicIds: string[]) => void;
   error?: string;
 }
+
+const processImageFile = (file: File, maxDimension = 2048): Promise<{ processedFile: File; previewUrl: string }> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round(height * (maxDimension / width));
+              width = maxDimension;
+            } else {
+              width = Math.round(width * (maxDimension / height));
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve({ processedFile: file, previewUrl: URL.createObjectURL(file) });
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve({ processedFile: file, previewUrl: URL.createObjectURL(file) });
+                return;
+              }
+              const processedFile = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              const previewUrl = URL.createObjectURL(blob);
+              resolve({ processedFile, previewUrl });
+            },
+            'image/jpeg',
+            0.85
+          );
+        } catch {
+          resolve({ processedFile: file, previewUrl: URL.createObjectURL(file) });
+        }
+      };
+      img.onerror = () => {
+        resolve({ processedFile: file, previewUrl: URL.createObjectURL(file) });
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+};
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
   maxImages = 5,
@@ -19,13 +79,20 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const [deletedPublicIds, setDeletedPublicIds] = useState<string[]>([]);
   const [displayedExisting, setDisplayedExisting] = useState<string[]>(existingImages);
+  const [processing, setProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDisplayedExisting(existingImages);
   }, [existingImages]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    return () => {
+      previews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const totalImages = displayedExisting.length + files.length + selectedFiles.length;
 
@@ -35,20 +102,34 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     }
 
     const validFiles = selectedFiles.filter(file => {
-      const isImage = file.type.startsWith('image/');
+      const isImage = file.type.startsWith('image/') || file.name.toLowerCase().match(/\.(heic|heif|jpg|jpeg|png|gif|webp|bmp)$/);
       if (!isImage) {
         alert(`${file.name} is not a valid image file`);
       }
       return isImage;
     });
 
-    const newFiles = [...files, ...validFiles];
-    setFiles(newFiles);
+    if (validFiles.length === 0) return;
 
-    const newPreviews = validFiles.map(file => URL.createObjectURL(file));
-    setPreviews([...previews, ...newPreviews]);
+    setProcessing(true);
+    try {
+      const processed = await Promise.all(validFiles.map(f => processImageFile(f)));
+      const processedFiles = processed.map(p => p.processedFile);
+      const processedPreviews = processed.map(p => p.previewUrl);
 
-    onChange(newFiles, deletedPublicIds);
+      const newFiles = [...files, ...processedFiles];
+      setFiles(newFiles);
+      setPreviews(prev => [...prev, ...processedPreviews]);
+      onChange(newFiles, deletedPublicIds);
+    } catch {
+      const newFiles = [...files, ...validFiles];
+      setFiles(newFiles);
+      const newPreviews = validFiles.map(file => URL.createObjectURL(file));
+      setPreviews(prev => [...prev, ...newPreviews]);
+      onChange(newFiles, deletedPublicIds);
+    } finally {
+      setProcessing(false);
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -102,11 +183,18 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         multiple
         onChange={handleFileChange}
         className="hidden"
       />
+
+      {processing && (
+        <div className="flex items-center gap-2 text-sm text-blue-600">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Processing photos...</span>
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-600">{error}</p>

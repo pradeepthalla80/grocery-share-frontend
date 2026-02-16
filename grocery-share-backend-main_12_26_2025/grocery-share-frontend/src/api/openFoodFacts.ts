@@ -27,7 +27,7 @@ export interface ProductInfo {
 
 const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promise<ProductInfo> => {
   const response = await fetch(
-    `${OFF_API_BASE}/product/${barcode}?fields=product_name,categories_tags_en,brands,quantity,image_front_url,nutriments,serving_size,allergens_tags,traces_tags`,
+    `${OFF_API_BASE}/product/${barcode}?fields=product_name,categories_tags_en,brands,quantity,image_front_url,nutriments,serving_size,allergens_tags,traces_tags,allergens,ingredients_text`,
     { signal }
   );
 
@@ -78,6 +78,25 @@ const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promis
       allergenTags.map((t: string) => t.replace(/^en:/, '').replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()))
     )];
     allergens = unique;
+  }
+
+  if ((!allergens || allergens.length === 0) && product.allergens) {
+    const rawAllergens: string[] = product.allergens
+      .split(',')
+      .map((a: string) => a.trim().replace(/^en:/, '').replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()))
+      .filter((a: string) => a.length > 0);
+    if (rawAllergens.length > 0) {
+      allergens = [...new Set(rawAllergens)];
+    }
+  }
+
+  if ((!allergens || allergens.length === 0) && product.ingredients_text) {
+    const commonAllergens = ['milk', 'wheat', 'soy', 'egg', 'peanut', 'tree nut', 'fish', 'shellfish', 'sesame', 'gluten', 'lupin', 'mustard', 'celery', 'sulphite', 'mollusc'];
+    const ingredientsLower = product.ingredients_text.toLowerCase();
+    const detected = commonAllergens.filter(a => ingredientsLower.includes(a));
+    if (detected.length > 0) {
+      allergens = detected.map(a => a.replace(/\b\w/g, (c: string) => c.toUpperCase()));
+    }
   }
 
   return {
@@ -198,6 +217,47 @@ const lookupFatSecret = async (barcode: string, signal: AbortSignal): Promise<Pr
   };
 };
 
+const fetchOFFAllergens = async (barcode: string, signal: AbortSignal): Promise<string[] | undefined> => {
+  try {
+    const response = await fetch(
+      `${OFF_API_BASE}/product/${barcode}?fields=allergens_tags,traces_tags,allergens,ingredients_text`,
+      { signal }
+    );
+    if (!response.ok) return undefined;
+    const data = await response.json();
+    if (data.status !== 1 || !data.product) return undefined;
+    const product = data.product;
+
+    const allergenTags = [...(product.allergens_tags || []), ...(product.traces_tags || [])];
+    if (allergenTags.length > 0) {
+      return [...new Set(
+        allergenTags.map((t: string) => t.replace(/^en:/, '').replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()))
+      )];
+    }
+
+    if (product.allergens) {
+      const raw: string[] = product.allergens
+        .split(',')
+        .map((a: string) => a.trim().replace(/^en:/, '').replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()))
+        .filter((a: string) => a.length > 0);
+      if (raw.length > 0) return [...new Set(raw)];
+    }
+
+    if (product.ingredients_text) {
+      const commonAllergens = ['milk', 'wheat', 'soy', 'egg', 'peanut', 'tree nut', 'fish', 'shellfish', 'sesame', 'gluten', 'lupin', 'mustard', 'celery', 'sulphite', 'mollusc'];
+      const ingredientsLower = product.ingredients_text.toLowerCase();
+      const detected = commonAllergens.filter(a => ingredientsLower.includes(a));
+      if (detected.length > 0) {
+        return detected.map(a => a.replace(/\b\w/g, (c: string) => c.toUpperCase()));
+      }
+    }
+
+    return undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 export const lookupBarcode = async (barcode: string): Promise<ProductInfo> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -210,11 +270,15 @@ export const lookupBarcode = async (barcode: string): Promise<ProductInfo> => {
 
     const upcResult = await lookupUPCitemdb(barcode, controller.signal);
     if (upcResult.found) {
+      const allergens = await fetchOFFAllergens(barcode, controller.signal);
+      if (allergens) upcResult.allergens = allergens;
       return upcResult;
     }
 
     const fsResult = await lookupFatSecret(barcode, controller.signal);
     if (fsResult.found) {
+      const allergens = await fetchOFFAllergens(barcode, controller.signal);
+      if (allergens) fsResult.allergens = allergens;
       return fsResult;
     }
 
