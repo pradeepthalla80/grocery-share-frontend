@@ -9,15 +9,31 @@ interface ImageUploadProps {
   error?: string;
 }
 
+const isHEIC = (file: File): boolean => {
+  const name = file.name.toLowerCase();
+  return name.endsWith('.heic') || name.endsWith('.heif') || file.type === 'image/heic' || file.type === 'image/heif';
+};
+
 const processImageFile = (file: File, maxDimension = 2048): Promise<{ processedFile: File; previewUrl: string }> => {
   return new Promise((resolve, reject) => {
+    if (isHEIC(file)) {
+      const previewUrl = URL.createObjectURL(file);
+      resolve({ processedFile: file, previewUrl });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
         try {
-          const canvas = document.createElement('canvas');
           let { width, height } = img;
+
+          if (width <= maxDimension && height <= maxDimension && file.type === 'image/jpeg') {
+            const previewUrl = URL.createObjectURL(file);
+            resolve({ processedFile: file, previewUrl });
+            return;
+          }
 
           if (width > maxDimension || height > maxDimension) {
             if (width > height) {
@@ -29,6 +45,7 @@ const processImageFile = (file: File, maxDimension = 2048): Promise<{ processedF
             }
           }
 
+          const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
@@ -37,11 +54,19 @@ const processImageFile = (file: File, maxDimension = 2048): Promise<{ processedF
             return;
           }
 
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
+
+          const pixelCheck = ctx.getImageData(Math.floor(width / 2), Math.floor(height / 2), 1, 1).data;
+          if (pixelCheck[0] === 0 && pixelCheck[1] === 0 && pixelCheck[2] === 0 && pixelCheck[3] === 0) {
+            resolve({ processedFile: file, previewUrl: URL.createObjectURL(file) });
+            return;
+          }
 
           canvas.toBlob(
             (blob) => {
-              if (!blob) {
+              if (!blob || blob.size < 1000) {
                 resolve({ processedFile: file, previewUrl: URL.createObjectURL(file) });
                 return;
               }
