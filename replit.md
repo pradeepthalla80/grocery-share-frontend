@@ -44,6 +44,56 @@ Preferred communication style: Simple, everyday language.
 - **Geospatial:** Utilizes MongoDB's `$near` operator for proximity searches and GeoJSON for storing location data.
 - **Debugging & Logging:** Extensive logging for API responses, payloads, and critical workflows (e.g., location, payments, admin actions).
 
+## Future Phase: Hugging Face AI Enhancements
+
+**Status:** Planned (not implemented). Waiting until Flutter app and core features are stable.
+**Constraint:** All AI processing goes on the backend (new Node.js endpoints). Flutter app only needs new Dio service methods (no new packages, no SDK changes). PWA calls the same endpoints.
+**Cost:** Hugging Face free tier for low traffic; $9/month PRO plan for reliable production use.
+
+### Priority 1: Smart Food Image Recognition (Add Item flow)
+- **Purpose:** Auto-detect food type from uploaded photo, suggest category and item name
+- **Models:** `Kaludi/food-category-classification-v2.0` (12 categories), `nateraw/food` (101 food types, 89% accuracy)
+- **Backend:** New `POST /api/v1/ai/recognize-food` endpoint
+- **Flutter:** New method in `items_service.dart`, call before form submission in `add_item_screen.dart`
+- **PWA:** New API function + UI suggestion in AddItem page
+
+### Priority 2: Chat Moderation & Safety
+- **Purpose:** Auto-filter inappropriate/scam messages in buyer-seller chat
+- **Models:** `KoalaAI/Text-Moderation` (lightweight, 0.3B params, fast), `google/shieldgemma-2b` (more thorough)
+- **Backend:** Middleware on `POST /api/v1/chat/messages` to check content before saving
+- **Flutter/PWA:** No changes needed (backend filters transparently)
+
+### Priority 3: Smart Semantic Search (Item Discovery)
+- **Purpose:** Understand search intent ("healthy breakfast" finds eggs, bread, cereal) instead of keyword-only matching
+- **Models:** `sentence-transformers/all-MiniLM-L6-v2` (fast, 67M params), `sentence-transformers/all-mpnet-base-v2` (best quality)
+- **Backend:** Pre-compute embeddings for items, new `GET /api/v1/items/smart-search` endpoint
+- **Flutter:** New search mode in `items_service.dart`
+- **PWA:** New search option in Dashboard
+
+### Priority 4: Food Freshness Detection (Trust & Safety)
+- **Purpose:** Analyze item photos to show freshness score badge on listings
+- **Models:** `RicardoPoleo/custom_cnn_model` (fresh vs rotten, 28 categories)
+- **Backend:** New `POST /api/v1/ai/freshness-check` endpoint, called during item creation
+- **Flutter/PWA:** Display freshness badge on item cards
+
+### Priority 5: Review Sentiment Analysis (Rating System)
+- **Purpose:** Auto-analyze review text to detect sentiment trends, flag suspicious reviews
+- **Models:** `nlptown/bert-base-multilingual-uncased-sentiment` (1-5 star prediction, 6 languages)
+- **Backend:** Process on review submission, store sentiment score
+- **Flutter/PWA:** Show sentiment summary on profiles
+
+### Priority 6: Multilingual Translation (Expanding User Base)
+- **Purpose:** Auto-translate item descriptions and chat messages
+- **Models:** `facebook/nllb-200-distilled-600M` (200 languages, fast), `alirezamsh/small100` (3.6x faster)
+- **Backend:** New `POST /api/v1/ai/translate` endpoint
+- **Flutter/PWA:** Toggle for translated view on items and chat
+
+### Implementation Notes
+- All features are additive (no existing endpoints change)
+- Flutter impact: Only new service methods in existing files, no pubspec.yaml changes
+- Free tier caveat: Cold starts can take 10-30 seconds on first call; consider caching
+- Secret needed: `HUGGINGFACE_API_TOKEN` (free to create at huggingface.co/settings/tokens)
+
 ## External Dependencies
 
 -   **Database:** MongoDB Atlas (primary database with geospatial indexing).
