@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
-import { X, Camera, Loader2, ScanLine } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { X, Camera, Loader2 } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
   onClose: () => void;
 }
+
+const BARCODE_FORMATS = [
+  Html5QrcodeSupportedFormats.EAN_13,
+  Html5QrcodeSupportedFormats.EAN_8,
+  Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E,
+  Html5QrcodeSupportedFormats.CODE_128,
+  Html5QrcodeSupportedFormats.CODE_39,
+  Html5QrcodeSupportedFormats.ITF,
+];
 
 export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const [error, setError] = useState('');
@@ -32,15 +42,24 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
 
     const startScanner = async () => {
       try {
-        const scanner = new Html5Qrcode(scannerId);
+        const scanner = new Html5Qrcode(scannerId, {
+          formatsToSupport: BARCODE_FORMATS,
+          useBarCodeDetectorIfSupported: true,
+          verbose: false,
+        });
         scannerRef.current = scanner;
+
+        const screenWidth = Math.min(window.innerWidth, 400);
+        const qrboxWidth = Math.floor(screenWidth * 0.85);
+        const qrboxHeight = Math.floor(qrboxWidth * 0.4);
 
         await scanner.start(
           { facingMode: 'environment' },
           {
-            fps: 10,
-            qrbox: { width: 280, height: 150 },
-            aspectRatio: 1.0,
+            fps: 15,
+            qrbox: { width: qrboxWidth, height: qrboxHeight },
+            aspectRatio: 16 / 9,
+            disableFlip: false,
           },
           (decodedText) => {
             if (hasScannedRef.current) return;
@@ -58,9 +77,13 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         if (cancelled) return;
         const msg = err?.toString() || '';
         if (msg.includes('NotAllowed') || msg.includes('Permission')) {
-          setError('Camera permission denied. Please allow camera access and try again.');
+          setError('Camera permission denied. Please allow camera access in your browser settings and try again.');
+        } else if (msg.includes('NotFound') || msg.includes('Requested device not found')) {
+          setError('No camera found. Make sure your device has a camera.');
+        } else if (msg.includes('NotReadable') || msg.includes('Could not start')) {
+          setError('Camera is being used by another app. Close other apps using the camera and try again.');
         } else {
-          setError('Could not start camera. Make sure no other app is using it.');
+          setError('Could not start camera. Try closing other apps and reload the page.');
         }
         setStarting(false);
       }
@@ -117,10 +140,10 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
             {!starting && (
               <>
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <ScanLine className="h-16 w-16 text-green-400/50 animate-pulse" />
+                  <div className="w-3/4 h-px bg-red-500/70 animate-pulse" />
                 </div>
                 <p className="text-white/70 text-xs text-center mt-4">
-                  Point your camera at a barcode on the product
+                  Hold steady and align the barcode within the box
                 </p>
               </>
             )}
