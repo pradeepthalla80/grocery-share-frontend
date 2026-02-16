@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Download } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -44,8 +44,8 @@ export const InstallPrompt = () => {
   return (
     <div className="fixed bottom-20 left-4 right-4 md:bottom-4 md:left-auto md:right-4 md:w-80 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 animate-slide-in">
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-          <Download className="h-5 w-5 text-green-600" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+          <img src="/pwa-192x192.png" alt="BaskMate" className="w-10 h-10" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900">Install BaskMate</p>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ShoppingBasket, LogOut, User, Home, Package, MessageCircle, HandHeart, Menu, X, Store, Shield } from 'lucide-react';
+import { LogOut, User, Home, Package, MessageCircle, HandHeart, Menu, X, Store, Shield } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 export const Navbar = () => {
@@ -45,9 +45,8 @@ export const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-12 md:h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <ShoppingBasket className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
-                <span className="text-base md:text-xl font-bold text-gray-900">BaskMate</span>
+              <Link to="/" className="flex items-center space-x-1.5">
+                <img src="/logo.png" alt="BaskMate" className="h-8 md:h-10 w-auto" />
               </Link>
               
               {isAuthenticated && (

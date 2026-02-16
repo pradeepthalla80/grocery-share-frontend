@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { authAPI } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 import { FormInput } from '../components/FormInput';
-import { ShoppingBasket } from 'lucide-react';
 
 const fakeEmailPatterns = [
   /^test@test\./i,
@@ -66,12 +65,8 @@ export const Login = () => {
     <div className="min-h-[calc(100vh-3rem)] flex flex-col items-center justify-center bg-gray-50 px-4 py-8 md:py-12">
       <div className="w-full max-w-sm md:max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-4 animate-scale-in shadow-lg shadow-green-200">
-            <ShoppingBasket className="h-10 w-10 md:h-12 md:w-12 text-white" />
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">BaskMate</h1>
-          <p className="text-green-600 text-xs md:text-sm font-medium mt-1">Share More, Waste Less</p>
-          <div className="w-12 h-0.5 bg-green-500 rounded-full mt-3 mb-3" />
+          <img src="/logo.png" alt="BaskMate" className="h-16 md:h-20 w-auto mb-4 animate-scale-in" />
+          <div className="w-12 h-0.5 bg-green-500 rounded-full mt-1 mb-3" />
           <h2 className="text-lg md:text-xl font-semibold text-gray-700">Welcome Back</h2>
           <p className="text-gray-400 mt-0.5 text-xs md:text-sm">Sign in to your account</p>
         </div>
