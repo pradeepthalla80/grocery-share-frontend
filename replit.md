@@ -38,7 +38,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Feature Specifications
 - **Admin Dashboard:** Full functionality for managing users and items (search, pagination, role changes, suspend/delete).
-- **Add/Edit Item:** Comprehensive screen including tag input, listing validity, flexible pickup times, improved location picker with "Use Current Location" and address autocomplete.
+- **Add/Edit Item:** Comprehensive screen including tag input, listing validity, flexible pickup times, improved location picker with "Use Current Location" and address autocomplete. Barcode scanner (PWA) for auto-filling item details via Open Food Facts API. Stripe account status warning for paid items.
 - **Stripe Seller Onboarding:** Integrated workflow with status checks and UI feedback.
 - **Item Interaction:** Differentiated flows for free (pickup request) and paid (Stripe payment) items, leading to chat initiation.
 - **Geospatial:** Utilizes MongoDB's `$near` operator for proximity searches and GeoJSON for storing location data.

@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { itemsAPI } from '../api/items';
 import { getAccountStatus } from '../api/stripeConnect';
+import { lookupBarcode, type ProductInfo } from '../api/openFoodFacts';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { BarcodeScanner } from '../components/BarcodeScanner';
+import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -55,6 +57,9 @@ export const AddItem = () => {
   const [flexiblePickup, setFlexiblePickup] = useState(true);
   const [locationError, setLocationError] = useState('');
   const [stripeStatus, setStripeStatus] = useState<'loading' | 'active' | 'pending' | 'incomplete' | 'none'>('loading');
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanResult, setScanResult] = useState<{ status: 'success' | 'not_found' | 'error'; product?: ProductInfo } | null>(null);
 
   useEffect(() => {
     const checkStripe = async () => {
@@ -98,6 +103,36 @@ export const AddItem = () => {
   const lat = watch('lat');
   const lng = watch('lng');
   const address = watch('address');
+
+  const handleBarcodeScan = useCallback(async (barcode: string) => {
+    setShowScanner(false);
+    setScanLoading(true);
+    setScanResult(null);
+    try {
+      const product = await lookupBarcode(barcode);
+      if (product.found) {
+        if (product.name) {
+          const displayName = product.brand
+            ? `${product.brand} ${product.name}`
+            : product.name;
+          setValue('name', displayName);
+        }
+        if (product.category) {
+          setValue('category', product.category);
+        }
+        if (product.tags && product.tags.length > 0) {
+          setValue('tags', product.tags.join(', '));
+        }
+        setScanResult({ status: 'success', product });
+      } else {
+        setScanResult({ status: 'not_found' });
+      }
+    } catch {
+      setScanResult({ status: 'error' });
+    } finally {
+      setScanLoading(false);
+    }
+  }, [setValue]);
 
   const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
     setValue('address', location.address);
@@ -195,7 +230,63 @@ export const AddItem = () => {
         </button>
 
         <div className="bg-white rounded-2xl md:rounded-xl shadow-sm border border-gray-100 p-5 md:p-8">
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-5 md:mb-6">Add New Item</h1>
+          <div className="flex items-center justify-between mb-5 md:mb-6">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Add New Item</h1>
+            <button
+              type="button"
+              onClick={() => { setScanResult(null); setShowScanner(true); }}
+              disabled={scanLoading}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-medium active:scale-[0.97] transition shadow-sm disabled:opacity-50"
+            >
+              {scanLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ScanLine className="h-4 w-4" />
+              )}
+              <span>{scanLoading ? 'Looking up...' : 'Scan Barcode'}</span>
+            </button>
+          </div>
+
+          {scanResult && (
+            <div className={`mb-5 p-3.5 rounded-xl text-sm flex items-start gap-2.5 ${
+              scanResult.status === 'success'
+                ? 'bg-green-50 border border-green-200'
+                : 'bg-amber-50 border border-amber-200'
+            }`}>
+              {scanResult.status === 'success' ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-green-800 font-medium">Product found!</p>
+                    <p className="text-green-700 mt-0.5">
+                      {scanResult.product?.name}
+                      {scanResult.product?.brand && ` by ${scanResult.product.brand}`}
+                      {scanResult.product?.quantity && ` (${scanResult.product.quantity})`}
+                    </p>
+                    <p className="text-green-600 text-xs mt-1">Form fields have been auto-filled. You can still edit them.</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-amber-800 font-medium">
+                      {scanResult.status === 'not_found' ? 'Product not found in database' : 'Lookup failed'}
+                    </p>
+                    <p className="text-amber-700 text-xs mt-0.5">
+                      You can fill in the details manually, or try scanning again.
+                    </p>
+                  </div>
+                </>
+              )}
+              <button
+                onClick={() => setScanResult(null)}
+                className="ml-auto text-gray-400 hover:text-gray-600 flex-shrink-0"
+              >
+                <XCircle className="h-4 w-4" />
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="mb-5 p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
@@ -385,6 +476,12 @@ export const AddItem = () => {
           </form>
         </div>
       </div>
+      {showScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </div>
   );
 };
