@@ -11,7 +11,7 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
 import { BarcodeScanner } from '../components/BarcodeScanner';
-import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -105,6 +105,21 @@ export const AddItem = () => {
   const lng = watch('lng');
   const address = watch('address');
 
+  const getDefaultExpiryDays = (category?: string): number => {
+    if (!category) return 14;
+    const cat = category.toLowerCase();
+    if (cat.includes('dairy') || cat.includes('milk') || cat.includes('yogurt') || cat.includes('cheese')) return 14;
+    if (cat.includes('meat') || cat.includes('poultry') || cat.includes('fish') || cat.includes('seafood')) return 7;
+    if (cat.includes('bread') || cat.includes('bakery') || cat.includes('pastry')) return 7;
+    if (cat.includes('fruit') || cat.includes('vegetable') || cat.includes('produce') || cat.includes('salad')) return 10;
+    if (cat.includes('frozen')) return 90;
+    if (cat.includes('canned') || cat.includes('preserved') || cat.includes('dry') || cat.includes('pasta') || cat.includes('rice') || cat.includes('cereal')) return 180;
+    if (cat.includes('snack') || cat.includes('chips') || cat.includes('cookie') || cat.includes('cracker')) return 90;
+    if (cat.includes('beverage') || cat.includes('drink') || cat.includes('juice') || cat.includes('soda') || cat.includes('water')) return 90;
+    if (cat.includes('sauce') || cat.includes('condiment') || cat.includes('spice') || cat.includes('seasoning')) return 180;
+    return 30;
+  };
+
   const handleBarcodeScan = useCallback(async (barcode: string) => {
     setShowScanner(false);
     setScanLoading(true);
@@ -125,6 +140,10 @@ export const AddItem = () => {
         if (product.tags && product.tags.length > 0) {
           setValue('tags', product.tags.join(', '));
         }
+        const days = getDefaultExpiryDays(product.category);
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + days);
+        setValue('expiryDate', expiry.toISOString().split('T')[0]);
         setScanResult({ status: 'success', product });
       } else {
         setScanResult({ status: 'not_found' });
@@ -249,6 +268,16 @@ export const AddItem = () => {
             </button>
           </div>
 
+          {scanLoading && (
+            <div className="mb-5 p-4 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-3">
+              <Loader2 className="h-5 w-5 text-blue-600 animate-spin flex-shrink-0" />
+              <div>
+                <p className="text-blue-800 font-medium text-sm">Looking up product...</p>
+                <p className="text-blue-600 text-xs mt-0.5">Searching product databases, this may take a moment</p>
+              </div>
+            </div>
+          )}
+
           {scanResult && (
             <div className={`mb-5 p-3.5 rounded-xl text-sm flex items-start gap-2.5 ${
               scanResult.status === 'success'
@@ -324,9 +353,39 @@ export const AddItem = () => {
                                 )}
                               </div>
                             )}
+                            {scanResult.product?.allergens && scanResult.product.allergens.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-green-100">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <AlertCircle className="h-3 w-3 text-red-500" />
+                                  <span className="text-red-600 text-[10px] font-semibold uppercase tracking-wide">Allergens</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {scanResult.product.allergens.map((allergen, i) => (
+                                    <span key={i} className="inline-block bg-red-50 text-red-700 text-[10px] px-1.5 py-0.5 rounded-md border border-red-100">
+                                      {allergen}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </>
+                    )}
+                    {!scanResult.product?.nutrition && scanResult.product?.allergens && scanResult.product.allergens.length > 0 && (
+                      <div className="mt-2 bg-white/60 rounded-lg p-2.5 border border-green-100">
+                        <div className="flex items-center gap-1 mb-1">
+                          <AlertCircle className="h-3 w-3 text-red-500" />
+                          <span className="text-red-600 text-[10px] font-semibold uppercase tracking-wide">Allergens</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {scanResult.product.allergens.map((allergen, i) => (
+                            <span key={i} className="inline-block bg-red-50 text-red-700 text-[10px] px-1.5 py-0.5 rounded-md border border-red-100">
+                              {allergen}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </>

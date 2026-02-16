@@ -22,11 +22,12 @@ export interface ProductInfo {
   quantity?: string;
   source?: string;
   nutrition?: NutritionInfo;
+  allergens?: string[];
 }
 
 const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promise<ProductInfo> => {
   const response = await fetch(
-    `${OFF_API_BASE}/product/${barcode}?fields=product_name,categories_tags_en,brands,quantity,image_front_url,nutriments,serving_size`,
+    `${OFF_API_BASE}/product/${barcode}?fields=product_name,categories_tags_en,brands,quantity,image_front_url,nutriments,serving_size,allergens_tags,traces_tags`,
     { signal }
   );
 
@@ -70,6 +71,15 @@ const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promis
     }
   }
 
+  let allergens: string[] | undefined;
+  const allergenTags = [...(product.allergens_tags || []), ...(product.traces_tags || [])];
+  if (allergenTags.length > 0) {
+    const unique = [...new Set(
+      allergenTags.map((t: string) => t.replace(/^en:/, '').replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()))
+    )];
+    allergens = unique;
+  }
+
   return {
     found: true,
     name: product.product_name || undefined,
@@ -80,6 +90,7 @@ const lookupOpenFoodFacts = async (barcode: string, signal: AbortSignal): Promis
     quantity: product.quantity || undefined,
     source: 'Open Food Facts',
     nutrition,
+    allergens,
   };
 };
 
