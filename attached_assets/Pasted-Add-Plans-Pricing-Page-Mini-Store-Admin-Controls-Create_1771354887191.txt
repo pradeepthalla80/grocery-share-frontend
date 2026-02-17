@@ -1,0 +1,190 @@
+Add Plans & Pricing Page + Mini Store Admin Controls
+
+Create a Plans & Pricing page accessible from the main navigation.
+
+The page must be mobile-first and optimized for PWA performance.
+
+⸻
+
+🧭 Navigation
+
+Add menu item:
+
+Plans & Pricing
+
+Also add links in:
+	•	Profile → Plans & Pricing
+	•	Settings → Fees & Plans
+
+⸻
+
+🟢 Plans & Pricing Page
+
+Title
+
+Plans & Pricing
+
+Transparency Line (under title)
+
+Transparent pricing. A small service fee applies only when a sale is completed.
+
+⸻
+
+🟦 Free Membership
+
+Price: Free
+
+Includes:
+	•	List items locally
+	•	Browse & purchase nearby
+	•	Messaging & pickup coordination
+	•	No upfront fees
+
+Service Fee: 5–8% per sale
+
+⸻
+
+🟦 BaskMate Plus
+
+Price: $4.99/month
+
+Includes:
+	•	Reduced transaction fees
+	•	Priority listing visibility
+	•	Seller insights & analytics
+	•	Trust badge
+
+Service Fee: ~3–5% per sale
+
+Button: Upgrade to Plus
+(display only for now)
+
+⸻
+
+🟦 Mini Store
+
+Price: $19.99/month
+
+For frequent sellers & home-based businesses
+
+Includes:
+	•	Store profile & branding
+	•	Product catalog & inventory tools
+	•	Bulk listing tools
+	•	Scheduled pickups & subscriptions
+	•	Enhanced visibility
+
+Service Fee: ~2–4% per sale
+
+Note:
+
+To protect seller success and maintain marketplace balance, Mini Store availability may be limited by area.
+
+⸻
+
+📍 Mini Store Availability Logic
+
+Availability is controlled by Admin settings.
+
+If available:
+
+Show Open Mini Store
+
+If capacity reached:
+
+Show message:
+
+Mini Store availability is currently limited in your area.
+Join the waitlist to be notified when space becomes available.
+
+Button: Join Waitlist
+
+If disabled for ZIP:
+
+Show:
+
+Mini Store is not available in your area at this time.
+
+If approval required:
+
+Show after submission:
+
+Your Mini Store request is under review.
+
+⸻
+
+Waitlist Data
+
+Store:
+	•	user ID
+	•	email
+	•	ZIP code
+	•	timestamp
+
+⸻
+
+🛠 Admin Dashboard: Mini Store Management
+
+Add section: Mini Store Management
+
+Global Controls
+
+Admin can:
+	•	enable/disable Mini Stores
+	•	enable waitlist
+	•	require manual approval
+
+ZIP Code Controls
+
+Admin can:
+	•	set max stores per ZIP
+	•	pause new stores
+	•	disable stores for ZIP
+	•	enable waitlist only
+	•	require approval for ZIP
+
+Request Management
+
+Admin can:
+	•	approve/deny store requests
+	•	view active stores
+	•	manage waitlist
+	•	notify users when slots open
+
+⸻
+
+🟠 Dashboard Banner
+
+Add dismissible banner:
+
+Turn surplus items into income. Explore seller tools & pricing.
+
+Button: View Plans
+
+Reappear after 7 days if dismissed.
+
+⸻
+
+⚡ PWA & UX Requirements
+
+Ensure:
+	•	fast loading & lightweight
+	•	responsive mobile design
+	•	offline shell compatibility
+	•	touch-friendly layout
+	•	dark mode support
+
+⸻
+
+✅ Expected Behavior
+
+Users can:
+✔ understand pricing quickly
+✔ upgrade easily
+✔ open Mini Store if available
+✔ join waitlist if limited
+
+Admins can:
+✔ control supply by ZIP
+✔ pause or limit areas
+✔ manage approvals & waitlist
