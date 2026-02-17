@@ -148,16 +148,27 @@ export const Chat = () => {
     setNewMessage('');
     userScrolledRef.current = false;
 
+    const otherUser = selectedConversation
+      ? selectedConversation.participants.find(p => p.id !== user?.id)
+      : null;
+
+    const optimisticMsg: Message = {
+      id: `temp-${Date.now()}`,
+      message: messageText,
+      sender: { id: user?.id || '', name: user?.name || '' },
+      receiver: { id: otherUser?.id || receiverId || '', name: otherUser?.name || '' },
+      read: false,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, optimisticMsg]);
+
     try {
       setSendingMessage(true);
       
-      if (selectedConversation) {
-        const otherParticipant = selectedConversation.participants.find(p => p.id !== user?.id);
-        if (otherParticipant) {
-          await sendMessage(otherParticipant.id, messageText);
-          await fetchMessages(selectedConversation.id);
-          showToast('Message sent!', 'success');
-        }
+      if (selectedConversation && otherUser) {
+        await sendMessage(otherUser.id, messageText);
+        setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
+        await fetchMessages(selectedConversation.id);
       } else if (isNewConversation && receiverId) {
         await sendMessage(receiverId, messageText, itemId || undefined);
         const response = await getConversations();
@@ -168,14 +179,15 @@ export const Chat = () => {
         );
         if (newConv) {
           setSelectedConversation(newConv);
+          setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
           await fetchMessages(newConv.id);
           setIsNewConversation(false);
           navigate('/chat', { replace: true });
         }
-        showToast('Message sent successfully!', 'success');
       }
     } catch (err) {
       showToast('Failed to send message', 'error');
+      setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       setNewMessage(messageText);
     } finally {
       setSendingMessage(false);
@@ -385,7 +397,9 @@ export const Chat = () => {
                   </div>
 
                   <div className="relative flex-1">
-                    <div ref={messagesContainerRef} onScroll={handleScroll} className="absolute inset-0 overflow-y-auto p-3 md:p-4 space-y-3 bg-gray-50 native-scroll">
+                    <div ref={messagesContainerRef} onScroll={handleScroll} className="absolute inset-0 overflow-y-auto p-3 md:p-4 bg-gray-50 native-scroll flex flex-col">
+                      <div className="flex-1 min-h-0" />
+                      <div className="space-y-3">
                       {messages.map((msg) => {
                         const isMyMessage = msg.sender.id === user?.id;
                         return (
@@ -409,6 +423,7 @@ export const Chat = () => {
                         );
                       })}
                       <div ref={messagesEndRef} />
+                      </div>
                     </div>
                     {showScrollButton && (
                       <button
