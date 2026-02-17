@@ -134,7 +134,7 @@ export const MyItems = () => {
         <div className="flex gap-2.5 overflow-x-auto hide-scrollbar pb-2 mb-5 md:mb-8 md:grid md:grid-cols-4 md:gap-4">
           <button onClick={() => setFilter('all')} className={`flex-shrink-0 rounded-xl p-3 md:p-4 min-w-[100px] md:min-w-0 transition border ${filter === 'all' ? 'bg-white border-green-300 shadow-sm' : 'bg-white/60 border-gray-100'}`}>
             <div className="flex items-center gap-2 md:justify-between">
-              <Package className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'all' ? 'text-green-600' : 'text-gray-400'}`} />
+              <Package className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'all' ? 'text-green-600' : 'text-gray-500'}`} />
               <div className="text-left md:text-right">
                 <p className="text-lg md:text-2xl font-bold text-gray-900">{stats.total}</p>
                 <p className="text-[10px] md:text-xs text-gray-500">Total</p>
@@ -143,7 +143,7 @@ export const MyItems = () => {
           </button>
           <button onClick={() => setFilter('active')} className={`flex-shrink-0 rounded-xl p-3 md:p-4 min-w-[100px] md:min-w-0 transition border ${filter === 'active' ? 'bg-white border-green-300 shadow-sm' : 'bg-white/60 border-gray-100'}`}>
             <div className="flex items-center gap-2 md:justify-between">
-              <CheckCircle className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'active' ? 'text-green-600' : 'text-gray-400'}`} />
+              <CheckCircle className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'active' ? 'text-green-600' : 'text-gray-500'}`} />
               <div className="text-left md:text-right">
                 <p className="text-lg md:text-2xl font-bold text-green-600">{stats.active}</p>
                 <p className="text-[10px] md:text-xs text-gray-500">Active</p>
@@ -152,7 +152,7 @@ export const MyItems = () => {
           </button>
           <button onClick={() => setFilter('expiring')} className={`flex-shrink-0 rounded-xl p-3 md:p-4 min-w-[100px] md:min-w-0 transition border ${filter === 'expiring' ? 'bg-white border-orange-300 shadow-sm' : 'bg-white/60 border-gray-100'}`}>
             <div className="flex items-center gap-2 md:justify-between">
-              <Clock className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'expiring' ? 'text-orange-600' : 'text-gray-400'}`} />
+              <Clock className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'expiring' ? 'text-orange-600' : 'text-gray-500'}`} />
               <div className="text-left md:text-right">
                 <p className="text-lg md:text-2xl font-bold text-orange-600">{stats.expiring}</p>
                 <p className="text-[10px] md:text-xs text-gray-500">Expiring</p>
@@ -161,7 +161,7 @@ export const MyItems = () => {
           </button>
           <button onClick={() => setFilter('expired')} className={`flex-shrink-0 rounded-xl p-3 md:p-4 min-w-[100px] md:min-w-0 transition border ${filter === 'expired' ? 'bg-white border-red-300 shadow-sm' : 'bg-white/60 border-gray-100'}`}>
             <div className="flex items-center gap-2 md:justify-between">
-              <AlertCircle className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'expired' ? 'text-red-600' : 'text-gray-400'}`} />
+              <AlertCircle className={`h-5 w-5 md:h-8 md:w-8 ${filter === 'expired' ? 'text-red-600' : 'text-gray-500'}`} />
               <div className="text-left md:text-right">
                 <p className="text-lg md:text-2xl font-bold text-red-600">{stats.expired}</p>
                 <p className="text-[10px] md:text-xs text-gray-500">Expired</p>

@@ -45,16 +45,16 @@ export const BottomNav = () => {
               className={`flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-90 ${
                 isActive
                   ? 'text-green-600'
-                  : 'text-gray-400'
+                  : 'text-gray-600'
               }`}
             >
               <div className="relative">
-                <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
                 {isActive && (
                   <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-green-600 rounded-full animate-scale-in" />
                 )}
               </div>
-              <span className={`text-[10px] mt-0.5 ${isActive ? 'font-semibold' : 'font-normal'}`}>
+              <span className={`text-[10px] mt-0.5 ${isActive ? 'font-semibold' : 'font-medium'}`}>
                 {item.label}
               </span>
             </Link>

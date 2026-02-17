@@ -248,7 +248,7 @@ export const Dashboard = () => {
                 </span>
               )}
             </div>
-            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
           </button>
 
           <div className={`${filtersOpen ? 'block' : 'hidden'} md:block p-4 md:p-6 border-t border-gray-100 md:border-0`}>
@@ -449,7 +449,7 @@ export const Dashboard = () => {
                 <span className="font-semibold text-gray-700">{items.length}</span> items within {radius} mi
               </p>
               <div className="flex items-center space-x-1.5">
-                <ArrowUpDown className="h-3.5 w-3.5 text-gray-400" />
+                <ArrowUpDown className="h-3.5 w-3.5 text-gray-500" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
