@@ -334,21 +334,24 @@ export const AddItem = () => {
         </button>
 
         <div className="bg-white rounded-2xl md:rounded-xl shadow-sm border border-gray-100 p-5 md:p-8">
-          <div className="flex items-center justify-between mb-5 md:mb-6">
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Add New Item</h1>
-            <button
-              type="button"
-              onClick={() => { setScanResult(null); setShowScanner(true); }}
-              disabled={scanLoading}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-medium active:scale-[0.97] transition shadow-sm disabled:opacity-50"
-            >
-              {scanLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ScanLine className="h-4 w-4" />
-              )}
-              <span>{scanLoading ? 'Looking up...' : 'Scan Barcode'}</span>
-            </button>
+          <div className="mb-5 md:mb-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900">Add New Item</h1>
+              <button
+                type="button"
+                onClick={() => { setScanResult(null); setShowScanner(true); }}
+                disabled={scanLoading}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-medium active:scale-[0.97] transition shadow-sm disabled:opacity-50"
+              >
+                {scanLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ScanLine className="h-4 w-4" />
+                )}
+                <span>{scanLoading ? 'Looking up...' : 'Scan Barcode'}</span>
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1.5">Scan barcode for packaged items · Upload photo for fresh produce</p>
           </div>
 
           {scanLoading && (
@@ -480,7 +483,7 @@ export const AddItem = () => {
                       {scanResult.status === 'not_found' ? 'Product not found in database' : 'Lookup failed'}
                     </p>
                     <p className="text-amber-700 text-xs mt-0.5">
-                      You can fill in the details manually, or try scanning again.
+                      Fill in details manually, try scanning again, or upload a photo for AI recognition.
                     </p>
                   </div>
                 </>
