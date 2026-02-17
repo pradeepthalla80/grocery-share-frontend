@@ -1,8 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
-
-// Platform commission percentage (e.g., 10% = 0.10)
-const PLATFORM_COMMISSION_RATE = 0.10;
+const { getCommissionRate } = require('../config/plans');
 
 // Supported countries for Stripe Connect Express
 // See: https://stripe.com/docs/connect/express-accounts#supported-countries
@@ -377,9 +375,9 @@ const getSellerBalance = async (req, res) => {
   }
 };
 
-// Helper function to calculate platform fee
-const calculatePlatformFee = (amount) => {
-  return Math.round(amount * PLATFORM_COMMISSION_RATE * 100); // Return in cents
+const calculatePlatformFee = (amount, plan = 'free') => {
+  const rate = getCommissionRate(plan);
+  return Math.round(amount * rate * 100);
 };
 
 // Webhook handler for Connect events
@@ -444,6 +442,5 @@ module.exports = {
   calculatePlatformFee,
   mobileOnboarding,
   mobileRefresh,
-  mobileComplete,
-  PLATFORM_COMMISSION_RATE
+  mobileComplete
 };

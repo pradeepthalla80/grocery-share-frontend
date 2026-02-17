@@ -2,9 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Item = require('../models/Item');
 const User = require('../models/User');
 const inventoryService = require('../services/inventoryService');
-
-// Platform commission rate (10%)
-const PLATFORM_COMMISSION_RATE = 0.10;
+const { getCommissionRate } = require('../config/plans');
 
 // Get Stripe publishable key
 const getPublishableKey = async (req, res) => {
@@ -112,8 +110,11 @@ const createPaymentIntent = async (req, res) => {
       });
     }
     
-    // Calculate platform fee (commission)
-    const platformFee = Math.round(amountInCents * PLATFORM_COMMISSION_RATE);
+    // Calculate platform fee based on seller's plan
+    const sellerUser = await User.findById(seller._id);
+    const commissionRate = getCommissionRate(sellerUser?.plan || 'free');
+    const platformFee = Math.round(amountInCents * commissionRate);
+    console.log(`Seller plan: ${sellerUser?.plan || 'free'}, Commission rate: ${(commissionRate * 100).toFixed(1)}%`);
     
     let paymentIntentParams = {
       amount: amountInCents,
@@ -161,8 +162,10 @@ const createPaymentIntent = async (req, res) => {
       deliveryIncluded: includeDelivery,
       deliveryFee,
       useConnect: sellerHasConnect,
-      platformFee: sellerHasConnect ? (Math.round(amountInCents * PLATFORM_COMMISSION_RATE) / 100) : null,
-      sellerPayout: sellerHasConnect ? ((amountInCents - Math.round(amountInCents * PLATFORM_COMMISSION_RATE)) / 100) : null
+      platformFee: sellerHasConnect ? (platformFee / 100) : null,
+      sellerPayout: sellerHasConnect ? ((amountInCents - platformFee) / 100) : null,
+      commissionRate: commissionRate,
+      sellerPlan: sellerUser?.plan || 'free'
     });
     
   } catch (error) {

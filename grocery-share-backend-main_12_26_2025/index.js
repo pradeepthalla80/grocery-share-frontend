@@ -6,6 +6,9 @@ require('dotenv').config();
 
 const app = express();
 
+const subscriptionWebhook = require('./controllers/subscriptionController');
+app.post('/api/v1/subscription/webhook', express.raw({ type: 'application/json' }), subscriptionWebhook.handleWebhook);
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -61,6 +64,9 @@ const aiRoutes = require('./routes/ai');
 // ========== MINI STORE - NEW ==========
 const miniStoreRoutes = require('./routes/miniStore');
 // ========== MINI STORE - END ==========
+// ========== SUBSCRIPTION PLANS - NEW ==========
+const subscriptionRoutes = require('./routes/subscription');
+// ========== SUBSCRIPTION PLANS - END ==========
 
 // Use Routes
 app.use('/api/v1/auth', authRoutes);
@@ -87,6 +93,9 @@ app.use('/api/v1/ai', aiRoutes);
 // ========== MINI STORE - NEW ==========
 app.use('/api/v1/mini-store', miniStoreRoutes);
 // ========== MINI STORE - END ==========
+// ========== SUBSCRIPTION PLANS - NEW ==========
+app.use('/api/v1/subscription', subscriptionRoutes);
+// ========== SUBSCRIPTION PLANS - END ==========
 
 // Health check
 app.get('/health', (req, res) => {

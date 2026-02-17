@@ -78,7 +78,7 @@ const userSchema = new mongoose.Schema({
     default: null
   },
   
-  // ========== STRIPE CONNECT FIELDS - NEW ==========
+  // ========== STRIPE CONNECT FIELDS ==========
   stripeAccountId: {
     type: String,
     default: null
@@ -88,7 +88,31 @@ const userSchema = new mongoose.Schema({
     enum: ['pending', 'pending_verification', 'active', 'disabled', null],
     default: null
   },
-  // ========== STRIPE CONNECT FIELDS - END ==========
+
+  // ========== SUBSCRIPTION / PLAN FIELDS ==========
+  plan: {
+    type: String,
+    enum: ['free', 'plus', 'mini_store'],
+    default: 'free'
+  },
+  stripeCustomerId: {
+    type: String,
+    default: null
+  },
+  stripeSubscriptionId: {
+    type: String,
+    default: null
+  },
+  subscriptionStatus: {
+    type: String,
+    enum: ['active', 'past_due', 'canceled', 'incomplete', 'trialing', null],
+    default: null
+  },
+  subscriptionCurrentPeriodEnd: {
+    type: Date,
+    default: null
+  },
+  // ========== END SUBSCRIPTION FIELDS ==========
   
   notificationSettings: {
     inApp: {
