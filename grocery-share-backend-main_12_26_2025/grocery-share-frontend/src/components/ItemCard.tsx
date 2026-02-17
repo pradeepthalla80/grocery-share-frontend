@@ -32,13 +32,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
   const isExpiringSoon = daysLeft <= 2 && daysLeft > 0;
   const isExpired = timeUntilExpiry <= 0;
 
+  const itemId = item.id || item._id;
+
   const handleViewDetails = () => {
-    navigate(`/item/${item.id}`);
+    navigate(`/item/${itemId}`);
   };
 
   const handleContactSeller = () => {
     if (item.user?.id) {
-      navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}`);
+      navigate(`/chat?receiverId=${item.user.id}&itemId=${itemId}`);
     }
   };
 

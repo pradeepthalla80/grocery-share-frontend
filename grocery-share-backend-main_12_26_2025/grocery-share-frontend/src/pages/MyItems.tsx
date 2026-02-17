@@ -32,18 +32,23 @@ export const MyItems = () => {
   }, []);
 
   const handleEdit = (itemId: string) => {
+    if (!itemId) { alert('Could not identify this item. Please refresh and try again.'); return; }
     navigate(`/edit-item/${itemId}`);
   };
 
   const handleDelete = async (itemId: string) => {
+    if (!itemId) { alert('Could not identify this item. Please refresh and try again.'); return; }
     if (!confirm('Are you sure you want to delete this item?')) return;
 
     try {
+      console.log('[MyItems] Deleting item:', itemId);
       await itemsAPI.delete(itemId);
-      setItems(items.filter(item => item.id !== itemId));
+      setItems(items.filter(item => (item.id || item._id) !== itemId));
       alert('Item deleted successfully!');
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to delete item');
+      console.error('[MyItems] Delete error:', err.response?.status, err.response?.data);
+      const details = err.response?.data?.details ? `\n\nDetails: ${err.response.data.details}` : '';
+      alert((err.response?.data?.error || 'Failed to delete item') + details);
     }
   };
 
@@ -166,15 +171,18 @@ export const MyItems = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {filteredItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              showActions
-              onEdit={() => handleEdit(item.id)}
-              onDelete={() => handleDelete(item.id)}
-            />
-          ))}
+          {filteredItems.map((item) => {
+            const itemId = item.id || item._id || '';
+            return (
+              <ItemCard
+                key={itemId}
+                item={item}
+                showActions
+                onEdit={() => handleEdit(itemId)}
+                onDelete={() => handleDelete(itemId)}
+              />
+            );
+          })}
         </div>
 
         {filteredItems.length === 0 && items.length > 0 && (

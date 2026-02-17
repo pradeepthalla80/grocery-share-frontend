@@ -79,7 +79,7 @@ export const EditItem = () => {
     const fetchItem = async () => {
       try {
         const response = await itemsAPI.getMyItems();
-        const item = response.items.find((item: Item) => item.id === id);
+        const item = response.items.find((item: Item) => (item.id || item._id) === id);
         
         if (item) {
           setValue('name', item.name);
@@ -144,8 +144,10 @@ export const EditItem = () => {
       if (!flexiblePickup && data.pickupTimeEnd) {
         formData.append('pickupTimeEnd', data.pickupTimeEnd);
       }
-      formData.append('lat', data.lat);
-      formData.append('lng', data.lng);
+      formData.append('location', JSON.stringify({
+        lat: parseFloat(data.lat),
+        lng: parseFloat(data.lng),
+      }));
       
       const tags = data.tags
         ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean)
@@ -160,12 +162,15 @@ export const EditItem = () => {
         formData.append('deletedImages', JSON.stringify(deletedImagePublicIds));
       }
 
+      console.log('[EditItem] Updating item:', id);
       await itemsAPI.update(id, formData);
 
       alert('Item updated successfully!');
       navigate('/my-items');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update item');
+      console.error('[EditItem] Update error:', err.response?.status, err.response?.data);
+      const details = err.response?.data?.details ? ` (${err.response.data.details})` : '';
+      setError((err.response?.data?.error || 'Failed to update item') + details);
     } finally {
       setLoading(false);
     }
