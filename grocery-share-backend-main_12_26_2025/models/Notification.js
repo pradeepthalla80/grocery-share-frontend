@@ -25,8 +25,12 @@ const notificationSchema = new mongoose.Schema({
       'request_declined',    // Seller declined your pickup request
       'request_canceled',    // Buyer canceled their pickup request
       'pickup_confirmed',    // Either party confirmed pickup completion
-      'exchange_completed'   // Pickup/exchange was completed
+      'exchange_completed',  // Pickup/exchange was completed
       // ========== ADDED FOR PICKUP REQUESTS - END ==========
+      'store_request_new',       // Admin: new store request submitted
+      'store_request_approved',  // User: store request approved
+      'store_request_rejected',  // User: store request rejected
+      'waitlist_joined'          // Admin: user joined waitlist
     ],
     required: true
   },

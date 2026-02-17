@@ -1,6 +1,7 @@
 const MiniStoreSettings = require('../models/MiniStoreSettings');
 const MiniStoreRequest = require('../models/MiniStoreRequest');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 const getOrCreateSettings = async () => {
   let settings = await MiniStoreSettings.findOne();
@@ -100,6 +101,20 @@ exports.joinWaitlist = async (req, res) => {
       status: 'pending'
     });
 
+    try {
+      const admins = await User.find({ role: { $in: ['admin', 'super_admin'] } }, '_id');
+      const notifications = admins.map(admin => ({
+        user: admin._id,
+        type: 'waitlist_joined',
+        message: `${req.user.name} joined the Mini Store waitlist for ZIP ${zipCode}`,
+      }));
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+      }
+    } catch (notifErr) {
+      console.error('Failed to send admin notifications:', notifErr);
+    }
+
     res.status(201).json({ success: true, request });
   } catch (err) {
     console.error('Waitlist join error:', err);
@@ -132,6 +147,20 @@ exports.submitStoreRequest = async (req, res) => {
       type: 'store_request',
       status: 'pending'
     });
+
+    try {
+      const admins = await User.find({ role: { $in: ['admin', 'super_admin'] } }, '_id');
+      const notifications = admins.map(admin => ({
+        user: admin._id,
+        type: 'store_request_new',
+        message: `New store request from ${req.user.name} for ZIP ${zipCode}${storeName ? ` (${storeName})` : ''}`,
+      }));
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+      }
+    } catch (notifErr) {
+      console.error('Failed to send admin notifications:', notifErr);
+    }
 
     res.status(201).json({ success: true, request });
   } catch (err) {
@@ -260,6 +289,28 @@ exports.reviewRequest = async (req, res) => {
         storeName: request.storeName || `${request.user.name}'s Store`,
         storeActivatedAt: new Date()
       });
+    }
+
+    try {
+      let notifType, notifMessage;
+      if (request.type === 'store_request') {
+        notifType = status === 'approved' ? 'store_request_approved' : 'store_request_rejected';
+        notifMessage = status === 'approved'
+          ? `Your store request for ZIP ${request.zipCode} has been approved! You can now set up your store.`
+          : `Your store request for ZIP ${request.zipCode} has been declined.${notes ? ` Reason: ${notes}` : ''}`;
+      } else {
+        notifType = status === 'approved' ? 'store_request_approved' : 'store_request_rejected';
+        notifMessage = status === 'approved'
+          ? `Your waitlist entry for ZIP ${request.zipCode} has been approved! You can now open a store.`
+          : `Your waitlist entry for ZIP ${request.zipCode} has been declined.${notes ? ` Reason: ${notes}` : ''}`;
+      }
+      await Notification.create({
+        user: request.user._id,
+        type: notifType,
+        message: notifMessage,
+      });
+    } catch (notifErr) {
+      console.error('Failed to send user notification:', notifErr);
     }
 
     res.json({ success: true, request });
