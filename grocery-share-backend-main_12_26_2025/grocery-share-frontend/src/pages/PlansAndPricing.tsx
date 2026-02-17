@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { miniStoreAPI } from '../api/miniStore';
 import { ArrowLeft, Check, Crown, Store, Sparkles, Clock, Loader2, AlertCircle } from 'lucide-react';
 
-type StoreStatus = 'idle' | 'checking' | 'available' | 'approval_required' | 'pending_approval' | 'waitlist_only' | 'zip_blocked' | 'zip_paused' | 'globally_disabled' | 'waitlisted' | 'requested' | 'error';
+type StoreStatus = 'idle' | 'checking' | 'available' | 'approval_required' | 'pending_approval' | 'waitlist_only' | 'zip_blocked' | 'zip_paused' | 'zip_full' | 'globally_disabled' | 'waitlisted' | 'requested' | 'error';
 
 export const PlansAndPricing = () => {
   const { user } = useAuth();
@@ -29,6 +29,7 @@ export const PlansAndPricing = () => {
           'zip_paused': 'zip_paused',
           'waitlist_only': 'waitlist_only',
           'pending_approval': 'pending_approval',
+          'zip_full': 'zip_full',
         };
         setStoreStatus(statusMap[result.reason] || 'zip_blocked');
       }
@@ -244,7 +245,7 @@ export const PlansAndPricing = () => {
                     </div>
                   )}
 
-                  {(storeStatus === 'waitlist_only' || storeStatus === 'zip_paused' || storeStatus === 'globally_disabled') && waitlistOpen && (
+                  {(storeStatus === 'waitlist_only' || storeStatus === 'zip_paused' || storeStatus === 'zip_full' || storeStatus === 'globally_disabled') && waitlistOpen && (
                     <div className="space-y-2">
                       <p className="text-xs text-gray-600">
                         Mini Store availability is currently limited in your area. Join the waitlist to be notified when space becomes available.
@@ -260,9 +261,9 @@ export const PlansAndPricing = () => {
                     </div>
                   )}
 
-                  {storeStatus === 'zip_blocked' && (
+                  {(storeStatus === 'zip_blocked' || (storeStatus === 'zip_full' && !waitlistOpen)) && (
                     <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-600">
-                      Mini Store is not available in your area at this time.
+                      {storeStatus === 'zip_full' ? 'All Mini Store slots in your area are currently taken.' : 'Mini Store is not available in your area at this time.'}
                     </div>
                   )}
 

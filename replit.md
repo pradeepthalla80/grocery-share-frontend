@@ -37,7 +37,9 @@ Preferred communication style: Simple, everyday language.
 - **Null Safety:** Defensive programming checks for null references in database records before accessing nested properties.
 
 ### Feature Specifications
-- **Admin Dashboard:** Full functionality for managing users and items (search, pagination, role changes, suspend/delete).
+- **Plans & Pricing:** 3-tier system (Free 5-8% fee, Plus $4.99/mo 3-5% fee, Mini Store $19.99/mo 2-4% fee). ZIP-based availability checking for Mini Store.
+- **Mini Store System:** Backend models (MiniStoreSettings, MiniStoreRequest), ZIP-based capacity management (per-ZIP max stores), admin global controls (enable/disable, waitlist, approval), ZIP-specific settings (pause, disable, waitlist-only, approval-required), request/waitlist queue management. Admin endpoints protected with requireAdmin middleware.
+- **Admin Dashboard:** Full functionality for managing users and items (search, pagination, role changes, suspend/delete). Mini Store tab for global controls, ZIP settings, and request/waitlist management.
 - **Add/Edit Item:** Comprehensive screen including tag input, listing validity, flexible pickup times, improved location picker with "Use Current Location" and address autocomplete. Barcode scanner (PWA) for auto-filling item details via 3-database lookup chain: Open Food Facts (4M+ food products) -> UPC Item DB (681M+ products) -> FatSecret (1.9M+ foods, 56 markets including Asian groceries). Stripe account status warning for paid items.
 - **FatSecret Integration:** OAuth2 client credentials flow proxied through Vite dev server plugin (dev) and Vercel serverless function (prod) at `/api/fatsecret/barcode/:barcode`. Token cached for 24h. Credentials stored as secrets: `FATSECRET_CLIENT_ID`, `FATSECRET_CLIENT_SECRET`.
 - **Stripe Seller Onboarding:** Integrated workflow with status checks and UI feedback.

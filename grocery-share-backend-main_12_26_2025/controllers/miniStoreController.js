@@ -38,13 +38,33 @@ exports.checkAvailability = async (req, res) => {
     }
 
     const maxStores = zipSetting?.maxStores || settings.defaultMaxStoresPerZip;
-    const activeStores = await User.countDocuments({ isStoreOwner: true, 'location.coordinates': { $ne: null } });
+    const activeStoresInZip = await MiniStoreRequest.countDocuments({
+      zipCode: zip,
+      status: 'approved',
+      type: 'store_request'
+    });
+
+    if (activeStoresInZip >= maxStores) {
+      return res.json({
+        available: false,
+        reason: 'zip_full',
+        waitlistOpen: settings.waitlistEnabled || zipSetting?.waitlistOnly || false,
+        activeStores: activeStoresInZip,
+        maxStores
+      });
+    }
+
+    const existingRequest = await MiniStoreRequest.findOne({
+      user: req.user._id,
+      type: 'store_request',
+      status: 'pending'
+    });
+
+    if (existingRequest) {
+      return res.json({ available: false, reason: 'pending_approval', waitlistOpen: false });
+    }
 
     if (zipSetting?.requireApproval || settings.requireApproval) {
-      const existingRequest = await MiniStoreRequest.findOne({ user: req.user._id, type: 'store_request', status: 'pending' });
-      if (existingRequest) {
-        return res.json({ available: false, reason: 'pending_approval', waitlistOpen: false });
-      }
       return res.json({ available: true, reason: 'approval_required', waitlistOpen: false });
     }
 
@@ -150,8 +170,11 @@ exports.updateSettings = async (req, res) => {
 exports.updateZipSettings = async (req, res) => {
   try {
     const { zipCode, maxStores, paused, disabled, waitlistOnly, requireApproval } = req.body;
-    if (!zipCode) {
-      return res.status(400).json({ error: 'ZIP code is required' });
+    if (!zipCode || !/^\d{5}$/.test(zipCode)) {
+      return res.status(400).json({ error: 'Valid 5-digit ZIP code is required' });
+    }
+    if (typeof maxStores === 'number' && (maxStores < 1 || maxStores > 100)) {
+      return res.status(400).json({ error: 'Max stores must be between 1 and 100' });
     }
 
     const settings = await getOrCreateSettings();
