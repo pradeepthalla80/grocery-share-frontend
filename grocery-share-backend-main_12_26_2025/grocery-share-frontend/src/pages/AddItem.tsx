@@ -202,28 +202,40 @@ export const AddItem = () => {
     }
   };
 
+  const isProduceCategory = (category?: string | null): boolean => {
+    if (!category) return false;
+    const cat = category.toLowerCase();
+    return ['fruit', 'vegetable', 'produce', 'salad', 'herb', 'berry', 'leafy', 'root', 'fresh', 'bakery', 'bread', 'pastry'].some(k => cat.includes(k));
+  };
+
   const handleAiRecognize = async (file: File) => {
     try {
       setAiLoading(true);
       setAiSuggestion(null);
       setFreshnessResult(null);
 
-      const [recognitionResult, freshnessRes] = await Promise.allSettled([
-        aiAPI.recognizeFood(file),
-        aiAPI.checkFreshness(file),
-      ]);
+      const recognitionResult = await aiAPI.recognizeFood(file);
 
-      if (recognitionResult.status === 'fulfilled' && recognitionResult.value.success && recognitionResult.value.suggestions) {
-        const { bestName, bestCategory, confidence } = recognitionResult.value.suggestions;
+      let detectedCategory: string | null = null;
+      if (recognitionResult.success && recognitionResult.suggestions) {
+        const { bestName, bestCategory, confidence } = recognitionResult.suggestions;
+        detectedCategory = bestCategory;
         if (bestName || bestCategory) {
           setAiSuggestion({ name: bestName, category: bestCategory, confidence });
         }
       }
 
-      if (freshnessRes.status === 'fulfilled' && freshnessRes.value.success && freshnessRes.value.freshness) {
-        const { score, label } = freshnessRes.value.freshness;
-        if (label && label !== 'unknown') {
-          setFreshnessResult({ score, label });
+      if (isProduceCategory(detectedCategory)) {
+        try {
+          const freshnessRes = await aiAPI.checkFreshness(file);
+          if (freshnessRes.success && freshnessRes.freshness) {
+            const { score, label } = freshnessRes.freshness;
+            if (label && label !== 'unknown') {
+              setFreshnessResult({ score, label });
+            }
+          }
+        } catch {
+          console.log('Freshness check not available');
         }
       }
     } catch (err) {

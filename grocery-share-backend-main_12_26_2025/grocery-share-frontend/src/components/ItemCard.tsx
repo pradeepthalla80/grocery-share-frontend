@@ -135,7 +135,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
           </div>
         )}
 
-        {item.freshnessLabel && item.freshnessLabel !== 'unknown' && (
+        {item.freshnessLabel && item.freshnessLabel !== 'unknown' && item.category && ['fruit', 'vegetable', 'produce', 'salad', 'herb', 'berry', 'leafy', 'root', 'fresh', 'bakery', 'bread', 'pastry'].some(k => item.category!.toLowerCase().includes(k)) && (
           <div className={`absolute top-10 left-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-0.5 ${
             item.freshnessLabel === 'fresh' ? 'bg-emerald-500 text-white' :
             item.freshnessLabel === 'moderate' ? 'bg-yellow-500 text-white' :
