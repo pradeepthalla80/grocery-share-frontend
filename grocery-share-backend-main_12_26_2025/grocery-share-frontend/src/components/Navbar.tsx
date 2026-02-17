@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, User, Home, Package, MessageCircle, HandHeart, Menu, X, Store, Shield, Leaf } from 'lucide-react';
+import { LogOut, User, Home, Package, MessageCircle, HandHeart, Menu, X, Store, Shield, Leaf, CreditCard } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 export const Navbar = () => {
@@ -35,6 +35,8 @@ export const Navbar = () => {
   let navLinks = user?.isStoreOwner
     ? [...baseNavLinks.slice(0, 2), { path: '/my-store', icon: Store, label: 'My Store' }, ...baseNavLinks.slice(2)]
     : [...baseNavLinks];
+
+  navLinks = [...navLinks, { path: '/plans', icon: CreditCard, label: 'Plans & Pricing' }];
 
   if (isAdmin) {
     navLinks = [...navLinks, { path: '/admin', icon: Shield, label: 'Admin' }];

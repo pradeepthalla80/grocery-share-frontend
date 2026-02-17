@@ -5,7 +5,7 @@ import { itemsAPI } from '../api/items';
 import { deleteAccount } from '../api/users';
 import { getUserRatings, type Rating } from '../api/ratings';
 import { getUserBadges, type UserBadge } from '../api/gamification';
-import { Mail, Calendar, Lock, ArrowLeft, Trash2, AlertTriangle, Star, Award, Shield, Store } from 'lucide-react';
+import { Mail, Calendar, Lock, ArrowLeft, Trash2, AlertTriangle, Star, Award, Shield, Store, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
 import { useToast } from '../hooks/useToast';
@@ -212,6 +212,19 @@ export const Profile = () => {
                 </button>
               </div>
             )}
+
+            <button
+              onClick={() => navigate('/plans')}
+              className="w-full mb-5 bg-gray-50 border border-gray-200 rounded-xl p-3.5 flex items-center gap-3 active:bg-gray-100 transition text-left"
+            >
+              <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CreditCard className="h-4 w-4 text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">Plans & Pricing</p>
+                <p className="text-[10px] text-gray-500">View fees, upgrades & seller tools</p>
+              </div>
+            </button>
 
             <h2 className="text-base md:text-xl font-semibold text-gray-900 mb-4">Account Info</h2>
             

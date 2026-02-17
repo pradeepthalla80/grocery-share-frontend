@@ -6,7 +6,7 @@ import { getNearbyRequests, type ItemRequest } from '../api/itemRequests';
 import { getRecommendations } from '../api/recommendations';
 import { AddressInput } from '../components/AddressInput';
 import { useAuth } from '../hooks/useAuth';
-import { Search, Plus, Sparkles, Calendar, MapPin, Package, MessageCircle, ArrowUpDown, X, SlidersHorizontal, ChevronDown, Store, Brain, Leaf } from 'lucide-react';
+import { Search, Plus, Sparkles, Calendar, MapPin, Package, MessageCircle, ArrowUpDown, X, SlidersHorizontal, ChevronDown, Store, Brain, Leaf, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseLocalDate } from '../utils/date';
 
@@ -358,6 +358,32 @@ export const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {(() => {
+          const bannerKey = 'baskmate_plans_banner_dismissed';
+          const dismissed = localStorage.getItem(bannerKey);
+          const showBanner = !dismissed || (Date.now() - parseInt(dismissed)) > 7 * 24 * 60 * 60 * 1000;
+          if (!showBanner) return null;
+          return (
+            <div className="mb-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-3.5 flex items-center gap-3 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <CreditCard className="h-5 w-5 text-white flex-shrink-0" />
+              <p className="text-white text-xs flex-1">Turn surplus items into income. Explore seller tools & pricing.</p>
+              <button
+                onClick={() => navigate('/plans')}
+                className="bg-white text-green-700 px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition flex-shrink-0"
+              >
+                View Plans
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); localStorage.setItem(bannerKey, Date.now().toString()); (e.target as HTMLElement).closest('.bg-gradient-to-r')?.remove(); }}
+                className="text-white/70 hover:text-white flex-shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        })()}
 
         {error && (
           <div className="mb-4 md:mb-6 p-3 md:p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm animate-scale-in">

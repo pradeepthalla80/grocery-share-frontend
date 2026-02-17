@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI, type AdminStats, type AdminUser, type AdminItem } from '../api/admin';
+import { miniStoreAPI, type MiniStoreSettings, type MiniStoreRequestItem } from '../api/miniStore';
 import { 
   Users, Package, ShoppingCart, BarChart3, Search, 
   Trash2, Store, ChevronDown, ChevronUp,
-  ArrowLeft, AlertTriangle
+  ArrowLeft, AlertTriangle, Check, X, Clock, Loader2, Plus
 } from 'lucide-react';
 
-type AdminTab = 'overview' | 'users' | 'items';
+type AdminTab = 'overview' | 'users' | 'items' | 'mini-store';
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -24,6 +25,12 @@ export const AdminDashboard = () => {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [storeSettings, setStoreSettings] = useState<MiniStoreSettings | null>(null);
+  const [storeRequests, setStoreRequests] = useState<MiniStoreRequestItem[]>([]);
+  const [storeRequestFilter, setStoreRequestFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [newZipCode, setNewZipCode] = useState('');
+  const [newZipMax, setNewZipMax] = useState('5');
+  const [storeLoading, setStoreLoading] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'admin' && user?.role !== 'super_admin') {
@@ -167,7 +174,7 @@ export const AdminDashboard = () => {
 
         <div className="mb-4 md:mb-6 sticky top-12 md:top-16 z-30 bg-gray-50 -mx-4 px-4 md:mx-0 md:px-0 py-2 md:py-0">
           <div className="flex bg-gray-100 md:bg-transparent rounded-xl md:rounded-none p-1 md:p-0 md:border-b md:border-gray-200">
-            {(['overview', 'users', 'items'] as AdminTab[]).map(tab => (
+            {(['overview', 'users', 'items', 'mini-store'] as AdminTab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -422,6 +429,309 @@ export const AdminDashboard = () => {
                 <p className="text-gray-500 text-sm">No items found</p>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'mini-store' && (
+          <MiniStoreAdmin
+            storeSettings={storeSettings}
+            setStoreSettings={setStoreSettings}
+            storeRequests={storeRequests}
+            setStoreRequests={setStoreRequests}
+            storeRequestFilter={storeRequestFilter}
+            setStoreRequestFilter={setStoreRequestFilter}
+            newZipCode={newZipCode}
+            setNewZipCode={setNewZipCode}
+            newZipMax={newZipMax}
+            setNewZipMax={setNewZipMax}
+            storeLoading={storeLoading}
+            setStoreLoading={setStoreLoading}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+const MiniStoreAdmin = ({
+  storeSettings, setStoreSettings, storeRequests, setStoreRequests,
+  storeRequestFilter, setStoreRequestFilter,
+  newZipCode, setNewZipCode, newZipMax, setNewZipMax,
+  storeLoading, setStoreLoading
+}: {
+  storeSettings: MiniStoreSettings | null;
+  setStoreSettings: (s: MiniStoreSettings | null) => void;
+  storeRequests: MiniStoreRequestItem[];
+  setStoreRequests: (r: MiniStoreRequestItem[]) => void;
+  storeRequestFilter: 'all' | 'pending' | 'approved' | 'rejected';
+  setStoreRequestFilter: (f: 'all' | 'pending' | 'approved' | 'rejected') => void;
+  newZipCode: string;
+  setNewZipCode: (s: string) => void;
+  newZipMax: string;
+  setNewZipMax: (s: string) => void;
+  storeLoading: boolean;
+  setStoreLoading: (b: boolean) => void;
+}) => {
+  const [reviewLoading, setReviewLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadStoreData();
+  }, []);
+
+  useEffect(() => {
+    loadRequests();
+  }, [storeRequestFilter]);
+
+  const loadStoreData = async () => {
+    try {
+      setStoreLoading(true);
+      const [settings, requestsData] = await Promise.all([
+        miniStoreAPI.getSettings(),
+        miniStoreAPI.getRequests()
+      ]);
+      setStoreSettings(settings);
+      setStoreRequests(requestsData.requests);
+    } catch {
+      console.log('Failed to load mini store data');
+    } finally {
+      setStoreLoading(false);
+    }
+  };
+
+  const loadRequests = async () => {
+    try {
+      const filter = storeRequestFilter === 'all' ? {} : { status: storeRequestFilter };
+      const data = await miniStoreAPI.getRequests(filter);
+      setStoreRequests(data.requests);
+    } catch {
+      console.log('Failed to load requests');
+    }
+  };
+
+  const toggleSetting = async (key: 'enabled' | 'waitlistEnabled' | 'requireApproval', value: boolean) => {
+    try {
+      const updated = await miniStoreAPI.updateSettings({ [key]: value });
+      setStoreSettings(updated);
+    } catch {
+      console.log('Failed to update setting');
+    }
+  };
+
+  const addZipSetting = async () => {
+    if (!newZipCode || newZipCode.length < 5) return;
+    try {
+      const updated = await miniStoreAPI.updateZipSettings({
+        zipCode: newZipCode,
+        maxStores: parseInt(newZipMax) || 5
+      });
+      setStoreSettings(updated);
+      setNewZipCode('');
+      setNewZipMax('5');
+    } catch {
+      console.log('Failed to add ZIP setting');
+    }
+  };
+
+  const toggleZipFlag = async (zipCode: string, flag: string, value: boolean) => {
+    try {
+      const updated = await miniStoreAPI.updateZipSettings({ zipCode, [flag]: value });
+      setStoreSettings(updated);
+    } catch {
+      console.log('Failed to update ZIP setting');
+    }
+  };
+
+  const removeZip = async (zipCode: string) => {
+    try {
+      const updated = await miniStoreAPI.deleteZipSettings(zipCode);
+      setStoreSettings(updated);
+    } catch {
+      console.log('Failed to remove ZIP');
+    }
+  };
+
+  const handleReview = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      setReviewLoading(id);
+      await miniStoreAPI.reviewRequest(id, status);
+      await loadRequests();
+    } catch {
+      console.log('Failed to review request');
+    } finally {
+      setReviewLoading(null);
+    }
+  };
+
+  if (storeLoading && !storeSettings) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 text-green-600 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Store className="h-4 w-4 text-purple-600" />
+          Global Controls
+        </h3>
+        <div className="space-y-3">
+          {[
+            { key: 'enabled' as const, label: 'Enable Mini Stores', desc: 'Allow users to open stores' },
+            { key: 'waitlistEnabled' as const, label: 'Enable Waitlist', desc: 'Let users join waitlist when full' },
+            { key: 'requireApproval' as const, label: 'Require Approval', desc: 'Manually approve new stores' },
+          ].map(({ key, label, desc }) => (
+            <div key={key} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+              <div>
+                <p className="text-sm font-medium text-gray-800">{label}</p>
+                <p className="text-[10px] text-gray-400">{desc}</p>
+              </div>
+              <button
+                onClick={() => toggleSetting(key, !storeSettings?.[key])}
+                className={`relative w-11 h-6 rounded-full transition ${storeSettings?.[key] ? 'bg-green-500' : 'bg-gray-300'}`}
+              >
+                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${storeSettings?.[key] ? 'translate-x-5.5 left-0.5' : 'left-0.5'}`} style={{ transform: storeSettings?.[key] ? 'translateX(22px)' : 'translateX(0)' }} />
+              </button>
+            </div>
+          ))}
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium text-gray-800">Default Max Stores/ZIP</p>
+              <p className="text-[10px] text-gray-400">Maximum stores per ZIP code</p>
+            </div>
+            <span className="text-sm font-semibold text-gray-700">{storeSettings?.defaultMaxStoresPerZip || 10}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">ZIP Code Controls</h3>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="text"
+            value={newZipCode}
+            onChange={(e) => setNewZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
+            placeholder="ZIP code"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            maxLength={5}
+          />
+          <input
+            type="number"
+            value={newZipMax}
+            onChange={(e) => setNewZipMax(e.target.value)}
+            placeholder="Max"
+            className="w-16 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          <button
+            onClick={addZipSetting}
+            disabled={newZipCode.length < 5}
+            className="px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 active:scale-95 transition"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+        {storeSettings?.zipSettings && storeSettings.zipSettings.length > 0 ? (
+          <div className="space-y-2">
+            {storeSettings.zipSettings.map((zip) => (
+              <div key={zip.zipCode} className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-800">{zip.zipCode}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-gray-500">Max: {zip.maxStores}</span>
+                    <button onClick={() => removeZip(zip.zipCode)} className="text-red-400 hover:text-red-600">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {['paused', 'disabled', 'waitlistOnly', 'requireApproval'].map((flag) => (
+                    <button
+                      key={flag}
+                      onClick={() => toggleZipFlag(zip.zipCode, flag, !(zip as any)[flag])}
+                      className={`px-2 py-1 rounded-md text-[10px] font-medium transition ${
+                        (zip as any)[flag]
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-gray-200 text-gray-500'
+                      }`}
+                    >
+                      {flag === 'waitlistOnly' ? 'Waitlist' : flag === 'requireApproval' ? 'Approval' : flag.charAt(0).toUpperCase() + flag.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 text-center py-4">No ZIP-specific settings. Default rules apply.</p>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-900">Requests & Waitlist</h3>
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
+            {(['all', 'pending', 'approved', 'rejected'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setStoreRequestFilter(f)}
+                className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition capitalize ${
+                  storeRequestFilter === f ? 'bg-white shadow-sm text-green-600' : 'text-gray-500'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        {storeRequests.length > 0 ? (
+          <div className="space-y-2">
+            {storeRequests.map((req) => (
+              <div key={req._id} className="bg-gray-50 rounded-lg p-3 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{req.user?.name || 'Unknown'}</p>
+                  <p className="text-[10px] text-gray-500">{req.email} &middot; ZIP: {req.zipCode}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                      req.type === 'store_request' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {req.type === 'store_request' ? 'Store Request' : 'Waitlist'}
+                    </span>
+                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                      req.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                      req.status === 'approved' ? 'bg-green-100 text-green-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {req.status}
+                    </span>
+                  </div>
+                </div>
+                {req.status === 'pending' && (
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => handleReview(req._id, 'approved')}
+                      disabled={reviewLoading === req._id}
+                      className="p-2 bg-green-600 text-white rounded-lg active:scale-95 transition disabled:opacity-50"
+                    >
+                      {reviewLoading === req._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={() => handleReview(req._id, 'rejected')}
+                      disabled={reviewLoading === req._id}
+                      className="p-2 bg-red-500 text-white rounded-lg active:scale-95 transition disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Clock className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-xs text-gray-400">No requests found</p>
           </div>
         )}
       </div>
