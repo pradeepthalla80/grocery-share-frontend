@@ -45,13 +45,15 @@ export const BottomNav = () => {
               className={`flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-90 ${
                 isActive
                   ? 'text-green-600'
-                  : 'text-gray-600'
+                  : 'text-gray-700 hover:text-green-600'
               }`}
             >
-              <div className="relative">
-                <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+              <div className={`relative flex items-center justify-center w-10 h-7 rounded-full transition-colors ${
+                isActive ? 'bg-green-50' : ''
+              }`}>
+                <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
                 {isActive && (
-                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-green-600 rounded-full animate-scale-in" />
+                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-green-600 rounded-full animate-scale-in" />
                 )}
               </div>
               <span className={`text-[10px] mt-0.5 ${isActive ? 'font-semibold' : 'font-medium'}`}>
