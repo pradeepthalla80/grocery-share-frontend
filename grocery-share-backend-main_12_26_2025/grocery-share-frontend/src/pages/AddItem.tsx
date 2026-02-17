@@ -166,7 +166,7 @@ export const AddItem = () => {
         const days = getDefaultExpiryDays(product.category);
         const expiry = new Date();
         expiry.setDate(expiry.getDate() + days);
-        setValue('expiryDate', expiry.toISOString().split('T')[0]);
+        setValue('expiryDate', `${expiry.getFullYear()}-${String(expiry.getMonth() + 1).padStart(2, '0')}-${String(expiry.getDate()).padStart(2, '0')}`);
         setScanResult({ status: 'success', product });
       } else {
         setScanResult({ status: 'not_found' });
@@ -477,12 +477,20 @@ export const AddItem = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <FormInput
-                label="Expiry Date"
-                type="date"
-                {...register('expiryDate')}
-                error={errors.expiryDate?.message}
-              />
+              <div>
+                <FormInput
+                  label="Expiry Date"
+                  type="date"
+                  {...register('expiryDate')}
+                  error={errors.expiryDate?.message}
+                />
+                {scanResult?.status === 'success' && (
+                  <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                    Estimated based on product category. Please verify the actual expiry date on the package.
+                  </p>
+                )}
+              </div>
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-gray-700">

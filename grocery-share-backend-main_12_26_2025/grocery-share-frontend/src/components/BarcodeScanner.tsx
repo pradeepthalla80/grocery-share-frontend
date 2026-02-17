@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
-import { X, Camera, Loader2, Keyboard, ImagePlus } from 'lucide-react';
+import { X, Camera, Loader2, Keyboard, ImagePlus, Aperture } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -36,11 +36,13 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
   const [scanAttempts, setScanAttempts] = useState(0);
+  const [photoScanning, setPhotoScanning] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
   const stoppedRef = useRef(false);
   const onScanRef = useRef(onScan);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const attemptCounterRef = useRef(0);
   onScanRef.current = onScan;
 
@@ -166,6 +168,10 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
   const handleFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
+
+    setPhotoScanning(true);
+    setError('');
 
     try {
       const tempScanner = new Html5Qrcode('barcode-file-reader', {
@@ -176,14 +182,18 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
       const result = await tempScanner.scanFile(file, true);
       tempScanner.clear();
       if (result) {
+        setPhotoScanning(false);
         stopAndClean().then(() => {
           onScanRef.current(result);
         });
+        return;
       }
     } catch {
-      setError('Could not read barcode from image. Try entering the number manually.');
-      setTimeout(() => setError(''), 4000);
     }
+
+    setPhotoScanning(false);
+    setError('Could not read barcode from that photo. Tips: make sure the barcode is clear, well-lit, and fills most of the photo. You can also type the numbers below the barcode manually.');
+    setTimeout(() => setError(''), 8000);
   };
 
   const scanTips = [
@@ -292,22 +302,46 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
                   {currentTip}
                 </p>
 
+                {photoScanning && (
+                  <div className="mt-3 flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 text-blue-300 animate-spin" />
+                    <p className="text-blue-300 text-xs font-medium">Reading barcode from photo...</p>
+                  </div>
+                )}
+
                 <div className="flex gap-2 mt-4">
                   <button
                     onClick={() => setShowManualEntry(true)}
                     className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white/15 text-white rounded-lg text-xs active:bg-white/25"
                   >
                     <Keyboard className="h-3.5 w-3.5" />
-                    Type Barcode
+                    Type It
+                  </button>
+                  <button
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={photoScanning}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white/15 text-white rounded-lg text-xs active:bg-white/25 disabled:opacity-50"
+                  >
+                    <Aperture className="h-3.5 w-3.5" />
+                    Take Photo
                   </button>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white/15 text-white rounded-lg text-xs active:bg-white/25"
+                    disabled={photoScanning}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-white/15 text-white rounded-lg text-xs active:bg-white/25 disabled:opacity-50"
                   >
                     <ImagePlus className="h-3.5 w-3.5" />
-                    Scan Photo
+                    Gallery
                   </button>
                 </div>
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileScan}
+                  className="hidden"
+                />
                 <input
                   ref={fileInputRef}
                   type="file"
