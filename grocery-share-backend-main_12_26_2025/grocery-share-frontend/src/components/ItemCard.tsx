@@ -4,6 +4,7 @@ import { type Item } from '../api/items';
 import { Calendar, MapPin, ChevronLeft, ChevronRight, Clock, MessageCircle, Package, Store } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
+import { parseLocalDate } from '../utils/date';
 
 interface ItemCardProps {
   item: Item;
@@ -26,7 +27,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
 
   const isMyItem = item.user?.id === user?.id;
 
-  const timeUntilExpiry = new Date(item.expiryDate).getTime() - new Date().getTime();
+  const timeUntilExpiry = parseLocalDate(item.expiryDate).getTime() - new Date().getTime();
   const daysLeft = Math.max(0, Math.floor(timeUntilExpiry / (1000 * 60 * 60 * 24)));
   const isExpiringSoon = daysLeft <= 2 && daysLeft > 0;
   const isExpired = timeUntilExpiry <= 0;
@@ -141,7 +142,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
         <div className="space-y-1.5 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>{format(new Date(item.expiryDate), 'MMM dd, yyyy')}</span>
+            <span>{format(parseLocalDate(item.expiryDate), 'MMM dd, yyyy')}</span>
           </div>
 
           {item.flexiblePickup && (

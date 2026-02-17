@@ -80,20 +80,20 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
         });
         scannerRef.current = scanner;
 
-        const fps = ios ? 8 : android ? 10 : 15;
+        const fps = ios ? 12 : android ? 15 : 20;
 
         await scanner.start(
           { facingMode: 'environment' },
           {
             fps,
             qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              const w = Math.floor(viewfinderWidth * 0.85);
-              const h = Math.floor(Math.min(viewfinderHeight * 0.35, 120));
+              const w = Math.floor(viewfinderWidth * 0.9);
+              const h = Math.floor(Math.min(viewfinderHeight * 0.45, 200));
               return { width: w, height: h };
             },
             disableFlip: true,
             aspectRatio: ios ? 1.333 : 1.777,
-            experimentalFeatures: { useBarCodeDetectorIfSupported: !firefox },
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true },
           } as any,
           (decodedText) => {
             if (hasScannedRef.current) return;
@@ -111,7 +111,7 @@ export const BarcodeScanner = ({ onScan, onClose }: BarcodeScannerProps) => {
           () => {
             if (!hasScannedRef.current) {
               attemptCounterRef.current++;
-              if (attemptCounterRef.current % fps === 0) {
+              if (attemptCounterRef.current % (fps * 2) === 0) {
                 setScanAttempts(prev => prev + 1);
               }
             }

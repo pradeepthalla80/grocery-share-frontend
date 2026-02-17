@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { itemsAPI, type Item } from '../api/items';
 import { ItemCard } from '../components/ItemCard';
 import { Plus, Package, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { parseLocalDate } from '../utils/date';
 
 type FilterType = 'all' | 'active' | 'expiring' | 'expired';
 
@@ -51,18 +52,18 @@ export const MyItems = () => {
     switch (filter) {
       case 'active':
         return items.filter(item => {
-          const expiry = new Date(item.expiryDate);
+          const expiry = parseLocalDate(item.expiryDate);
           const daysUntilExpiry = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
           return daysUntilExpiry > 2;
         });
       case 'expiring':
         return items.filter(item => {
-          const expiry = new Date(item.expiryDate);
+          const expiry = parseLocalDate(item.expiryDate);
           const daysUntilExpiry = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
           return daysUntilExpiry > 0 && daysUntilExpiry <= 2;
         });
       case 'expired':
-        return items.filter(item => new Date(item.expiryDate) < now);
+        return items.filter(item => parseLocalDate(item.expiryDate) < now);
       default:
         return items;
     }
@@ -73,16 +74,16 @@ export const MyItems = () => {
   const stats = {
     total: items.length,
     active: items.filter(item => {
-      const expiry = new Date(item.expiryDate);
+      const expiry = parseLocalDate(item.expiryDate);
       const daysUntilExpiry = Math.ceil((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
       return daysUntilExpiry > 2;
     }).length,
     expiring: items.filter(item => {
-      const expiry = new Date(item.expiryDate);
+      const expiry = parseLocalDate(item.expiryDate);
       const daysUntilExpiry = Math.ceil((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
       return daysUntilExpiry > 0 && daysUntilExpiry <= 2;
     }).length,
-    expired: items.filter(item => new Date(item.expiryDate) < new Date()).length,
+    expired: items.filter(item => parseLocalDate(item.expiryDate) < new Date()).length,
   };
 
   if (loading) {

@@ -7,6 +7,7 @@ import { AddressInput } from '../components/AddressInput';
 import { useAuth } from '../hooks/useAuth';
 import { Search, Plus, Sparkles, Calendar, MapPin, Package, MessageCircle, ArrowUpDown, X, SlidersHorizontal, ChevronDown, Store } from 'lucide-react';
 import { format } from 'date-fns';
+import { parseLocalDate } from '../utils/date';
 
 type TabType = 'available' | 'requested';
 type SortOption = 'distance' | 'price' | 'expiry' | 'newest';
@@ -82,7 +83,7 @@ export const Dashboard = () => {
         });
       case 'expiry':
         return sorted.sort((a, b) => 
-          new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
+          parseLocalDate(a.expiryDate).getTime() - parseLocalDate(b.expiryDate).getTime()
         );
       case 'newest':
         return sorted.sort((a, b) => 
@@ -408,8 +409,8 @@ export const Dashboard = () => {
             const handleItemClick = () => {
               navigate(`/item/${item.id}`);
             };
-            const isExpired = new Date(item.expiryDate) < new Date();
-            const daysUntilExpiry = Math.ceil((new Date(item.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+            const isExpired = parseLocalDate(item.expiryDate) < new Date();
+            const daysUntilExpiry = Math.ceil((parseLocalDate(item.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
             
             return (
               <div 
@@ -464,7 +465,7 @@ export const Dashboard = () => {
                   <div className="mt-1.5 space-y-1 text-[10px] md:text-xs text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-3 w-3 flex-shrink-0" />
-                      <span>{format(new Date(item.expiryDate), 'MMM dd')}</span>
+                      <span>{format(parseLocalDate(item.expiryDate), 'MMM dd')}</span>
                     </div>
                     {item.location?.address && (
                       <div className="flex items-center space-x-1">
@@ -549,7 +550,7 @@ export const Dashboard = () => {
                       <div className="mt-1.5 space-y-1 text-[10px] md:text-xs text-gray-500">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3 flex-shrink-0" />
-                          <span>{format(new Date(item.expiryDate), 'MMM dd')}</span>
+                          <span>{format(parseLocalDate(item.expiryDate), 'MMM dd')}</span>
                         </div>
                         {item.location?.address && (
                           <div className="flex items-center space-x-1">

@@ -8,6 +8,7 @@ import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
 import { lookupBarcode, type ProductInfo } from '../api/openFoodFacts';
+import { parseLocalDate } from '../utils/date';
 
 export const ItemDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -176,7 +177,7 @@ export const ItemDetail = () => {
     );
   }
 
-  const timeUntilExpiry = new Date(item.expiryDate).getTime() - new Date().getTime();
+  const timeUntilExpiry = parseLocalDate(item.expiryDate).getTime() - new Date().getTime();
   const daysLeft = Math.max(0, Math.floor(timeUntilExpiry / (1000 * 60 * 60 * 24)));
   const hoursLeft = Math.max(0, Math.floor((timeUntilExpiry % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
   const isExpired = timeUntilExpiry <= 0;
@@ -333,7 +334,7 @@ export const ItemDetail = () => {
                     <Calendar className="h-4 w-4 text-green-600" />
                   </div>
                   <div>
-                    <span className="text-sm font-medium">Expires {format(new Date(item.expiryDate), 'MMM dd, yyyy')}</span>
+                    <span className="text-sm font-medium">Expires {format(parseLocalDate(item.expiryDate), 'MMM dd, yyyy')}</span>
                     {isExpired ? (
                       <span className="ml-2 text-xs text-red-600 font-semibold">(Expired)</span>
                     ) : (
