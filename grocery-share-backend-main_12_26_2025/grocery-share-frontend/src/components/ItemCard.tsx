@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Item } from '../api/items';
-import { Calendar, MapPin, ChevronLeft, ChevronRight, Clock, MessageCircle, Package, Store } from 'lucide-react';
+import { Calendar, MapPin, ChevronLeft, ChevronRight, Clock, MessageCircle, Package, Store, Leaf } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 import { parseLocalDate } from '../utils/date';
@@ -134,11 +134,28 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onEdit, onDelete, show
             {item.category}
           </div>
         )}
+
+        {item.freshnessLabel && item.freshnessLabel !== 'unknown' && (
+          <div className={`absolute top-10 left-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-0.5 ${
+            item.freshnessLabel === 'fresh' ? 'bg-emerald-500 text-white' :
+            item.freshnessLabel === 'moderate' ? 'bg-yellow-500 text-white' :
+            'bg-red-500 text-white'
+          }`}>
+            <Leaf className="h-3 w-3" />
+            {item.freshnessLabel === 'fresh' ? 'Fresh' : item.freshnessLabel === 'moderate' ? 'OK' : 'Check'}
+            {item.freshnessScore ? ` ${item.freshnessScore}%` : ''}
+          </div>
+        )}
       </div>
 
       <div className="p-3.5 md:p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="text-sm md:text-base font-semibold text-gray-900 line-clamp-1">{item.name}</h3>
+          {item.similarityScore !== undefined && item.similarityScore > 0 && (
+            <span className="flex-shrink-0 bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full text-[10px] font-medium">
+              {item.similarityScore}% match
+            </span>
+          )}
         </div>
         
         <div className="space-y-1.5 text-xs text-gray-500">

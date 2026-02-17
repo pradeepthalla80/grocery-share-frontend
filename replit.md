@@ -45,55 +45,48 @@ Preferred communication style: Simple, everyday language.
 - **Geospatial:** Utilizes MongoDB's `$near` operator for proximity searches and GeoJSON for storing location data.
 - **Debugging & Logging:** Extensive logging for API responses, payloads, and critical workflows (e.g., location, payments, admin actions).
 
-## Future Phase: Hugging Face AI Enhancements
+## Hugging Face AI Features
 
-**Status:** Planned (not implemented). Waiting until Flutter app and core features are stable.
-**Constraint:** All AI processing goes on the backend (new Node.js endpoints). Flutter app only needs new Dio service methods (no new packages, no SDK changes). PWA calls the same endpoints.
-**Cost:** Hugging Face free tier for low traffic; $9/month PRO plan for reliable production use.
+**Status:** Priorities 1-4 IMPLEMENTED. Priorities 5-6 planned for future.
+**Constraint:** All AI processing on backend (new Node.js endpoints). Flutter app unaffected (no new packages, no SDK changes). PWA calls new endpoints.
+**Cost:** Hugging Face free tier ($0). Cold starts 10-30s on first call. Optional $9/month PRO for faster responses.
+**Secret:** `HUGGINGFACE_API_TOKEN` - must also be set in Render backend environment variables.
 
-### Priority 1: Smart Food Image Recognition (Add Item flow)
-- **Purpose:** Auto-detect food type from uploaded photo, suggest category and item name
-- **Models:** `Kaludi/food-category-classification-v2.0` (12 categories), `nateraw/food` (101 food types, 89% accuracy)
-- **Backend:** New `POST /api/v1/ai/recognize-food` endpoint
-- **Flutter:** New method in `items_service.dart`, call before form submission in `add_item_screen.dart`
-- **PWA:** New API function + UI suggestion in AddItem page
+### IMPLEMENTED - Priority 1: Smart Food Image Recognition
+- **Backend:** `POST /api/v1/ai/recognize-food` - `services/aiService.js` + `controllers/aiController.js`
+- **Models:** `Kaludi/food-category-classification-v2.0` (12 categories), `nateraw/food` (101 food types)
+- **PWA:** Auto-analyzes uploaded photos in AddItem, shows purple suggestion bar with name/category. Complements barcode scanner (barcode for packaged items, AI for fresh produce/homemade).
+- **Flutter:** Not yet integrated (just needs new Dio service method)
 
-### Priority 2: Chat Moderation & Safety
-- **Purpose:** Auto-filter inappropriate/scam messages in buyer-seller chat
-- **Models:** `KoalaAI/Text-Moderation` (lightweight, 0.3B params, fast), `google/shieldgemma-2b` (more thorough)
-- **Backend:** Middleware on `POST /api/v1/chat/messages` to check content before saving
-- **Flutter/PWA:** No changes needed (backend filters transparently)
+### IMPLEMENTED - Priority 2: Chat Moderation & Safety
+- **Backend:** `middleware/chatModeration.js` inserted in `routes/chat.js` on `POST /messages`
+- **Models:** `KoalaAI/Text-Moderation` for AI content check + regex scam pattern detection (venmo, cashapp, gift cards, etc.)
+- **Behavior:** Blocks flagged messages with user-friendly error. Falls back to allowing messages if AI unavailable.
+- **Flutter/PWA:** No changes needed (transparent backend filtering)
 
-### Priority 3: Smart Semantic Search (Item Discovery)
-- **Purpose:** Understand search intent ("healthy breakfast" finds eggs, bread, cereal) instead of keyword-only matching
-- **Models:** `sentence-transformers/all-MiniLM-L6-v2` (fast, 67M params), `sentence-transformers/all-mpnet-base-v2` (best quality)
-- **Backend:** Pre-compute embeddings for items, new `GET /api/v1/items/smart-search` endpoint
-- **Flutter:** New search mode in `items_service.dart`
-- **PWA:** New search option in Dashboard
+### IMPLEMENTED - Priority 3: Smart Semantic Search
+- **Backend:** `GET /api/v1/ai/smart-search` - uses `sentence-transformers/all-MiniLM-L6-v2` embeddings
+- **PWA:** "AI Search" toggle button on Dashboard keyword field. Purple styling when active. Falls back to regular search on error.
+- **Behavior:** Computes cosine similarity between query and item text (name+category+tags+description). Returns items with >25% similarity, ranked by relevance.
+- **Flutter:** Not yet integrated
 
-### Priority 4: Food Freshness Detection (Trust & Safety)
-- **Purpose:** Analyze item photos to show freshness score badge on listings
-- **Models:** `RicardoPoleo/custom_cnn_model` (fresh vs rotten, 28 categories)
-- **Backend:** New `POST /api/v1/ai/freshness-check` endpoint, called during item creation
-- **Flutter/PWA:** Display freshness badge on item cards
+### IMPLEMENTED - Priority 4: Food Freshness Detection
+- **Backend:** `POST /api/v1/ai/freshness-check` - `RicardoPoleo/custom_cnn_model`
+- **PWA:** Freshness badge on ItemCard (green "Fresh", yellow "OK", red "Check" with percentage)
+- **Flutter:** Not yet integrated
 
-### Priority 5: Review Sentiment Analysis (Rating System)
-- **Purpose:** Auto-analyze review text to detect sentiment trends, flag suspicious reviews
-- **Models:** `nlptown/bert-base-multilingual-uncased-sentiment` (1-5 star prediction, 6 languages)
-- **Backend:** Process on review submission, store sentiment score
-- **Flutter/PWA:** Show sentiment summary on profiles
+### PLANNED - Priority 5: Review Sentiment Analysis
+- **Models:** `nlptown/bert-base-multilingual-uncased-sentiment` (1-5 star prediction)
 
-### Priority 6: Multilingual Translation (Expanding User Base)
-- **Purpose:** Auto-translate item descriptions and chat messages
-- **Models:** `facebook/nllb-200-distilled-600M` (200 languages, fast), `alirezamsh/small100` (3.6x faster)
-- **Backend:** New `POST /api/v1/ai/translate` endpoint
-- **Flutter/PWA:** Toggle for translated view on items and chat
+### PLANNED - Priority 6: Multilingual Translation
+- **Models:** `facebook/nllb-200-distilled-600M` (200 languages)
 
-### Implementation Notes
-- All features are additive (no existing endpoints change)
-- Flutter impact: Only new service methods in existing files, no pubspec.yaml changes
-- Free tier caveat: Cold starts can take 10-30 seconds on first call; consider caching
-- Secret needed: `HUGGINGFACE_API_TOKEN` (free to create at huggingface.co/settings/tokens)
+### AI Architecture Notes
+- All AI files: `services/aiService.js`, `controllers/aiController.js`, `routes/ai.js`, `middleware/chatModeration.js`
+- Route registered at `/api/v1/ai` in `index.js`
+- Image endpoints accept both file upload (multipart) and `imageUrl` (JSON body)
+- 60-second timeout for AI API calls (handles cold starts)
+- Auto-retry on 503 (model loading) with estimated wait time
 
 ## External Dependencies
 

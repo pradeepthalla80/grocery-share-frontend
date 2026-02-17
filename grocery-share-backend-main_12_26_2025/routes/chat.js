@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { moderateMessage } = require('../middleware/chatModeration');
 const {
   getConversations,
   getMessages,
@@ -12,7 +13,7 @@ const {
 // All routes require authentication
 router.get('/conversations', auth, getConversations);
 router.get('/conversations/:conversationId/messages', auth, getMessages);
-router.post('/messages', auth, sendMessage);
+router.post('/messages', auth, moderateMessage, sendMessage);
 router.put('/conversations/:conversationId/read', auth, markAsRead);
 router.post('/conversations/:conversationId/confirm-pickup', auth, confirmPickup);
 

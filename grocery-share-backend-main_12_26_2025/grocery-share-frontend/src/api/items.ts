@@ -30,6 +30,9 @@ export interface Item {
   };
   notified: boolean;
   distance?: number;
+  similarityScore?: number;
+  freshnessScore?: number;
+  freshnessLabel?: 'fresh' | 'moderate' | 'poor' | 'unknown';
   isStoreItem?: boolean;
   status?: string;
   buyerId?: string;

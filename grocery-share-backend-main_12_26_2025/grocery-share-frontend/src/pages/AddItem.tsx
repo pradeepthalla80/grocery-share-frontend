@@ -6,12 +6,13 @@ import { z } from 'zod';
 import { itemsAPI } from '../api/items';
 import { getAccountStatus } from '../api/stripeConnect';
 import { lookupBarcode, type ProductInfo } from '../api/openFoodFacts';
+import { aiAPI } from '../api/ai';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
 import { BarcodeScanner } from '../components/BarcodeScanner';
-import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -62,6 +63,9 @@ export const AddItem = () => {
   const [scanResult, setScanResult] = useState<{ status: 'success' | 'not_found' | 'error'; product?: ProductInfo } | null>(null);
   const [showNutrition, setShowNutrition] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<{ name: string | null; category: string | null; confidence: number } | null>(null);
+  const [aiDismissed, setAiDismissed] = useState(false);
 
   useEffect(() => {
     const checkStripe = async () => {
@@ -192,6 +196,38 @@ export const AddItem = () => {
     } else {
       setImageError('');
     }
+    if (files.length > 0 && !scanResult?.product && !aiDismissed) {
+      handleAiRecognize(files[0]);
+    }
+  };
+
+  const handleAiRecognize = async (file: File) => {
+    try {
+      setAiLoading(true);
+      setAiSuggestion(null);
+      const result = await aiAPI.recognizeFood(file);
+      if (result.success && result.suggestions) {
+        const { bestName, bestCategory, confidence } = result.suggestions;
+        if (bestName || bestCategory) {
+          setAiSuggestion({ name: bestName, category: bestCategory, confidence });
+        }
+      }
+    } catch (err) {
+      console.log('AI recognition not available:', err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const applyAiSuggestion = (field: 'name' | 'category' | 'both') => {
+    if (!aiSuggestion) return;
+    if (field === 'name' || field === 'both') {
+      if (aiSuggestion.name) setValue('name', aiSuggestion.name);
+    }
+    if (field === 'category' || field === 'both') {
+      if (aiSuggestion.category) setValue('category', aiSuggestion.category);
+    }
+    setAiSuggestion(null);
   };
 
   const onSubmit = async (data: AddItemFormData) => {
@@ -457,6 +493,47 @@ export const AddItem = () => {
               onChange={handleImageChange}
               error={imageError}
             />
+
+            {aiLoading && (
+              <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-xl text-sm text-purple-700">
+                <Brain className="h-4 w-4 animate-pulse" />
+                <span>AI is analyzing your photo...</span>
+              </div>
+            )}
+
+            {aiSuggestion && !aiDismissed && (
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5 text-purple-700 font-medium">
+                    <Sparkles className="h-4 w-4" />
+                    <span>AI Suggestion ({aiSuggestion.confidence}% confidence)</span>
+                  </div>
+                  <button type="button" onClick={() => { setAiSuggestion(null); setAiDismissed(true); }} className="text-gray-400 hover:text-gray-600">
+                    <XCircle className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {aiSuggestion.name && (
+                    <button type="button" onClick={() => applyAiSuggestion('name')}
+                      className="px-3 py-1.5 bg-white border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-100 text-xs">
+                      Use name: <strong>{aiSuggestion.name}</strong>
+                    </button>
+                  )}
+                  {aiSuggestion.category && (
+                    <button type="button" onClick={() => applyAiSuggestion('category')}
+                      className="px-3 py-1.5 bg-white border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-100 text-xs">
+                      Use category: <strong>{aiSuggestion.category}</strong>
+                    </button>
+                  )}
+                  {aiSuggestion.name && aiSuggestion.category && (
+                    <button type="button" onClick={() => applyAiSuggestion('both')}
+                      className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-xs">
+                      Use both
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <FormInput

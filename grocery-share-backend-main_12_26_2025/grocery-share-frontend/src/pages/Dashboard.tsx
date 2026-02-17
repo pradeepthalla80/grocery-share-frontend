@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { itemsAPI, type Item } from '../api/items';
+import { aiAPI } from '../api/ai';
 import { getNearbyRequests, type ItemRequest } from '../api/itemRequests';
 import { getRecommendations } from '../api/recommendations';
 import { AddressInput } from '../components/AddressInput';
 import { useAuth } from '../hooks/useAuth';
-import { Search, Plus, Sparkles, Calendar, MapPin, Package, MessageCircle, ArrowUpDown, X, SlidersHorizontal, ChevronDown, Store } from 'lucide-react';
+import { Search, Plus, Sparkles, Calendar, MapPin, Package, MessageCircle, ArrowUpDown, X, SlidersHorizontal, ChevronDown, Store, Brain } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseLocalDate } from '../utils/date';
 
@@ -29,6 +30,8 @@ export const Dashboard = () => {
   const [keyword, setKeyword] = useState('');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
+  const [smartSearchEnabled, setSmartSearchEnabled] = useState(false);
+  const [smartSearchLoading, setSmartSearchLoading] = useState(false);
 
   const handleSearch = async () => {
     if (!searchLocation) {
@@ -41,15 +44,49 @@ export const Dashboard = () => {
       setError('');
       
       if (activeTab === 'available') {
-        const response = await itemsAPI.search({
-          lat: searchLocation.lat,
-          lng: searchLocation.lng,
-          radius: parseFloat(radius),
-          keyword: keyword || undefined,
-          category: category || undefined,
-          tags: tags || undefined,
-        });
-        setItems(response.items);
+        if (smartSearchEnabled && keyword.trim()) {
+          setSmartSearchLoading(true);
+          try {
+            const response = await aiAPI.smartSearch({
+              query: keyword.trim(),
+              lat: searchLocation.lat,
+              lng: searchLocation.lng,
+              radius: parseFloat(radius) * 1000,
+            });
+            const mappedItems: Item[] = response.items.map((item: any) => ({
+              ...item,
+              id: item.id || item._id,
+              location: item.location?.coordinates 
+                ? { lat: item.location.coordinates[1], lng: item.location.coordinates[0], address: item.address }
+                : item.location,
+              user: item.user?._id ? { id: item.user._id, name: item.user.name, email: '' } : item.user,
+              similarityScore: item.similarityScore,
+            }));
+            setItems(mappedItems);
+          } catch {
+            const response = await itemsAPI.search({
+              lat: searchLocation.lat,
+              lng: searchLocation.lng,
+              radius: parseFloat(radius),
+              keyword: keyword || undefined,
+              category: category || undefined,
+              tags: tags || undefined,
+            });
+            setItems(response.items);
+          } finally {
+            setSmartSearchLoading(false);
+          }
+        } else {
+          const response = await itemsAPI.search({
+            lat: searchLocation.lat,
+            lng: searchLocation.lng,
+            radius: parseFloat(radius),
+            keyword: keyword || undefined,
+            category: category || undefined,
+            tags: tags || undefined,
+          });
+          setItems(response.items);
+        }
       } else {
         const response = await getNearbyRequests(
           searchLocation.lat,
@@ -222,14 +259,37 @@ export const Dashboard = () => {
           
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-3 md:mb-4">
               <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-600 mb-1">Keyword</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs md:text-sm font-medium text-gray-600">Keyword</label>
+                  <button
+                    type="button"
+                    onClick={() => setSmartSearchEnabled(!smartSearchEnabled)}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium transition ${
+                      smartSearchEnabled
+                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200'
+                    }`}
+                  >
+                    <Brain className="h-3 w-3" />
+                    AI Search {smartSearchEnabled ? 'ON' : 'OFF'}
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  placeholder="Search items..."
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl md:rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-gray-50 md:bg-white"
+                  placeholder={smartSearchEnabled ? 'Try "healthy breakfast" or "snacks for kids"...' : 'Search items...'}
+                  className={`w-full px-3 py-2.5 border rounded-xl md:rounded-md focus:outline-none focus:ring-2 text-sm ${
+                    smartSearchEnabled
+                      ? 'border-purple-200 focus:ring-purple-500 bg-purple-50/30 md:bg-purple-50/30'
+                      : 'border-gray-200 focus:ring-green-500 bg-gray-50 md:bg-white'
+                  }`}
                 />
+                {smartSearchLoading && (
+                  <p className="text-[10px] text-purple-600 mt-1 flex items-center gap-1">
+                    <Brain className="h-3 w-3 animate-pulse" /> AI is finding relevant items...
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-600 mb-1">Category</label>

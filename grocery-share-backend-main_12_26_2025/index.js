@@ -55,6 +55,9 @@ const pickupRequestsRoutes = require('./routes/pickupRequests');
 // ========== STRIPE CONNECT - NEW ==========
 const stripeConnectRoutes = require('./routes/stripeConnectRoutes');
 // ========== STRIPE CONNECT - END ==========
+// ========== HUGGING FACE AI - NEW ==========
+const aiRoutes = require('./routes/ai');
+// ========== HUGGING FACE AI - END ==========
 
 // Use Routes
 app.use('/api/v1/auth', authRoutes);
@@ -75,6 +78,9 @@ app.use('/api/v1/pickup-requests', pickupRequestsRoutes);
 // ========== STRIPE CONNECT - NEW ==========
 app.use('/api/v1/stripe-connect', stripeConnectRoutes);
 // ========== STRIPE CONNECT - END ==========
+// ========== HUGGING FACE AI - NEW ==========
+app.use('/api/v1/ai', aiRoutes);
+// ========== HUGGING FACE AI - END ==========
 
 // Health check
 app.get('/health', (req, res) => {
