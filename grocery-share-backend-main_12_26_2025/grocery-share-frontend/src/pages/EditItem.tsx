@@ -329,7 +329,7 @@ export const EditItem = () => {
               <FormInput
                 label="Latitude"
                 type="number"
-                step="0.0001"
+                step="any"
                 {...register('lat')}
                 error={errors.lat?.message}
                 placeholder="37.7749"
@@ -338,7 +338,7 @@ export const EditItem = () => {
               <FormInput
                 label="Longitude"
                 type="number"
-                step="0.0001"
+                step="any"
                 {...register('lng')}
                 error={errors.lng?.message}
                 placeholder="-122.4194"
