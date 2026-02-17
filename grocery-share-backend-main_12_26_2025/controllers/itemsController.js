@@ -20,7 +20,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 // Create new item (protected route)
 const createItem = async (req, res) => {
   try {
-    const { name, imageURL, expiryDate, price, location, address, category, customCategory, tags, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, validityPeriod, offerDelivery, deliveryFee, isStoreItem, quantity, stockStatus } = req.body;
+    const { name, imageURL, expiryDate, price, location, address, category, customCategory, tags, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, validityPeriod, offerDelivery, deliveryFee, isStoreItem, quantity, stockStatus, freshnessScore, freshnessLabel } = req.body;
     
     // Get uploaded images from Cloudinary (use secure HTTPS URLs)
     const uploadedImages = req.files ? req.files
@@ -179,6 +179,8 @@ const createItem = async (req, res) => {
       quantity: parsedQuantity,
       originalQuantity: parsedQuantity,
       stockStatus: parsedStockStatus,
+      freshnessScore: freshnessScore ? parseFloat(freshnessScore) : null,
+      freshnessLabel: freshnessLabel || null,
       location: {
         type: 'Point',
         coordinates: [parseFloat(locationData.lng), parseFloat(locationData.lat)] // [longitude, latitude]
@@ -210,6 +212,8 @@ const createItem = async (req, res) => {
         quantity: item.quantity,
         originalQuantity: item.originalQuantity,
         stockStatus: item.stockStatus,
+        freshnessScore: item.freshnessScore,
+        freshnessLabel: item.freshnessLabel,
         location: {
           lat: item.location.coordinates[1],
           lng: item.location.coordinates[0],
@@ -367,12 +371,13 @@ const getItemsByLocation = async (req, res) => {
         isStoreItem: item.isStoreItem || false,
         quantity: item.quantity,
         stockStatus: item.stockStatus,
+        freshnessScore: item.freshnessScore || null,
+        freshnessLabel: item.freshnessLabel || null,
         location: {
           lat: item.location.coordinates[1],
           lng: item.location.coordinates[0],
           address: item.address
         },
-        // ========== FIXED: Added null check for deleted users ==========
         user: item.user ? {
           id: item.user._id,
           name: item.user.name,
@@ -438,12 +443,13 @@ const getItemById = async (req, res) => {
       isStoreItem: item.isStoreItem || false,
       quantity: item.quantity,
       stockStatus: item.stockStatus,
+      freshnessScore: item.freshnessScore || null,
+      freshnessLabel: item.freshnessLabel || null,
       location: {
         lat: item.location.coordinates[1],
         lng: item.location.coordinates[0],
         address: item.address
       },
-      // ========== UPDATED: Added averageRating and ratingCount to user object ==========
       user: item.user ? {
         id: item.user._id,
         name: item.user.name,
@@ -492,6 +498,8 @@ const getMyItems = async (req, res) => {
       isStoreItem: item.isStoreItem || false,
       quantity: item.quantity,
       stockStatus: item.stockStatus,
+      freshnessScore: item.freshnessScore || null,
+      freshnessLabel: item.freshnessLabel || null,
       location: {
         lat: item.location.coordinates[1],
         lng: item.location.coordinates[0],

@@ -12,7 +12,7 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
 import { BarcodeScanner } from '../components/BarcodeScanner';
-import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain, Leaf } from 'lucide-react';
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -66,6 +66,7 @@ export const AddItem = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<{ name: string | null; category: string | null; confidence: number } | null>(null);
   const [aiDismissed, setAiDismissed] = useState(false);
+  const [freshnessResult, setFreshnessResult] = useState<{ score: number | null; label: string } | null>(null);
 
   useEffect(() => {
     const checkStripe = async () => {
@@ -205,11 +206,24 @@ export const AddItem = () => {
     try {
       setAiLoading(true);
       setAiSuggestion(null);
-      const result = await aiAPI.recognizeFood(file);
-      if (result.success && result.suggestions) {
-        const { bestName, bestCategory, confidence } = result.suggestions;
+      setFreshnessResult(null);
+
+      const [recognitionResult, freshnessRes] = await Promise.allSettled([
+        aiAPI.recognizeFood(file),
+        aiAPI.checkFreshness(file),
+      ]);
+
+      if (recognitionResult.status === 'fulfilled' && recognitionResult.value.success && recognitionResult.value.suggestions) {
+        const { bestName, bestCategory, confidence } = recognitionResult.value.suggestions;
         if (bestName || bestCategory) {
           setAiSuggestion({ name: bestName, category: bestCategory, confidence });
+        }
+      }
+
+      if (freshnessRes.status === 'fulfilled' && freshnessRes.value.success && freshnessRes.value.freshness) {
+        const { score, label } = freshnessRes.value.freshness;
+        if (label && label !== 'unknown') {
+          setFreshnessResult({ score, label });
         }
       }
     } catch (err) {
@@ -280,6 +294,13 @@ export const AddItem = () => {
 
       if (data.validityPeriod) {
         formData.append('validityPeriod', data.validityPeriod);
+      }
+
+      if (freshnessResult) {
+        if (freshnessResult.score !== null) {
+          formData.append('freshnessScore', freshnessResult.score.toString());
+        }
+        formData.append('freshnessLabel', freshnessResult.label);
       }
 
       imageFiles.forEach(file => {
@@ -532,6 +553,21 @@ export const AddItem = () => {
                     </button>
                   )}
                 </div>
+              </div>
+            )}
+
+            {freshnessResult && (
+              <div className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
+                freshnessResult.label === 'fresh' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' :
+                freshnessResult.label === 'moderate' ? 'bg-yellow-50 border border-yellow-200 text-yellow-700' :
+                'bg-red-50 border border-red-200 text-red-700'
+              }`}>
+                <Leaf className="h-4 w-4" />
+                <span>
+                  Freshness: {freshnessResult.label === 'fresh' ? 'Fresh' : freshnessResult.label === 'moderate' ? 'OK' : 'Needs checking'}
+                  {freshnessResult.score !== null ? ` (${freshnessResult.score}%)` : ''}
+                </span>
+                <span className="text-xs opacity-70 ml-auto">AI detected</span>
               </div>
             )}
 

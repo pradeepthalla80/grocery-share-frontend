@@ -6,7 +6,7 @@ import { getNearbyRequests, type ItemRequest } from '../api/itemRequests';
 import { getRecommendations } from '../api/recommendations';
 import { AddressInput } from '../components/AddressInput';
 import { useAuth } from '../hooks/useAuth';
-import { Search, Plus, Sparkles, Calendar, MapPin, Package, MessageCircle, ArrowUpDown, X, SlidersHorizontal, ChevronDown, Store, Brain } from 'lucide-react';
+import { Search, Plus, Sparkles, Calendar, MapPin, Package, MessageCircle, ArrowUpDown, X, SlidersHorizontal, ChevronDown, Store, Brain, Leaf } from 'lucide-react';
 import { format } from 'date-fns';
 import { parseLocalDate } from '../utils/date';
 
@@ -517,6 +517,16 @@ export const Dashboard = () => {
                     <div className="absolute top-1.5 left-1.5 bg-purple-600/90 text-white px-1.5 py-0.5 rounded-md text-[9px] font-bold flex items-center gap-0.5">
                       <Store className="h-2.5 w-2.5" />
                       Store
+                    </div>
+                  )}
+                  {item.freshnessLabel && item.freshnessLabel !== 'unknown' && (
+                    <div className={`absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold flex items-center gap-0.5 ${
+                      item.freshnessLabel === 'fresh' ? 'bg-emerald-500 text-white' :
+                      item.freshnessLabel === 'moderate' ? 'bg-yellow-500 text-white' :
+                      'bg-red-500 text-white'
+                    }`}>
+                      <Leaf className="h-2.5 w-2.5" />
+                      {item.freshnessLabel === 'fresh' ? 'Fresh' : item.freshnessLabel === 'moderate' ? 'OK' : 'Check'}
                     </div>
                   )}
                 </div>

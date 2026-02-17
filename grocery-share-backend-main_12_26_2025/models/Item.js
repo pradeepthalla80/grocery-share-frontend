@@ -226,6 +226,19 @@ const itemSchema = new mongoose.Schema({
     default: 0
   },
   
+  freshnessScore: {
+    type: Number,
+    default: null,
+    min: 0,
+    max: 100
+  },
+
+  freshnessLabel: {
+    type: String,
+    enum: ['fresh', 'moderate', 'poor', 'unknown', null],
+    default: null
+  },
+
   // Metadata
   notes: {
     type: String,
