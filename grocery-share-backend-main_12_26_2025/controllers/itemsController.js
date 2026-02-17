@@ -518,8 +518,12 @@ const getMyItems = async (req, res) => {
 // Update an item (protected route - only owner can update)
 const updateItem = async (req, res) => {
   try {
-    const { id } = req.params;
+    const itemId = req.params.id;
     const { name, imageURL, category, customCategory, tags, expiryDate, price, location, isFree, pickupTimeStart, pickupTimeEnd, flexiblePickup, offerDelivery, deliveryFee } = req.body;
+    
+    if (!itemId) {
+      return res.status(400).json({ error: 'Item ID is required' });
+    }
     
     // Get uploaded images from Cloudinary (use secure HTTPS URLs)
     const uploadedImages = req.files ? req.files
@@ -531,14 +535,16 @@ const updateItem = async (req, res) => {
       .filter(url => url !== null) : [];
     
     // Find item
-    const item = await Item.findById(id);
+    const item = await Item.findById(itemId);
     
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
     
     // Check ownership (convert both to strings for comparison)
-    if (item.user.toString() !== req.user.userId.toString()) {
+    const ownerId = item.user ? item.user.toString() : null;
+    const requesterId = req.user.userId ? req.user.userId.toString() : null;
+    if (!ownerId || !requesterId || ownerId !== requesterId) {
       return res.status(403).json({ error: 'Not authorized to update this item' });
     }
     
@@ -676,24 +682,30 @@ const updateItem = async (req, res) => {
 // Delete an item (protected route - only owner or admin can delete)
 const deleteItem = async (req, res) => {
   try {
-    const { id } = req.params;
+    const itemId = req.params.id;
+    
+    if (!itemId) {
+      return res.status(400).json({ error: 'Item ID is required' });
+    }
     
     // Find item
-    const item = await Item.findById(id);
+    const item = await Item.findById(itemId);
     
     if (!item) {
       return res.status(404).json({ error: 'Item not found' });
     }
     
     // Check ownership OR admin role (convert both to strings for comparison)
-    const isOwner = item.user.toString() === req.user.userId.toString();
+    const ownerId = item.user ? item.user.toString() : null;
+    const requesterId = req.user.userId ? req.user.userId.toString() : null;
+    const isOwner = ownerId && requesterId && ownerId === requesterId;
     const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
     
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Not authorized to delete this item' });
     }
     
-    await Item.findByIdAndDelete(id);
+    await Item.findByIdAndDelete(itemId);
     
     res.json({ message: 'Item deleted successfully' });
   } catch (error) {
