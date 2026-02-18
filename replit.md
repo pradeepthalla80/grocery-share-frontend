@@ -51,6 +51,7 @@ Preferred communication style: Simple, everyday language.
 - **Stripe Seller Onboarding:** Integrated workflow with status checks and UI feedback.
 - **Item Interaction:** Differentiated flows for free (pickup request) and paid (Stripe payment) items, leading to chat initiation.
 - **Geospatial:** Utilizes MongoDB's `$near` operator for proximity searches and GeoJSON for storing location data.
+- **Chat System:** Redesigned chat UI with WhatsApp-style bubbles, date group separators, unread badges, gradient avatars, read receipts. Backend conversation lookup safely handles item-specific vs general chats. Pre-filled messages from ItemDetail/RequestDetail auto-populate input. All entry channels verified: ItemDetail, ItemRequests (Help), RequestDetail (Contact Requester), Dashboard, ItemCard.
 - **Debugging & Logging:** Extensive logging for API responses, payloads, and critical workflows (e.g., location, payments, admin actions).
 
 ## Hugging Face AI Features
