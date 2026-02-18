@@ -97,6 +97,29 @@ Preferred communication style: Simple, everyday language.
 - 60-second timeout for AI API calls (handles cold starts)
 - Auto-retry on 503 (model loading) with estimated wait time
 
+## GitHub Push Instructions
+
+**Two repos to push:**
+- **Frontend:** `https://github.com/pradeepthalla80/grocery-share-frontend` (triggers Vercel auto-deploy)
+- **Backend:** `https://github.com/pradeepthalla80/grocery-share-backend` (triggers Render deploy)
+
+**How to push (run in Shell tab):**
+```bash
+# Step 1: Set frontend remote with PAT and push
+git remote set-url origin "https://x-access-token:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/pradeepthalla80/grocery-share-frontend.git"
+git pull origin main --no-edit --allow-unrelated-histories
+git push origin main
+
+# Step 2: Set backend remote and push via subtree
+git remote get-url backend 2>/dev/null || git remote add backend "https://x-access-token:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/pradeepthalla80/grocery-share-backend.git"
+git remote set-url backend "https://x-access-token:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/pradeepthalla80/grocery-share-backend.git"
+git subtree push --prefix=grocery-share-backend-main_12_26_2025 backend main
+# If subtree push is rejected, use force:
+# git subtree split --prefix=grocery-share-backend-main_12_26_2025 -b backend-split && git push backend backend-split:main --force && git branch -D backend-split
+```
+
+**Auth:** Uses `GITHUB_PERSONAL_ACCESS_TOKEN` secret (already saved). The GitHub OAuth connector token (`gho_`) does NOT work for git push.
+
 ## External Dependencies
 
 -   **Database:** MongoDB Atlas (primary database with geospatial indexing).
