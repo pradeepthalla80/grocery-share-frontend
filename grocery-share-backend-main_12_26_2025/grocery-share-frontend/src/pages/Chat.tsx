@@ -333,7 +333,7 @@ export const Chat = () => {
       <div className="max-w-7xl mx-auto md:px-4 md:py-8">
         <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 md:mb-6 px-4 pt-3 md:px-0 md:pt-0">Messages</h1>
 
-        <div className="bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-100 overflow-hidden" style={{ height: 'calc(100dvh - 10.5rem)' }}>
+        <div className="bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-100 overflow-hidden" style={{ height: 'calc(100dvh - 10rem - var(--safe-area-bottom, 0px))' }}>
           <div className="flex h-full">
             <div className={`${showConversationList ? 'block w-full' : 'hidden'} md:block md:w-[340px] border-r border-gray-200 overflow-y-auto native-scroll bg-white`}>
               {conversations.length === 0 && !isNewConversation ? (
@@ -566,26 +566,28 @@ export const Chat = () => {
                     )}
                   </div>
 
-                  <form onSubmit={handleSendMessage} className="p-2.5 md:p-3 border-t border-gray-200 bg-white safe-area-bottom">
-                    <div className="flex gap-2 items-end">
-                      <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Type a message..."
-                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-gray-50"
-                        disabled={sendingMessage}
-                        autoFocus
-                      />
+                  <form onSubmit={handleSendMessage} className="px-3 py-2 md:px-4 md:py-3 bg-[#f0f2f5] border-t border-gray-100">
+                    <div className="flex gap-2.5 items-center">
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="Type a message..."
+                          className="w-full px-4 py-2.5 rounded-2xl bg-white border-none shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-green-400 placeholder:text-gray-400"
+                          disabled={sendingMessage}
+                          autoFocus
+                        />
+                      </div>
                       <button
                         type="submit"
                         disabled={sendingMessage || !newMessage.trim()}
-                        className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 transition disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 active:scale-90"
+                        className="w-10 h-10 flex items-center justify-center bg-green-600 text-white rounded-full shadow-md hover:bg-green-700 transition-all disabled:opacity-30 disabled:shadow-none flex-shrink-0 active:scale-90"
                       >
                         {sendingMessage ? (
                           <LoadingSpinner size="sm" />
                         ) : (
-                          <Send className="h-4 w-4" />
+                          <Send className="h-4 w-4 ml-0.5" />
                         )}
                       </button>
                     </div>
