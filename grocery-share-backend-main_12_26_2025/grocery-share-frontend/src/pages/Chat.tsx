@@ -329,11 +329,11 @@ export const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <div className="max-w-7xl mx-auto md:px-4 md:py-8">
-        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-6 px-4 pt-4 md:px-0 md:pt-0">Messages</h1>
+        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2 md:mb-6 px-4 pt-3 md:px-0 md:pt-0">Messages</h1>
 
-        <div className="bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-100 overflow-hidden" style={{ height: 'calc(100dvh - 8rem)' }}>
+        <div className="bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-100 overflow-hidden" style={{ height: 'calc(100dvh - 10.5rem)' }}>
           <div className="flex h-full">
             <div className={`${showConversationList ? 'block w-full' : 'hidden'} md:block md:w-[340px] border-r border-gray-200 overflow-y-auto native-scroll bg-white`}>
               {conversations.length === 0 && !isNewConversation ? (
