@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { RatingModal } from '../components/RatingModal';
-import { Send, MessageSquare, MapPin, Eye, CheckCircle, ChevronDown } from 'lucide-react';
+import { Send, MessageSquare, MapPin, Eye, CheckCircle, ChevronDown, ArrowLeft } from 'lucide-react';
 
 export const Chat = () => {
   const { user } = useAuth();
@@ -32,9 +32,11 @@ export const Chat = () => {
   const lastMessageCountRef = useRef(0);
   const scrollLockRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const prefillAppliedRef = useRef(false);
 
   const receiverId = searchParams.get('receiverId');
   const itemId = searchParams.get('itemId');
+  const prefillMessage = searchParams.get('message');
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     if (scrollLockRef.current) return;
@@ -50,6 +52,7 @@ export const Chat = () => {
       setIsNewConversation(true);
       userScrolledRef.current = false;
       lastMessageCountRef.current = 0;
+      prefillAppliedRef.current = false;
       fetchConversations(true);
     } else {
       fetchConversations(true);
@@ -61,6 +64,13 @@ export const Chat = () => {
 
     return () => clearInterval(interval);
   }, [receiverId]);
+
+  useEffect(() => {
+    if (!prefillAppliedRef.current && prefillMessage && (isNewConversation || selectedConversation)) {
+      setNewMessage(prefillMessage);
+      prefillAppliedRef.current = true;
+    }
+  }, [prefillMessage, isNewConversation, selectedConversation]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -185,8 +195,9 @@ export const Chat = () => {
           navigate('/chat', { replace: true });
         }
       }
-    } catch (err) {
-      showToast('Failed to send message', 'error');
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.reason || err.response?.data?.error || 'Failed to send message';
+      showToast(errorMsg, 'error');
       setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       setNewMessage(messageText);
     } finally {
@@ -252,6 +263,15 @@ export const Chat = () => {
     }
   };
 
+  const handleBack = () => {
+    setSelectedConversation(null);
+    setIsNewConversation(false);
+    setRevealedAddress(null);
+    if (receiverId) {
+      navigate('/chat', { replace: true });
+    }
+  };
+
   if (initialLoad) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -263,14 +283,59 @@ export const Chat = () => {
   const showConversationList = !selectedConversation && !isNewConversation;
   const showChat = selectedConversation || isNewConversation;
 
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'now';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  const groupMessagesByDate = (msgs: Message[]) => {
+    const groups: { date: string; messages: Message[] }[] = [];
+    let currentDate = '';
+
+    msgs.forEach(msg => {
+      const msgDate = new Date(msg.createdAt);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      let dateLabel: string;
+      if (msgDate.toDateString() === today.toDateString()) {
+        dateLabel = 'Today';
+      } else if (msgDate.toDateString() === yesterday.toDateString()) {
+        dateLabel = 'Yesterday';
+      } else {
+        dateLabel = msgDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+      }
+
+      if (dateLabel !== currentDate) {
+        currentDate = dateLabel;
+        groups.push({ date: dateLabel, messages: [msg] });
+      } else {
+        groups[groups.length - 1].messages.push(msg);
+      }
+    });
+
+    return groups;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto md:px-4 md:py-8">
-        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6 px-4 pt-4 md:px-0 md:pt-0">Messages</h1>
+        <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-6 px-4 pt-4 md:px-0 md:pt-0">Messages</h1>
 
-        <div className="bg-white md:rounded-lg md:shadow-md overflow-hidden" style={{ height: 'calc(100dvh - 8rem)' }}>
+        <div className="bg-white md:rounded-2xl md:shadow-sm md:border md:border-gray-100 overflow-hidden" style={{ height: 'calc(100dvh - 8rem)' }}>
           <div className="flex h-full">
-            <div className={`${showConversationList ? 'block w-full' : 'hidden'} md:block md:w-1/3 border-r border-gray-200 overflow-y-auto native-scroll`}>
+            <div className={`${showConversationList ? 'block w-full' : 'hidden'} md:block md:w-[340px] border-r border-gray-200 overflow-y-auto native-scroll bg-white`}>
               {conversations.length === 0 && !isNewConversation ? (
                 <div className="p-8 text-center">
                   <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -294,62 +359,103 @@ export const Chat = () => {
                   <p className="text-sm text-gray-500 mt-1">Send a message to start chatting!</p>
                 </div>
               ) : (
-                conversations.map((conv) => {
-                  const otherUser = getOtherParticipant(conv);
-                  return (
-                    <div
-                      key={conv.id}
-                      onClick={() => handleConversationSelect(conv)}
-                      className={`p-3.5 md:p-4 border-b border-gray-100 cursor-pointer active:bg-gray-50 transition touch-ripple ${
-                        selectedConversation?.id === conv.id ? 'bg-green-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-11 h-11 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          {conv.item?.imageURL ? (
-                            <img
-                              src={conv.item.imageURL}
-                              alt={conv.item.name}
-                              className="w-11 h-11 rounded-full object-cover"
-                            />
-                          ) : (
-                            <MessageSquare className="h-5 w-5 text-green-600" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 truncate text-sm">{otherUser?.name}</p>
-                          {conv.item && (
-                            <p className="text-[11px] text-gray-500 truncate">Re: {conv.item.name}</p>
-                          )}
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{conv.lastMessage}</p>
+                <div>
+                  {conversations.map((conv, index) => {
+                    const otherUser = getOtherParticipant(conv);
+                    const isSelected = selectedConversation?.id === conv.id;
+                    const unreadCount = conv.unreadCount || 0;
+                    return (
+                      <div
+                        key={conv.id}
+                        onClick={() => handleConversationSelect(conv)}
+                        className={`relative px-4 py-3.5 cursor-pointer transition-colors active:bg-gray-50 ${
+                          isSelected
+                            ? 'bg-green-50 border-l-[3px] border-l-green-600'
+                            : 'hover:bg-gray-50 border-l-[3px] border-l-transparent'
+                        } ${index < conversations.length - 1 ? 'border-b border-gray-100' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {conv.item?.imageURL ? (
+                              <img
+                                src={conv.item.imageURL}
+                                alt={conv.item.name}
+                                className="w-11 h-11 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-11 h-11 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                                <span className="text-white font-bold text-sm">
+                                  {otherUser?.name?.charAt(0).toUpperCase() || '?'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className={`truncate text-sm ${unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>
+                                {otherUser?.name || 'Unknown'}
+                              </p>
+                              <span className="text-[10px] text-gray-400 flex-shrink-0">
+                                {conv.lastMessageAt ? formatTime(conv.lastMessageAt) : ''}
+                              </span>
+                            </div>
+                            {conv.item && (
+                              <p className="text-[11px] text-green-600 truncate font-medium">{conv.item.name}</p>
+                            )}
+                            <div className="flex items-center justify-between gap-2 mt-0.5">
+                              <p className={`text-xs truncate ${unreadCount > 0 ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                                {conv.lastMessage || 'No messages yet'}
+                              </p>
+                              {unreadCount > 0 && (
+                                <span className="flex-shrink-0 w-5 h-5 bg-green-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                  {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </div>
 
             <div className={`${showChat ? 'flex' : 'hidden'} md:flex flex-1 flex-col`}>
               {selectedConversation || isNewConversation ? (
                 <>
-                  <div className="p-3 md:p-4 border-b border-gray-200 bg-white">
+                  <div className="px-3 py-2.5 md:px-4 md:py-3 border-b border-gray-200 bg-white">
                     {selectedConversation ? (
                       <>
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             <button 
-                              onClick={() => { setSelectedConversation(null); setIsNewConversation(false); }}
-                              className="md:hidden p-1 text-gray-500 active:text-gray-700"
+                              onClick={handleBack}
+                              className="md:hidden p-1.5 -ml-1 text-gray-500 active:text-gray-700 rounded-lg active:bg-gray-100"
                             >
-                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                              <ArrowLeft className="h-5 w-5" />
                             </button>
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                              {selectedConversation.item?.imageURL ? (
+                                <img
+                                  src={selectedConversation.item.imageURL}
+                                  alt=""
+                                  className="w-9 h-9 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-9 h-9 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                                  <span className="text-white font-bold text-xs">
+                                    {getOtherParticipant(selectedConversation)?.name?.charAt(0).toUpperCase() || '?'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                             <div className="min-w-0">
                               <p className="font-semibold text-gray-900 text-sm truncate">
                                 {getOtherParticipant(selectedConversation)?.name}
                               </p>
                               {selectedConversation.item && (
-                                <p className="text-xs text-gray-500 truncate">{selectedConversation.item.name}</p>
+                                <p className="text-[11px] text-green-600 truncate font-medium">{selectedConversation.item.name}</p>
                               )}
                             </div>
                           </div>
@@ -384,45 +490,70 @@ export const Chat = () => {
                         )}
                       </>
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <button 
-                          onClick={() => { setSelectedConversation(null); setIsNewConversation(false); }}
-                          className="md:hidden p-1 text-gray-500"
+                          onClick={handleBack}
+                          className="md:hidden p-1.5 -ml-1 text-gray-500 active:text-gray-700 rounded-lg active:bg-gray-100"
                         >
-                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                          <ArrowLeft className="h-5 w-5" />
                         </button>
-                        <p className="font-semibold text-gray-900 text-sm">New Conversation</p>
+                        <div className="w-9 h-9 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Send className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">New Conversation</p>
+                          <p className="text-[11px] text-gray-400">Send your first message</p>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="relative flex-1">
-                    <div ref={messagesContainerRef} onScroll={handleScroll} className="absolute inset-0 overflow-y-auto p-3 md:p-4 bg-gray-50 native-scroll flex flex-col">
+                  <div className="relative flex-1 bg-[#f0f2f5]">
+                    <div ref={messagesContainerRef} onScroll={handleScroll} className="absolute inset-0 overflow-y-auto px-3 py-4 md:px-4 native-scroll flex flex-col">
                       <div className="flex-1 min-h-0" />
-                      <div className="space-y-3">
-                      {messages.map((msg) => {
-                        const isMyMessage = msg.sender.id === user?.id;
-                        return (
-                          <div
-                            key={msg.id}
-                            className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div
-                              className={`max-w-[75%] md:max-w-xs lg:max-w-md px-3.5 py-2 rounded-2xl ${
-                                isMyMessage
-                                  ? 'bg-green-600 text-white rounded-br-md'
-                                  : 'bg-white text-gray-900 border border-gray-100 rounded-bl-md'
-                              }`}
-                            >
-                              <p className="text-sm break-words">{msg.message}</p>
-                              <p className={`text-[10px] mt-0.5 ${isMyMessage ? 'text-green-200' : 'text-gray-400'}`}>
-                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
+                      <div className="space-y-1">
+                        {groupMessagesByDate(messages).map((group) => (
+                          <div key={group.date}>
+                            <div className="flex justify-center my-3">
+                              <span className="bg-white/90 text-gray-500 text-[10px] font-medium px-3 py-1 rounded-full shadow-sm border border-gray-100">
+                                {group.date}
+                              </span>
+                            </div>
+                            <div className="space-y-1">
+                              {group.messages.map((msg, idx) => {
+                                const isMyMessage = msg.sender.id === user?.id;
+                                const isTemp = msg.id.startsWith('temp-');
+                                const prevMsg = idx > 0 ? group.messages[idx - 1] : null;
+                                const sameSenderAsPrev = prevMsg && prevMsg.sender.id === msg.sender.id;
+                                return (
+                                  <div
+                                    key={msg.id}
+                                    className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${sameSenderAsPrev ? '' : 'mt-2'}`}
+                                  >
+                                    <div
+                                      className={`max-w-[78%] md:max-w-xs lg:max-w-md px-3 py-1.5 shadow-sm ${
+                                        isMyMessage
+                                          ? `bg-green-600 text-white ${sameSenderAsPrev ? 'rounded-2xl rounded-tr-md' : 'rounded-2xl rounded-br-md'}`
+                                          : `bg-white text-gray-900 ${sameSenderAsPrev ? 'rounded-2xl rounded-tl-md' : 'rounded-2xl rounded-bl-md'}`
+                                      } ${isTemp ? 'opacity-70' : ''}`}
+                                    >
+                                      <p className="text-[13px] leading-relaxed break-words whitespace-pre-wrap">{msg.message}</p>
+                                      <div className={`flex items-center gap-1 justify-end mt-0.5 ${isMyMessage ? '' : ''}`}>
+                                        <p className={`text-[9px] ${isMyMessage ? 'text-green-200' : 'text-gray-400'}`}>
+                                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                        {isMyMessage && msg.read && (
+                                          <CheckCircle className="h-2.5 w-2.5 text-green-200" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
-                        );
-                      })}
-                      <div ref={messagesEndRef} />
+                        ))}
+                        <div ref={messagesEndRef} />
                       </div>
                     </div>
                     {showScrollButton && (
@@ -435,20 +566,21 @@ export const Chat = () => {
                     )}
                   </div>
 
-                  <form onSubmit={handleSendMessage} className="p-3 md:p-4 border-t border-gray-200 bg-white safe-area-bottom">
+                  <form onSubmit={handleSendMessage} className="p-2.5 md:p-3 border-t border-gray-200 bg-white safe-area-bottom">
                     <div className="flex gap-2 items-end">
                       <input
                         type="text"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-gray-50"
+                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-gray-50"
                         disabled={sendingMessage}
+                        autoFocus
                       />
                       <button
                         type="submit"
                         disabled={sendingMessage || !newMessage.trim()}
-                        className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 active:scale-90"
+                        className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 transition disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 active:scale-90"
                       >
                         {sendingMessage ? (
                           <LoadingSpinner size="sm" />
@@ -460,9 +592,9 @@ export const Chat = () => {
                   </form>
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center bg-[#f0f2f5]">
                   <div className="text-center px-8">
-                    <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <div className="w-20 h-20 mx-auto bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
                       <MessageSquare className="h-10 w-10 text-gray-300" />
                     </div>
                     <p className="text-gray-600 font-medium mb-1">Select a conversation</p>

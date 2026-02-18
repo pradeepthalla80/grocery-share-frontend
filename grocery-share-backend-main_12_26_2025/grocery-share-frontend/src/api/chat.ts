@@ -15,6 +15,7 @@ export interface Conversation {
   lastMessage: string;
   lastMessageAt: string;
   createdAt: string;
+  unreadCount?: number;
 }
 
 export interface Message {

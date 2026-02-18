@@ -110,11 +110,18 @@ const sendMessage = async (req, res) => {
       return res.status(400).json({ error: 'Receiver and message are required' });
     }
     
-    // Find or create conversation
-    let conversation = await Conversation.findOne({
-      participants: { $all: [req.user.userId, receiverId] },
-      item: itemId || null
-    });
+    let conversation;
+    if (itemId) {
+      conversation = await Conversation.findOne({
+        participants: { $all: [req.user.userId, receiverId] },
+        item: itemId
+      });
+    } else {
+      conversation = await Conversation.findOne({
+        participants: { $all: [req.user.userId, receiverId] },
+        $or: [{ item: null }, { item: { $exists: false } }]
+      }).sort({ lastMessageAt: -1 });
+    }
     
     if (!conversation) {
       conversation = new Conversation({
