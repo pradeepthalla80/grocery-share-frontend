@@ -1,62 +1,64 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
-const { PLANS, getCommissionRate } = require('../config/plans');
+const { PLANS, getCommissionRate, getDynamicPlans, isTestMode } = require('../config/plans');
+const planService = require('../services/planService');
 
 const STRIPE_PRICE_IDS = {
   plus: process.env.STRIPE_PLUS_PRICE_ID || null,
   mini_store: process.env.STRIPE_MINI_STORE_PRICE_ID || null
 };
 
-const ensureStripePrices = async () => {
-  if (STRIPE_PRICE_IDS.plus && STRIPE_PRICE_IDS.mini_store) return;
+const ensureStripePrices = async (planKey) => {
+  if (STRIPE_PRICE_IDS[planKey]) return STRIPE_PRICE_IDS[planKey];
+
+  const plan = await planService.getPlanById(planKey);
+  if (!plan || plan.price <= 0) return null;
 
   const products = await stripe.products.list({ limit: 100 });
+  const productName = `BaskMate ${plan.name}`;
 
-  for (const planKey of ['plus', 'mini_store']) {
-    if (STRIPE_PRICE_IDS[planKey]) continue;
-
-    const plan = PLANS[planKey];
-    const productName = `BaskMate ${plan.name}`;
-
-    let product = products.data.find(p => p.name === productName && p.active);
-    if (!product) {
-      product = await stripe.products.create({
-        name: productName,
-        description: plan.features.join(', '),
-        metadata: { plan_id: planKey, platform: 'BaskMate' }
-      });
-      console.log(`Created Stripe product: ${product.id} for ${planKey}`);
-    }
-
-    const prices = await stripe.prices.list({ product: product.id, active: true, limit: 10 });
-    let price = prices.data.find(p =>
-      p.unit_amount === Math.round(plan.price * 100) &&
-      p.recurring?.interval === 'month'
-    );
-
-    if (!price) {
-      price = await stripe.prices.create({
-        product: product.id,
-        unit_amount: Math.round(plan.price * 100),
-        currency: 'usd',
-        recurring: { interval: 'month' },
-        metadata: { plan_id: planKey }
-      });
-      console.log(`Created Stripe price: ${price.id} for ${planKey} at $${plan.price}/mo`);
-    }
-
-    STRIPE_PRICE_IDS[planKey] = price.id;
+  let product = products.data.find(p => p.name === productName && p.active);
+  if (!product) {
+    product = await stripe.products.create({
+      name: productName,
+      description: (plan.features || []).join(', '),
+      metadata: { plan_id: planKey, platform: 'BaskMate' }
+    });
+    console.log(`Created Stripe product: ${product.id} for ${planKey}`);
   }
 
-  console.log('Stripe Price IDs:', STRIPE_PRICE_IDS);
+  const prices = await stripe.prices.list({ product: product.id, active: true, limit: 10 });
+  let price = prices.data.find(p =>
+    p.unit_amount === Math.round(plan.price * 100) &&
+    p.recurring?.interval === 'month'
+  );
+
+  if (!price) {
+    price = await stripe.prices.create({
+      product: product.id,
+      unit_amount: Math.round(plan.price * 100),
+      currency: 'usd',
+      recurring: { interval: 'month' },
+      metadata: { plan_id: planKey }
+    });
+    console.log(`Created Stripe price: ${price.id} for ${planKey} at $${plan.price}/mo`);
+  }
+
+  STRIPE_PRICE_IDS[planKey] = price.id;
+  console.log(`Stripe Price ID for ${planKey}: ${price.id}`);
+  return price.id;
 };
 
 exports.getPlans = async (req, res) => {
   try {
     const userPlan = req.user ? (await User.findById(req.user._id))?.plan || 'free' : 'free';
+    const testMode = await isTestMode();
+    const allPlans = await getDynamicPlans();
+    const plans = allPlans.filter(p => p.active !== false);
     res.json({
-      plans: Object.values(PLANS),
-      currentPlan: userPlan
+      plans,
+      currentPlan: userPlan,
+      testMode
     });
   } catch (err) {
     console.error('Get plans error:', err);
@@ -69,11 +71,17 @@ exports.getCurrentSubscription = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    const testMode = await isTestMode();
+    const effectivePlan = testMode ? 'mini_store' : (user.plan || 'free');
+    const commissionRate = await planService.getEffectiveCommissionRate(user.plan || 'free');
+
     res.json({
       plan: user.plan || 'free',
+      effectivePlan,
       subscriptionStatus: user.subscriptionStatus,
       currentPeriodEnd: user.subscriptionCurrentPeriodEnd,
-      commissionRate: getCommissionRate(user.plan || 'free')
+      commissionRate,
+      testMode
     });
   } catch (err) {
     console.error('Get subscription error:', err);
@@ -85,13 +93,20 @@ exports.createCheckoutSession = async (req, res) => {
   try {
     const { planId } = req.body;
 
-    if (!planId || !['plus', 'mini_store'].includes(planId)) {
-      return res.status(400).json({ error: 'Invalid plan. Choose plus or mini_store.' });
+    if (!planId || planId === 'free') {
+      return res.status(400).json({ error: 'Invalid plan. Choose a paid plan.' });
     }
 
-    await ensureStripePrices();
+    const plan = await planService.getPlanById(planId);
+    if (!plan || plan.price <= 0) {
+      return res.status(400).json({ error: 'Invalid plan or plan has no price.' });
+    }
 
-    const priceId = STRIPE_PRICE_IDS[planId];
+    if (plan.active === false) {
+      return res.status(400).json({ error: 'This plan is currently unavailable. Please choose an active plan.' });
+    }
+
+    const priceId = await ensureStripePrices(planId);
     if (!priceId) {
       return res.status(500).json({ error: 'Stripe price not configured for this plan' });
     }

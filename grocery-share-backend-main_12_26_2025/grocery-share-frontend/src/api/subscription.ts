@@ -10,13 +10,15 @@ export interface Plan {
 
 export interface SubscriptionInfo {
   plan: string;
+  effectivePlan?: string;
   subscriptionStatus: string | null;
   currentPeriodEnd: string | null;
   commissionRate: number;
+  testMode?: boolean;
 }
 
 export const subscriptionAPI = {
-  getPlans: async (): Promise<{ plans: Plan[]; currentPlan: string }> => {
+  getPlans: async (): Promise<{ plans: Plan[]; currentPlan: string; testMode?: boolean }> => {
     const res = await apiClient.get('/subscription/plans');
     return res.data;
   },

@@ -37,13 +37,16 @@ Preferred communication style: Simple, everyday language.
 - **Null Safety:** Defensive programming checks for null references in database records before accessing nested properties.
 
 ### Feature Specifications
-- **Plans & Pricing:** 3-tier subscription system with Stripe Checkout integration:
-  - Free: 5% commission, no monthly fee
-  - Plus ($4.99/mo): 3% commission, priority listing, trust badge, seller analytics
-  - Mini Store ($19.99/mo): 2% commission, store page, inventory tools, priority support
+- **Plans & Pricing:** Dynamic subscription system with admin-managed plans stored in MongoDB (PlatformSettings singleton):
+  - Default tiers: Free (5%), Plus ($4.99/mo, 3%), Mini Store ($19.99/mo, 2%)
+  - Admin can create/edit/delete/deactivate plans via Admin Dashboard "Plans & Settings" tab
   - ZIP-based availability checking for Mini Store tier
   - Stripe Checkout Sessions for subscription creation, webhook-driven plan activation
   - Commission rates dynamically applied based on seller's plan during payment processing
+  - Inactive plans hidden from users and blocked from checkout
+  - **Test Mode:** Admin toggle that unlocks all features for all users (highest tier, lowest commission) for pre-launch testing; amber banner shown across app when active
+  - **Backend:** `models/PlatformSettings.js`, `services/planService.js` (30s cache), `controllers/planAdminController.js`, `routes/planAdmin.js` (admin-protected CRUD + auth-protected test-mode status)
+  - **Frontend:** `api/planAdmin.ts`, `PlansAdmin` component in AdminDashboard, `TestModeBanner` component, dynamic `PlansAndPricing` page with API fallback to hardcoded defaults
 - **Mini Store System:** Backend models (MiniStoreSettings, MiniStoreRequest), ZIP-based capacity management (per-ZIP max stores), admin global controls (enable/disable, waitlist, approval), ZIP-specific settings (pause, disable, waitlist-only, approval-required), request/waitlist queue management. Admin endpoints protected with requireAdmin middleware.
 - **Admin Dashboard:** Full functionality for managing users and items (search, pagination, role changes, suspend/delete). Mini Store tab for global controls, ZIP settings, and request/waitlist management.
 - **Add/Edit Item:** Comprehensive screen including tag input, listing validity, flexible pickup times, improved location picker with "Use Current Location" and address autocomplete. Barcode scanner (PWA) for auto-filling item details via 3-database lookup chain: Open Food Facts (4M+ food products) -> UPC Item DB (681M+ products) -> FatSecret (1.9M+ foods, 56 markets including Asian groceries). Stripe account status warning for paid items.

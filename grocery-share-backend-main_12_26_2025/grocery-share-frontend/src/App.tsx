@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { BottomNav } from './components/BottomNav';
 import { InstallPrompt } from './components/InstallPrompt';
+import { TestModeBanner } from './components/TestModeBanner';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -37,6 +38,7 @@ function App() {
         <ToastProvider>
           <BrowserRouter>
         <div className="min-h-screen bg-gray-50 flex flex-col">
+          <TestModeBanner />
           <Navbar />
           <main className="flex-1 pb-20 md:pb-0">
           <Routes>

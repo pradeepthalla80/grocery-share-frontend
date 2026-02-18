@@ -67,6 +67,9 @@ const miniStoreRoutes = require('./routes/miniStore');
 // ========== SUBSCRIPTION PLANS - NEW ==========
 const subscriptionRoutes = require('./routes/subscription');
 // ========== SUBSCRIPTION PLANS - END ==========
+// ========== PLAN ADMIN - NEW ==========
+const planAdminRoutes = require('./routes/planAdmin');
+// ========== PLAN ADMIN - END ==========
 
 // Use Routes
 app.use('/api/v1/auth', authRoutes);
@@ -96,6 +99,9 @@ app.use('/api/v1/mini-store', miniStoreRoutes);
 // ========== SUBSCRIPTION PLANS - NEW ==========
 app.use('/api/v1/subscription', subscriptionRoutes);
 // ========== SUBSCRIPTION PLANS - END ==========
+// ========== PLAN ADMIN - NEW ==========
+app.use('/api/v1/plan-admin', planAdminRoutes);
+// ========== PLAN ADMIN - END ==========
 
 // Health check
 app.get('/health', (req, res) => {

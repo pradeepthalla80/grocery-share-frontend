@@ -2,7 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Item = require('../models/Item');
 const User = require('../models/User');
 const inventoryService = require('../services/inventoryService');
-const { getCommissionRate } = require('../config/plans');
+const { getCommissionRate, getDynamicCommissionRate } = require('../config/plans');
 
 // Get Stripe publishable key
 const getPublishableKey = async (req, res) => {
@@ -110,9 +110,8 @@ const createPaymentIntent = async (req, res) => {
       });
     }
     
-    // Calculate platform fee based on seller's plan
     const sellerUser = await User.findById(seller._id);
-    const commissionRate = getCommissionRate(sellerUser?.plan || 'free');
+    const commissionRate = await getDynamicCommissionRate(sellerUser?.plan || 'free');
     const platformFee = Math.round(amountInCents * commissionRate);
     console.log(`Seller plan: ${sellerUser?.plan || 'free'}, Commission rate: ${(commissionRate * 100).toFixed(1)}%`);
     

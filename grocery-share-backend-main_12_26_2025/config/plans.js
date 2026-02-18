@@ -31,4 +31,59 @@ function getPlanById(planId) {
   return PLANS[planId] || PLANS.free;
 }
 
-module.exports = { PLANS, getCommissionRate, getPlanById };
+let planServiceRef = null;
+function getPlanService() {
+  if (!planServiceRef) {
+    try {
+      planServiceRef = require('../services/planService');
+    } catch (e) {
+      console.warn('planService not available, using static config');
+    }
+  }
+  return planServiceRef;
+}
+
+async function getDynamicCommissionRate(planId) {
+  const svc = getPlanService();
+  if (svc) {
+    try {
+      return await svc.getEffectiveCommissionRate(planId);
+    } catch (e) {
+      console.warn('Dynamic commission rate failed, using static:', e.message);
+    }
+  }
+  return getCommissionRate(planId);
+}
+
+async function getDynamicPlans() {
+  const svc = getPlanService();
+  if (svc) {
+    try {
+      const plans = await svc.getPlans();
+      return plans.map(p => ({
+        id: p.planId,
+        name: p.name,
+        price: p.price,
+        commissionRate: p.commissionRate,
+        features: p.features
+      }));
+    } catch (e) {
+      console.warn('Dynamic plans failed, using static:', e.message);
+    }
+  }
+  return Object.values(PLANS);
+}
+
+async function isTestMode() {
+  const svc = getPlanService();
+  if (svc) {
+    try {
+      return await svc.isTestMode();
+    } catch (e) {
+      return false;
+    }
+  }
+  return false;
+}
+
+module.exports = { PLANS, getCommissionRate, getPlanById, getDynamicCommissionRate, getDynamicPlans, isTestMode };
