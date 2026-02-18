@@ -153,7 +153,10 @@ export const Navbar = () => {
                   <Link
                     key={link.path}
                     to={link.path}
-                    onClick={closeMobileMenu}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeMobileMenu();
+                    }}
                     className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition touch-ripple ${
                       location.pathname === link.path
                         ? 'bg-green-50 text-green-700 border-l-3 border-green-600'
@@ -170,7 +173,10 @@ export const Navbar = () => {
               
               <Link
                 to="/profile"
-                onClick={closeMobileMenu}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeMobileMenu();
+                }}
                 className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition touch-ripple ${
                   location.pathname === '/profile'
                     ? 'bg-green-50 text-green-700'

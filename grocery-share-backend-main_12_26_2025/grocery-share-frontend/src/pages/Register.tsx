@@ -123,13 +123,13 @@ export const Register = () => {
               />
               <label className="ml-2.5 block text-xs text-gray-600">
                 I agree to the{' '}
-                <Link to="/terms" className="text-green-600 hover:text-green-700 font-medium" target="_blank">
+                <a href="/terms" className="text-green-600 hover:text-green-700 font-medium" target="_blank" rel="noopener noreferrer">
                   Terms of Use
-                </Link>
+                </a>
                 {' '}and{' '}
-                <Link to="/privacy" className="text-green-600 hover:text-green-700 font-medium" target="_blank">
+                <a href="/privacy" className="text-green-600 hover:text-green-700 font-medium" target="_blank" rel="noopener noreferrer">
                   Privacy Policy
-                </Link>
+                </a>
               </label>
             </div>
             {errors.acceptedTerms && (
