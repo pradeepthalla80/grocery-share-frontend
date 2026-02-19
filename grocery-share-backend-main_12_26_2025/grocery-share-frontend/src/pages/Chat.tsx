@@ -123,7 +123,7 @@ export const Chat = () => {
             setSelectedConversation(matchingConv);
             setIsNewConversation(false);
           }
-        } else if (!selectedConversation) {
+        } else if (!selectedConversation && window.innerWidth >= 768) {
           setSelectedConversation(response.conversations[0]);
         }
       }
