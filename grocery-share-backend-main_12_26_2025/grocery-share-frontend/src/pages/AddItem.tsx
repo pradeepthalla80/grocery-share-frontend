@@ -12,6 +12,7 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
 import { BarcodeScanner } from '../components/BarcodeScanner';
+import { useToast } from '../hooks/useToast';
 import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain, Leaf } from 'lucide-react';
 
 const addItemSchema = z.object({
@@ -50,6 +51,7 @@ type AddItemFormData = z.infer<typeof addItemSchema>;
 
 export const AddItem = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -322,16 +324,25 @@ export const AddItem = () => {
             const response = await itemsAPI.create(formData);
       
       console.log('Item created successfully:', response);
-      alert('Item added successfully!');
+      showToast('Item added successfully!', 'success');
       navigate('/dashboard');
     } catch (err: any) {
       console.error('Create item error:', err);
       console.error('Error response:', err.response?.data);
       const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to add item';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const onFormError = (formErrors: any) => {
+    const firstError = Object.values(formErrors)[0] as any;
+    const errorMsg = firstError?.message || 'Please fill in all required fields';
+    showToast(errorMsg, 'error');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -515,7 +526,7 @@ export const AddItem = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 md:space-y-6">
+          <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-5 md:space-y-6">
             <FormInput
               label="Item Name"
               type="text"
@@ -646,8 +657,6 @@ export const AddItem = () => {
                 </div>
                 <span className="text-sm font-medium text-gray-700">Give away for free</span>
               </label>
-              <input type="hidden" {...register('isFree')} />
-
               {!isFree && (
                 <>
                   <FormInput
@@ -658,6 +667,7 @@ export const AddItem = () => {
                     error={errors.price?.message}
                     placeholder="9.99"
                   />
+                  <p className="text-[10px] text-gray-400 -mt-3">Minimum $3.00 for paid items (Stripe processing requirement)</p>
                   {stripeStatus !== 'loading' && stripeStatus !== 'active' && (
                     <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
                       <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />

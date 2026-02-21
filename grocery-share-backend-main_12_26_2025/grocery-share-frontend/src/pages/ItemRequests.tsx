@@ -91,12 +91,12 @@ export const ItemRequests = () => {
     }
   };
 
-  const handleRespond = async (requestId: string, requesterId: string) => {
+  const handleRespond = async (requestId: string, requesterId: string, itemName: string) => {
     try {
       await respondToRequest(requestId, 'I can help with this!');
       showToast('Response sent! Redirecting to chat...', 'success');
       setTimeout(() => {
-        navigate(`/chat?receiverId=${requesterId}`);
+        navigate(`/chat?receiverId=${requesterId}&message=${encodeURIComponent(`Hi! I can help with your request for "${itemName}".`)}`);
       }, 1000);
     } catch (error: any) {
       showToast(error.response?.data?.error || 'Failed to respond', 'error');
@@ -268,7 +268,7 @@ export const ItemRequests = () => {
                     Details
                   </button>
                   <button
-                    onClick={() => handleRespond(request._id, request.user.id)}
+                    onClick={() => handleRespond(request._id, request.user.id, request.itemName)}
                     className="flex-1 flex items-center justify-center gap-1 bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-medium active:scale-[0.97] transition"
                   >
                     <MessageCircle className="h-3.5 w-3.5" />
