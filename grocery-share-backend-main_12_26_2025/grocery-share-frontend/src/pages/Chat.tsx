@@ -116,9 +116,17 @@ export const Chat = () => {
       
       if (selectFirstOrMatch && response.conversations.length > 0) {
         if (receiverId) {
-          const matchingConv = response.conversations.find(conv => 
-            conv.participants.some(p => p.id === receiverId)
-          );
+          let matchingConv;
+          if (itemId) {
+            matchingConv = response.conversations.find(conv => 
+              conv.participants.some(p => p.id === receiverId) && conv.item?.id === itemId
+            );
+          }
+          if (!matchingConv) {
+            matchingConv = response.conversations.find(conv => 
+              conv.participants.some(p => p.id === receiverId)
+            );
+          }
           if (matchingConv) {
             setSelectedConversation(matchingConv);
             setIsNewConversation(false);
@@ -176,7 +184,7 @@ export const Chat = () => {
       setSendingMessage(true);
       
       if (selectedConversation && otherUser) {
-        await sendMessage(otherUser.id, messageText);
+        await sendMessage(otherUser.id, messageText, selectedConversation.item?.id || undefined);
         setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
         await fetchMessages(selectedConversation.id);
       } else if (isNewConversation && receiverId) {
@@ -184,9 +192,17 @@ export const Chat = () => {
         const response = await getConversations();
         setConversations(response.conversations);
         
-        const newConv = response.conversations.find(conv => 
-          conv.participants.some(p => p.id === receiverId)
-        );
+        let newConv;
+        if (itemId) {
+          newConv = response.conversations.find(conv => 
+            conv.participants.some(p => p.id === receiverId) && conv.item?.id === itemId
+          );
+        }
+        if (!newConv) {
+          newConv = response.conversations.find(conv => 
+            conv.participants.some(p => p.id === receiverId)
+          );
+        }
         if (newConv) {
           setSelectedConversation(newConv);
           setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
