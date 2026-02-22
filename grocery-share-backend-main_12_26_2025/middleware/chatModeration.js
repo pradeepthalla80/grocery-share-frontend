@@ -9,6 +9,13 @@ const SCAM_PATTERNS = [
   /\b(nigerian|prince|lottery|winner|congratulations\s*you\s*won)\b/i,
 ];
 
+const withTimeout = (promise, ms) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Moderation timeout')), ms))
+  ]);
+};
+
 const moderateMessage = async (req, res, next) => {
   try {
     const { message } = req.body;
@@ -30,7 +37,7 @@ const moderateMessage = async (req, res, next) => {
 
     if (message.length > 10) {
       try {
-        const modResult = await moderateText(message);
+        const modResult = await withTimeout(moderateText(message), 8000);
 
         if (modResult.flagged) {
           console.log(`[ChatModeration] AI flagged message: ${modResult.dominantLabel} (${modResult.dominantScore}%)`);
