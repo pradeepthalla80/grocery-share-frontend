@@ -4,6 +4,7 @@ export interface AdminPlan {
   planId: string;
   name: string;
   price: number;
+  yearlyPrice?: number | null;
   commissionRate: number;
   features: string[];
   active: boolean;
@@ -34,7 +35,7 @@ export const planAdminAPI = {
     return res.data;
   },
 
-  createPlan: async (data: { planId: string; name: string; price?: number; commissionRate?: number; features?: string[] }): Promise<{ plan: AdminPlan; message: string }> => {
+  createPlan: async (data: { planId: string; name: string; price?: number; yearlyPrice?: number; commissionRate?: number; features?: string[] }): Promise<{ plan: AdminPlan; message: string }> => {
     const res = await apiClient.post('/plan-admin/plans', data);
     return res.data;
   },

@@ -5,10 +5,11 @@ import { itemsAPI } from '../api/items';
 import { deleteAccount } from '../api/users';
 import { getUserRatings, type Rating } from '../api/ratings';
 import { getUserBadges, type UserBadge } from '../api/gamification';
-import { Mail, Calendar, Lock, ArrowLeft, Trash2, AlertTriangle, Star, Award, Shield, Store, CreditCard } from 'lucide-react';
+import { Mail, Calendar, Lock, ArrowLeft, Trash2, AlertTriangle, Star, Award, Shield, Store, CreditCard, CheckCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
 import { useToast } from '../hooks/useToast';
+import { getAccountStatus, createConnectedAccount, createAccountLink } from '../api/stripeConnect';
 
 export const Profile = () => {
   const { user, logout } = useAuth();
@@ -28,6 +29,11 @@ export const Profile = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [stripeStatus, setStripeStatus] = useState<any>(null);
+  const [stripeLoading, setStripeLoading] = useState(true);
+  const [stripeActionLoading, setStripeActionLoading] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('US');
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [averageRating, setAverageRating] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
@@ -63,7 +69,40 @@ export const Profile = () => {
     };
 
     fetchUserData();
+
+    const fetchStripe = async () => {
+      try {
+        const data = await getAccountStatus();
+        setStripeStatus(data);
+      } catch (err) {
+        console.error('Failed to fetch Stripe status:', err);
+      } finally {
+        setStripeLoading(false);
+      }
+    };
+    fetchStripe();
   }, [user?.id]);
+
+  const handleStripeSetup = async () => {
+    try {
+      setStripeActionLoading(true);
+      if (!stripeStatus?.hasAccount) {
+        await createConnectedAccount(selectedCountry);
+      }
+      const linkData = await createAccountLink();
+      if (linkData.url) {
+        window.open(linkData.url, '_blank');
+      }
+      showToast('Complete your Stripe setup in the new tab.', 'success');
+      const data = await getAccountStatus();
+      setStripeStatus(data);
+    } catch (err: any) {
+      showToast(err.response?.data?.error || 'Failed to set up Stripe account', 'error');
+    } finally {
+      setStripeActionLoading(false);
+      setShowCountryPicker(false);
+    }
+  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,6 +249,89 @@ export const Profile = () => {
                 >
                   My Store
                 </button>
+              </div>
+            )}
+
+            {!user?.isStoreOwner && !stripeLoading && (
+              <div className="mb-5 bg-white border border-gray-200 rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CreditCard className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">Stripe Payment Account</p>
+                    <p className="text-[10px] text-gray-500">Required to receive payments for paid items</p>
+                  </div>
+                </div>
+                {stripeStatus?.hasAccount && stripeStatus?.accountStatus?.chargesEnabled ? (
+                  <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-100 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <p className="text-xs text-green-700 font-medium">Stripe account is active. You can receive payments.</p>
+                  </div>
+                ) : stripeStatus?.hasAccount && stripeStatus?.accountStatus?.detailsSubmitted ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-100 rounded-lg">
+                      <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                      <p className="text-xs text-amber-700">Stripe account is under review.</p>
+                    </div>
+                  </div>
+                ) : stripeStatus?.hasAccount ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-500">Your Stripe setup is incomplete. Complete it to start receiving payments.</p>
+                    <button
+                      onClick={handleStripeSetup}
+                      disabled={stripeActionLoading}
+                      className="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-medium active:scale-[0.98] transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {stripeActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                      Complete Stripe Setup
+                    </button>
+                  </div>
+                ) : !showCountryPicker ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-500">Set up a free Stripe account to receive payments directly to your bank account when you sell items.</p>
+                    <button
+                      onClick={() => setShowCountryPicker(true)}
+                      disabled={stripeActionLoading}
+                      className="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-medium active:scale-[0.98] transition disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      <CreditCard className="h-3.5 w-3.5" />
+                      Connect with Stripe
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-[10px] font-medium text-gray-600 mb-1">Select your country</label>
+                      <select
+                        value={selectedCountry}
+                        onChange={(e) => setSelectedCountry(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      >
+                        <option value="US">United States</option>
+                        <option value="CA">Canada</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="AU">Australia</option>
+                      </select>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowCountryPicker(false)}
+                        className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleStripeSetup}
+                        disabled={stripeActionLoading}
+                        className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      >
+                        {stripeActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                        Continue
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -8,11 +8,15 @@ const STRIPE_PRICE_IDS = {
   mini_store: process.env.STRIPE_MINI_STORE_PRICE_ID || null
 };
 
-const ensureStripePrices = async (planKey) => {
-  if (STRIPE_PRICE_IDS[planKey]) return STRIPE_PRICE_IDS[planKey];
+const ensureStripePrices = async (planKey, interval = 'month') => {
+  const cacheKey = interval === 'year' ? `${planKey}_yearly` : planKey;
+  if (STRIPE_PRICE_IDS[cacheKey]) return STRIPE_PRICE_IDS[cacheKey];
 
   const plan = await planService.getPlanById(planKey);
-  if (!plan || plan.price <= 0) return null;
+  if (!plan) return null;
+
+  const targetPrice = interval === 'year' ? plan.yearlyPrice : plan.price;
+  if (!targetPrice || targetPrice <= 0) return null;
 
   const products = await stripe.products.list({ limit: 100 });
   const productName = `BaskMate ${plan.name}`;
@@ -29,23 +33,23 @@ const ensureStripePrices = async (planKey) => {
 
   const prices = await stripe.prices.list({ product: product.id, active: true, limit: 10 });
   let price = prices.data.find(p =>
-    p.unit_amount === Math.round(plan.price * 100) &&
-    p.recurring?.interval === 'month'
+    p.unit_amount === Math.round(targetPrice * 100) &&
+    p.recurring?.interval === interval
   );
 
   if (!price) {
     price = await stripe.prices.create({
       product: product.id,
-      unit_amount: Math.round(plan.price * 100),
+      unit_amount: Math.round(targetPrice * 100),
       currency: 'usd',
-      recurring: { interval: 'month' },
-      metadata: { plan_id: planKey }
+      recurring: { interval },
+      metadata: { plan_id: planKey, billing_interval: interval }
     });
-    console.log(`Created Stripe price: ${price.id} for ${planKey} at $${plan.price}/mo`);
+    console.log(`Created Stripe price: ${price.id} for ${planKey} at $${targetPrice}/${interval}`);
   }
 
-  STRIPE_PRICE_IDS[planKey] = price.id;
-  console.log(`Stripe Price ID for ${planKey}: ${price.id}`);
+  STRIPE_PRICE_IDS[cacheKey] = price.id;
+  console.log(`Stripe Price ID for ${cacheKey}: ${price.id}`);
   return price.id;
 };
 
@@ -91,14 +95,23 @@ exports.getCurrentSubscription = async (req, res) => {
 
 exports.createCheckoutSession = async (req, res) => {
   try {
-    const { planId } = req.body;
+    const { planId, interval } = req.body;
+    const billingInterval = interval === 'year' ? 'year' : 'month';
 
     if (!planId || planId === 'free') {
       return res.status(400).json({ error: 'Invalid plan. Choose a paid plan.' });
     }
 
     const plan = await planService.getPlanById(planId);
-    if (!plan || plan.price <= 0) {
+    if (!plan) {
+      return res.status(400).json({ error: 'Invalid plan.' });
+    }
+
+    if (billingInterval === 'year' && (!plan.yearlyPrice || plan.yearlyPrice <= 0)) {
+      return res.status(400).json({ error: 'Yearly billing is not available for this plan.' });
+    }
+
+    if (billingInterval === 'month' && (!plan.price || plan.price <= 0)) {
       return res.status(400).json({ error: 'Invalid plan or plan has no price.' });
     }
 
@@ -106,7 +119,7 @@ exports.createCheckoutSession = async (req, res) => {
       return res.status(400).json({ error: 'This plan is currently unavailable. Please choose an active plan.' });
     }
 
-    const priceId = await ensureStripePrices(planId);
+    const priceId = await ensureStripePrices(planId, billingInterval);
     if (!priceId) {
       return res.status(500).json({ error: 'Stripe price not configured for this plan' });
     }

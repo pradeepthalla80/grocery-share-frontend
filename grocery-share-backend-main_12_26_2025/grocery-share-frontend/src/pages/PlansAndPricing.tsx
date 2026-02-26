@@ -23,6 +23,8 @@ export const PlansAndPricing = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [testMode, setTestMode] = useState(false);
   const [plansLoading, setPlansLoading] = useState(true);
+  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
+  const hasYearlyPlans = plans.some(p => p.yearlyPrice && p.yearlyPrice > 0);
 
   useEffect(() => {
     loadPlans();
@@ -93,7 +95,7 @@ export const PlansAndPricing = () => {
     try {
       setSubscribing(planId);
       setErrorMessage('');
-      const { url } = await subscriptionAPI.createCheckoutSession(planId);
+      const { url } = await subscriptionAPI.createCheckoutSession(planId, billingInterval);
       if (url) {
         window.location.href = url;
       }
@@ -208,6 +210,23 @@ export const PlansAndPricing = () => {
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Plans & Pricing</h1>
           <p className="text-sm text-gray-500 mt-1.5">Transparent pricing. A small service fee applies only when a sale is completed.</p>
+          {hasYearlyPlans && (
+            <div className="mt-4 inline-flex items-center bg-gray-100 rounded-full p-1">
+              <button
+                onClick={() => setBillingInterval('month')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${billingInterval === 'month' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingInterval('year')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${billingInterval === 'year' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+              >
+                Yearly
+                <span className="ml-1 text-[10px] text-green-600 font-semibold">Save</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {testMode && (
@@ -276,9 +295,18 @@ export const PlansAndPricing = () => {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h2 className="text-lg font-bold text-gray-900">{plan.name}</h2>
-                    <p className={`text-2xl font-bold ${colors.text} mt-0.5`}>
-                      ${plan.price.toFixed(2)}<span className="text-sm font-normal text-gray-500">/month</span>
-                    </p>
+                    {billingInterval === 'year' && plan.yearlyPrice && plan.yearlyPrice > 0 ? (
+                      <div>
+                        <p className={`text-2xl font-bold ${colors.text} mt-0.5`}>
+                          ${plan.yearlyPrice.toFixed(2)}<span className="text-sm font-normal text-gray-500">/year</span>
+                        </p>
+                        <p className="text-[11px] text-gray-400 line-through">${(plan.price * 12).toFixed(2)}/year</p>
+                      </div>
+                    ) : (
+                      <p className={`text-2xl font-bold ${colors.text} mt-0.5`}>
+                        ${plan.price.toFixed(2)}<span className="text-sm font-normal text-gray-500">/month</span>
+                      </p>
+                    )}
                   </div>
                   <div className={`w-10 h-10 ${colors.bg} rounded-full flex items-center justify-center`}>
                     <Icon className={`h-5 w-5 ${colors.text}`} />

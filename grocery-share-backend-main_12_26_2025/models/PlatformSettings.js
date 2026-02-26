@@ -37,6 +37,15 @@ const planSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  yearlyPrice: {
+    type: Number,
+    default: null,
+    min: 0
+  },
+  stripeYearlyPriceId: {
+    type: String,
+    default: null
+  },
   active: {
     type: Boolean,
     default: true

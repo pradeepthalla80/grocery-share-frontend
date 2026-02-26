@@ -45,7 +45,7 @@ exports.toggleTestMode = async (req, res) => {
 exports.updatePlan = async (req, res) => {
   try {
     const { planId } = req.params;
-    const { name, price, commissionRate, features, active } = req.body;
+    const { name, price, commissionRate, features, active, yearlyPrice } = req.body;
 
     const settings = await PlatformSettings.getSettings();
     const planIndex = settings.plans.findIndex(p => p.planId === planId);
@@ -62,6 +62,7 @@ exports.updatePlan = async (req, res) => {
     if (price !== undefined) settings.plans[planIndex].price = price;
     if (commissionRate !== undefined) settings.plans[planIndex].commissionRate = commissionRate;
     if (features !== undefined) settings.plans[planIndex].features = features;
+    if (yearlyPrice !== undefined) settings.plans[planIndex].yearlyPrice = yearlyPrice;
     if (active !== undefined) {
       if (planId === 'free' && !active) {
         return res.status(400).json({ error: 'Free plan cannot be deactivated' });
@@ -86,7 +87,7 @@ exports.updatePlan = async (req, res) => {
 
 exports.createPlan = async (req, res) => {
   try {
-    const { planId, name, price, commissionRate, features } = req.body;
+    const { planId, name, price, commissionRate, features, yearlyPrice } = req.body;
 
     if (!planId || !name) {
       return res.status(400).json({ error: 'Plan ID and name are required' });
@@ -108,6 +109,7 @@ exports.createPlan = async (req, res) => {
       planId,
       name,
       price: price || 0,
+      yearlyPrice: yearlyPrice || null,
       commissionRate: commissionRate || 0.05,
       features: features || [],
       active: true,

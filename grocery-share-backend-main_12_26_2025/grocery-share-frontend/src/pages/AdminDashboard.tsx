@@ -754,7 +754,7 @@ const PlansAdmin = () => {
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<AdminPlan>>({});
   const [showNewPlan, setShowNewPlan] = useState(false);
-  const [newPlanForm, setNewPlanForm] = useState({ planId: '', name: '', price: 0, commissionRate: 5, features: '' });
+  const [newPlanForm, setNewPlanForm] = useState({ planId: '', name: '', price: 0, yearlyPrice: 0, commissionRate: 5, features: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [newFeature, setNewFeature] = useState('');
@@ -796,6 +796,7 @@ const PlansAdmin = () => {
     setEditForm({
       name: plan.name,
       price: plan.price,
+      yearlyPrice: plan.yearlyPrice ?? null,
       commissionRate: plan.commissionRate,
       features: [...plan.features],
       active: plan.active
@@ -834,12 +835,13 @@ const PlansAdmin = () => {
         planId: newPlanForm.planId,
         name: newPlanForm.name,
         price: newPlanForm.price,
+        yearlyPrice: newPlanForm.yearlyPrice || undefined,
         commissionRate: newPlanForm.commissionRate / 100,
         features: newPlanForm.features.split('\n').filter(f => f.trim())
       });
       setPlans(prev => [...prev, result.plan]);
       setShowNewPlan(false);
-      setNewPlanForm({ planId: '', name: '', price: 0, commissionRate: 5, features: '' });
+      setNewPlanForm({ planId: '', name: '', price: 0, yearlyPrice: 0, commissionRate: 5, features: '' });
       setSuccess(result.message);
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
@@ -1011,6 +1013,18 @@ const PlansAdmin = () => {
                 />
               </div>
               <div>
+                <label className="text-[10px] text-gray-500 font-medium block mb-1">Yearly Price ($) <span className="text-gray-400">— optional</span></label>
+                <input
+                  type="number"
+                  value={newPlanForm.yearlyPrice || ''}
+                  onChange={(e) => setNewPlanForm(prev => ({ ...prev, yearlyPrice: parseFloat(e.target.value) || 0 }))}
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 49.99"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
                 <label className="text-[10px] text-gray-500 font-medium block mb-1">Commission Rate (%)</label>
                 <input
                   type="number"
@@ -1078,6 +1092,21 @@ const PlansAdmin = () => {
                         min="0"
                         step="0.01"
                         disabled={plan.planId === 'free'}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-500 font-medium block mb-1">
+                        Price ($/year) <span className="text-gray-400">— optional</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={editForm.yearlyPrice ?? ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, yearlyPrice: parseFloat(e.target.value) || null }))}
+                        min="0"
+                        step="0.01"
+                        disabled={plan.planId === 'free'}
+                        placeholder="Leave empty for no yearly option"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
                       />
                     </div>
@@ -1187,6 +1216,7 @@ const PlansAdmin = () => {
                       <DollarSign className="h-3.5 w-3.5 text-gray-400" />
                       <span className="text-sm font-semibold text-gray-800">
                         {plan.price === 0 ? 'Free' : `$${plan.price.toFixed(2)}/mo`}
+                        {plan.yearlyPrice ? ` · $${plan.yearlyPrice.toFixed(2)}/yr` : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">

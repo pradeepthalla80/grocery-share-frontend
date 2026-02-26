@@ -4,6 +4,7 @@ export interface Plan {
   id: string;
   name: string;
   price: number;
+  yearlyPrice?: number | null;
   commissionRate: number;
   features: string[];
 }
@@ -28,8 +29,8 @@ export const subscriptionAPI = {
     return res.data;
   },
 
-  createCheckoutSession: async (planId: string): Promise<{ url: string; sessionId: string }> => {
-    const res = await apiClient.post('/subscription/checkout', { planId });
+  createCheckoutSession: async (planId: string, interval: 'month' | 'year' = 'month'): Promise<{ url: string; sessionId: string }> => {
+    const res = await apiClient.post('/subscription/checkout', { planId, interval });
     return res.data;
   },
 

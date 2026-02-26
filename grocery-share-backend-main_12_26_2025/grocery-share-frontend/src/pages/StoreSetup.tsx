@@ -24,7 +24,7 @@ export const StoreSetup = () => {
     const fetchTerms = async () => {
       try {
         const response = await apiClient.get('/store/terms');
-        setTerms(response.data.terms || 'Store owner terms and conditions will be displayed here.');
+        setTerms(response.data.data?.terms || response.data.terms || 'Store owner terms and conditions will be displayed here.');
       } catch (err) {
         console.error('Failed to fetch terms:', err);
         setTerms('Store owner terms and conditions will be displayed here.');

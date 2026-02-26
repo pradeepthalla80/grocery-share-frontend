@@ -64,6 +64,7 @@ async function getDynamicPlans() {
         id: p.planId,
         name: p.name,
         price: p.price,
+        yearlyPrice: p.yearlyPrice || null,
         commissionRate: p.commissionRate,
         features: p.features
       }));

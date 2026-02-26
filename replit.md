@@ -40,8 +40,10 @@ Preferred communication style: Simple, everyday language.
 - **Plans & Pricing:** Dynamic subscription system with admin-managed plans stored in MongoDB (PlatformSettings singleton):
   - Default tiers: Free (5%), Plus ($4.99/mo, 3%), Mini Store ($19.99/mo, 2%)
   - Admin can create/edit/delete/deactivate plans via Admin Dashboard "Plans & Settings" tab
+  - Monthly and yearly billing intervals supported; admin sets optional yearlyPrice per plan
+  - PlansAndPricing page shows monthly/yearly toggle when yearly prices exist; strikethrough savings display
   - ZIP-based availability checking for Mini Store tier
-  - Stripe Checkout Sessions for subscription creation, webhook-driven plan activation
+  - Stripe Checkout Sessions for subscription creation (monthly or yearly interval), webhook-driven plan activation
   - Commission rates dynamically applied based on seller's plan during payment processing
   - Inactive plans hidden from users and blocked from checkout
   - **Test Mode:** Admin toggle that unlocks all features for all users (highest tier, lowest commission) for pre-launch testing; amber banner shown across app when active
