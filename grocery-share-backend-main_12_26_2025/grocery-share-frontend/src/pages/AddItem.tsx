@@ -675,7 +675,7 @@ export const AddItem = () => {
                         {stripeStatus === 'none' && (
                           <p className="text-amber-800">
                             To sell paid items, you need a free Stripe account so buyers can pay you directly to your bank account.{' '}
-                            <Link to={user?.isStoreOwner ? "/my-store" : "/profile"} className="text-green-600 font-medium underline">
+                            <Link to="/profile" className="text-green-600 font-medium underline">
                               Set up Stripe account
                             </Link>
                           </p>
@@ -683,7 +683,7 @@ export const AddItem = () => {
                         {stripeStatus === 'incomplete' && (
                           <p className="text-amber-800">
                             Your Stripe setup is incomplete. Buyers won't be able to pay you until it's finished.{' '}
-                            <Link to={user?.isStoreOwner ? "/my-store" : "/profile"} className="text-green-600 font-medium underline">
+                            <Link to="/profile" className="text-green-600 font-medium underline">
                               Complete Stripe setup
                             </Link>
                           </p>
