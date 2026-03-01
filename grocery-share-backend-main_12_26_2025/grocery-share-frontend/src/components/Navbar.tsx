@@ -44,7 +44,7 @@ export const Navbar = () => {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-nav border-b border-gray-200/80 safe-area-top">
+      <nav className="sticky top-0 bg-white/95 backdrop-blur-nav border-b border-gray-200/80 safe-area-top" style={{ zIndex: 9999 }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-12 md:h-16">
             <div className="flex items-center">
@@ -130,10 +130,11 @@ export const Navbar = () => {
       {mobileMenuOpen && isAuthenticated && (
         <>
           <div 
-            className="fixed inset-0 bg-black/40 z-40 md:hidden animate-fade-in"
+            className="fixed inset-0 bg-black/40 md:hidden animate-fade-in"
+            style={{ zIndex: 9998 }}
             onClick={closeMobileMenu}
           />
-          <div className="fixed top-12 right-0 w-72 h-[calc(100vh-3rem)] bg-white z-50 md:hidden shadow-2xl animate-slide-in overflow-y-auto safe-area-top">
+          <div className="fixed top-12 right-0 w-72 h-[calc(100vh-3rem)] bg-white md:hidden shadow-2xl animate-slide-in overflow-y-auto safe-area-top" style={{ zIndex: 9999 }}>
             <div className="p-4 bg-green-600">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">

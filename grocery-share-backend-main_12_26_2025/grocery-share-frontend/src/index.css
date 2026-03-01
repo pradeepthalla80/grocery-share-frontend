@@ -41,14 +41,6 @@
     user-select: text;
   }
 
-  .leaflet-container {
-    z-index: 1 !important;
-  }
-  .leaflet-pane,
-  .leaflet-top,
-  .leaflet-bottom {
-    z-index: 1 !important;
-  }
 
   @media (max-width: 767px) {
     button, a, select, input[type="submit"] {
@@ -268,4 +260,18 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+.leaflet-container {
+  z-index: 0 !important;
+  position: relative !important;
+  isolation: isolate;
+}
+.leaflet-pane {
+  z-index: 1 !important;
+}
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-control {
+  z-index: 2 !important;
 }
