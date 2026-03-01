@@ -40,7 +40,7 @@ function App() {
         <div className="min-h-screen bg-gray-50 flex flex-col">
           <TestModeBanner />
           <Navbar />
-          <main className="flex-1 pb-20 md:pb-0">
+          <main className="flex-1 pb-20 md:pb-0" style={{ position: 'relative', zIndex: 1, isolation: 'isolate' }}>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />

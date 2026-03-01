@@ -212,7 +212,17 @@ export const Chat = () => {
         }
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.reason || err.response?.data?.error || 'Failed to send message';
+      console.error('Chat send error:', err.response?.status, err.response?.data, err.message);
+      let errorMsg = 'Failed to send message';
+      if (err.response?.data?.reason) {
+        errorMsg = err.response.data.reason;
+      } else if (err.response?.data?.error) {
+        errorMsg = err.response.data.error;
+      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        errorMsg = 'Server is warming up, please try again in a few seconds';
+      } else if (!err.response) {
+        errorMsg = 'Network error — check your connection and try again';
+      }
       showToast(errorMsg, 'error');
       setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       setNewMessage(messageText);

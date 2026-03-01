@@ -35,6 +35,8 @@ Preferred communication style: Simple, everyday language.
     - Robust handling of location permissions and API key management.
 - **Authorization:** Item ownership verified by comparing MongoDB ObjectIds; admin roles can bypass ownership checks for moderation.
 - **Null Safety:** Defensive programming checks for null references in database records before accessing nested properties.
+- **Stacking Context:** `<main>` element in App.tsx has `position: relative; z-index: 1; isolation: isolate` to contain all page content (including Leaflet maps) within a single stacking context, ensuring BottomNav (z-index: 9999) and Navbar always stay clickable above page content.
+- **Chat Safety:** Backend `sendMessage` validates receiverId (ObjectId format, user exists, not self-messaging). Frontend shows descriptive errors for timeouts, network issues, and moderation flags.
 
 ### Feature Specifications
 - **Plans & Pricing:** Dynamic subscription system with admin-managed plans stored in MongoDB (PlatformSettings singleton):

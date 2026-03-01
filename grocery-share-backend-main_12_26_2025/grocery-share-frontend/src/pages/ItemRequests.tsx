@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Plus, MapPin, Package, MessageCircle, CheckCircle, X } from 'lucide-react';
 import { getNearbyRequests, createItemRequest, respondToRequest, type ItemRequest } from '../api/itemRequests';
 import { useToast } from '../hooks/useToast';
+import { useAuth } from '../hooks/useAuth';
 import { AddressInput } from '../components/AddressInput';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ type RequestFormData = z.infer<typeof requestSchema>;
 
 export const ItemRequests = () => {
   const { showToast } = useToast();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<ItemRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,13 +96,17 @@ export const ItemRequests = () => {
   const handleRespond = async (requestId: string, requesterId: string, itemName: string) => {
     try {
       await respondToRequest(requestId, 'I can help with this!');
-      showToast('Response sent! Redirecting to chat...', 'success');
-      setTimeout(() => {
-        navigate(`/chat?receiverId=${requesterId}&message=${encodeURIComponent(`Hi! I can help with your request for "${itemName}".`)}`);
-      }, 1000);
+      showToast('Response sent! Opening chat...', 'success');
     } catch (error: any) {
-      showToast(error.response?.data?.error || 'Failed to respond', 'error');
+      const errMsg = error.response?.data?.error || '';
+      if (errMsg !== 'You have already responded to this request') {
+        showToast(errMsg || 'Failed to respond', 'error');
+        return;
+      }
     }
+    setTimeout(() => {
+      navigate(`/chat?receiverId=${requesterId}&message=${encodeURIComponent(`Hi! I can help with your request for "${itemName}".`)}`);
+    }, 500);
   };
 
   return (
@@ -267,13 +273,15 @@ export const ItemRequests = () => {
                   >
                     Details
                   </button>
-                  <button
-                    onClick={() => handleRespond(request._id, request.user.id, request.itemName)}
-                    className="flex-1 flex items-center justify-center gap-1 bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-medium active:scale-[0.97] transition"
-                  >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    Help
-                  </button>
+                  {request.user.id !== user?.id && (
+                    <button
+                      onClick={() => handleRespond(request._id, request.user.id, request.itemName)}
+                      className="flex-1 flex items-center justify-center gap-1 bg-green-600 text-white px-3 py-2 rounded-xl text-xs font-medium active:scale-[0.97] transition"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Help
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

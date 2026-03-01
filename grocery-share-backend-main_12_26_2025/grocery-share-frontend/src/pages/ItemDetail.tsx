@@ -193,7 +193,7 @@ export const ItemDetail = () => {
           <span>Back</span>
         </button>
 
-        <div className="fixed top-0 left-0 right-0 z-30 md:hidden">
+        <div className="fixed top-0 left-0 right-0 md:hidden" style={{ zIndex: 30 }}>
           <div className="flex items-center justify-between p-3 bg-gradient-to-b from-black/50 to-transparent">
             <button
               onClick={() => navigate(-1)}

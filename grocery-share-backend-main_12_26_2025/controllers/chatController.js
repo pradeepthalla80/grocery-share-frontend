@@ -109,6 +109,21 @@ const sendMessage = async (req, res) => {
     if (!receiverId || !message) {
       return res.status(400).json({ error: 'Receiver and message are required' });
     }
+
+    if (req.user.userId.toString() === receiverId.toString()) {
+      return res.status(400).json({ error: 'Cannot send a message to yourself' });
+    }
+
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(receiverId)) {
+      return res.status(400).json({ error: 'Invalid receiver ID' });
+    }
+
+    const User = require('../models/User');
+    const receiverUser = await User.findById(receiverId);
+    if (!receiverUser) {
+      return res.status(404).json({ error: 'Receiver not found' });
+    }
     
     let conversation;
     if (itemId) {
@@ -116,10 +131,10 @@ const sendMessage = async (req, res) => {
         participants: { $all: [req.user.userId, receiverId] },
         item: itemId
       });
-    } else {
+    }
+    if (!conversation) {
       conversation = await Conversation.findOne({
         participants: { $all: [req.user.userId, receiverId] },
-        $or: [{ item: null }, { item: { $exists: false } }]
       }).sort({ lastMessageAt: -1 });
     }
     
@@ -137,7 +152,6 @@ const sendMessage = async (req, res) => {
       await conversation.save();
     }
     
-    // Create message
     const newMessage = new Message({
       conversation: conversation._id,
       sender: req.user.userId,
@@ -159,8 +173,8 @@ const sendMessage = async (req, res) => {
           name: newMessage.sender.name
         },
         receiver: {
-          id: newMessage.receiver._id,
-          name: newMessage.receiver.name
+          id: newMessage.receiver?._id || receiverId,
+          name: newMessage.receiver?.name || 'User'
         },
         message: newMessage.message,
         read: newMessage.read,
@@ -168,7 +182,7 @@ const sendMessage = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Send message error:', error);
+    console.error('Send message error:', error.message, error.stack);
     res.status(500).json({ error: 'Failed to send message' });
   }
 };
