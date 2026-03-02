@@ -669,31 +669,35 @@ export const AddItem = () => {
                   />
                   <p className="text-[10px] text-gray-400 -mt-3">Minimum $3.00 for paid items (Stripe processing requirement)</p>
                   {stripeStatus !== 'loading' && stripeStatus !== 'active' && (
-                    <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
-                      <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm">
-                        {stripeStatus === 'none' && (
-                          <p className="text-amber-800">
-                            To sell paid items, you need a free Stripe account so buyers can pay you directly to your bank account.{' '}
-                            <Link to="/profile" className="text-green-600 font-medium underline">
-                              Set up Stripe account
-                            </Link>
-                          </p>
-                        )}
-                        {stripeStatus === 'incomplete' && (
-                          <p className="text-amber-800">
-                            Your Stripe setup is incomplete. Buyers won't be able to pay you until it's finished.{' '}
-                            <Link to="/profile" className="text-green-600 font-medium underline">
-                              Complete Stripe setup
-                            </Link>
-                          </p>
-                        )}
-                        {stripeStatus === 'pending' && (
-                          <p className="text-amber-800">
-                            Your Stripe account is under review. You can list items, but payments may be delayed until verification is complete.
-                          </p>
-                        )}
+                    <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-2.5">
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                          {stripeStatus === 'none' && (
+                            <p className="text-amber-800">
+                              To sell paid items, you need a free Stripe account so buyers can pay you directly to your bank account.
+                            </p>
+                          )}
+                          {stripeStatus === 'incomplete' && (
+                            <p className="text-amber-800">
+                              Your Stripe setup is incomplete. Buyers won't be able to pay you until it's finished.
+                            </p>
+                          )}
+                          {stripeStatus === 'pending' && (
+                            <p className="text-amber-800">
+                              Your Stripe account is under review. You can list items, but payments may be delayed until verification is complete.
+                            </p>
+                          )}
+                        </div>
                       </div>
+                      {(stripeStatus === 'none' || stripeStatus === 'incomplete') && (
+                        <Link
+                          to="/profile"
+                          className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold active:scale-[0.98] transition shadow-sm"
+                        >
+                          {stripeStatus === 'none' ? 'Set up Stripe Account' : 'Complete Stripe Setup'}
+                        </Link>
+                      )}
                     </div>
                   )}
                 </>

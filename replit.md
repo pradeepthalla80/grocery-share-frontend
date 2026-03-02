@@ -37,6 +37,8 @@ Preferred communication style: Simple, everyday language.
 - **Null Safety:** Defensive programming checks for null references in database records before accessing nested properties.
 - **Stacking Context:** `<main>` element in App.tsx has `position: relative; z-index: 1; isolation: isolate` to contain all page content (including Leaflet maps) within a single stacking context, ensuring BottomNav (z-index: 9999) and Navbar always stay clickable above page content.
 - **Chat Safety:** Backend `sendMessage` validates receiverId (ObjectId format, user exists, not self-messaging). Frontend shows descriptive errors for timeouts, network issues, and moderation flags.
+- **Mongoose Virtuals:** All core models (User, Item, ItemRequest, Conversation) have `toJSON: { virtuals: true }` and `toObject: { virtuals: true }` configured to ensure `id` virtual is always present in responses (prevents "Invalid receiver ID" when user subdocuments are populated and serialized).
+- **Stripe Link UX:** AddItem page shows a prominent full-width green button for Stripe setup (not an inline link) that navigates to `/profile` where both store-owners and regular users can complete Stripe onboarding.
 
 ### Feature Specifications
 - **Plans & Pricing:** Dynamic subscription system with admin-managed plans stored in MongoDB (PlatformSettings singleton):
