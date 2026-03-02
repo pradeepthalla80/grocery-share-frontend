@@ -88,7 +88,9 @@ const itemRequestSchema = new mongoose.Schema({
     endTime: String
   }]
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 itemRequestSchema.index({ location: '2dsphere' });

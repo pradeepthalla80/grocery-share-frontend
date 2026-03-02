@@ -99,14 +99,24 @@ exports.getNearbyRequests = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(50);
 
-    // ✅ ADD DISTANCE CALCULATION TO EACH REQUEST
     const requestsWithDistance = requests.map(request => {
-      const requestObj = request.toObject();
+      const requestObj = request.toJSON();
+      if (requestObj.user && requestObj.user._id && !requestObj.user.id) {
+        requestObj.user.id = requestObj.user._id.toString();
+      }
+      if (requestObj.responses) {
+        requestObj.responses = requestObj.responses.map(r => {
+          if (r.user && r.user._id && !r.user.id) {
+            r.user.id = r.user._id.toString();
+          }
+          return r;
+        });
+      }
       const distance = calculateDistance(
         userLat,
         userLng,
-        request.location.coordinates[1], // lat
-        request.location.coordinates[0]  // lng
+        request.location.coordinates[1],
+        request.location.coordinates[0]
       );
       return {
         ...requestObj,
