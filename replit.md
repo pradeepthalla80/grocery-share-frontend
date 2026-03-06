@@ -35,10 +35,13 @@ Preferred communication style: Simple, everyday language.
     - Robust handling of location permissions and API key management.
 - **Authorization:** Item ownership verified by comparing MongoDB ObjectIds; admin roles can bypass ownership checks for moderation.
 - **Null Safety:** Defensive programming checks for null references in database records before accessing nested properties.
-- **Stacking Context:** `<main>` element in App.tsx has `position: relative; z-index: 1; isolation: isolate` to contain all page content (including Leaflet maps) within a single stacking context, ensuring BottomNav (z-index: 9999) and Navbar always stay clickable above page content.
+- **Stacking Context:** `<main>` element in App.tsx has `position: relative; z-index: 1; isolation: isolate` to contain all page content (including Leaflet maps) within a single stacking context.
+- **BottomNav Portal:** BottomNav renders via React `createPortal` to `document.body`, completely escaping the DOM tree and all stacking contexts. Uses `<button type="button">` with `navigate()` instead of `<Link>` to avoid iOS Safari touch issues with anchor tags. z-index 99999 + `pointerEvents: auto`.
 - **Chat Safety:** Backend `sendMessage` validates receiverId (ObjectId format, user exists, not self-messaging). Frontend shows descriptive errors for timeouts, network issues, and moderation flags.
 - **Mongoose Virtuals:** All core models (User, Item, ItemRequest, Conversation) have `toJSON: { virtuals: true }` and `toObject: { virtuals: true }` configured to ensure `id` virtual is always present in responses (prevents "Invalid receiver ID" when user subdocuments are populated and serialized).
-- **Stripe Link UX:** AddItem page shows a prominent full-width green button for Stripe setup (not an inline link) that navigates to `/profile` where both store-owners and regular users can complete Stripe onboarding.
+- **Stripe Link UX:** AddItem page shows a prominent full-width green `<button type="button">` for Stripe setup (uses `navigate('/profile')` to avoid form interference) where both store-owners and regular users can complete Stripe onboarding.
+- **Category Dropdown:** AddItem uses `<select>` dropdown matching backend Item model enum (18 categories). AI suggestions and barcode scans map to valid categories via `mapToValidCategory()`.
+- **Price Validation:** Minimum $3.00 enforced for paid items in both frontend (onSubmit check + toast) and backend (400 error). Prevents Stripe processing failures.
 
 ### Feature Specifications
 - **Plans & Pricing:** Dynamic subscription system with admin-managed plans stored in MongoDB (PlatformSettings singleton):

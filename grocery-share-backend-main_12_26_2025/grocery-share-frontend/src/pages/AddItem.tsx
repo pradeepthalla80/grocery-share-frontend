@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,42 @@ import { LocationMap } from '../components/LocationMap';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { useToast } from '../hooks/useToast';
 import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain, Leaf } from 'lucide-react';
+
+const ITEM_CATEGORIES = [
+  'Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Meat', 'Snacks', 'Beverages',
+  'Pantry', 'Oils & Spices', 'Condiments & Sauces', 'Frozen Foods',
+  'Canned Goods', 'Grains & Pasta', 'Seafood', 'Desserts', 'Baby Food',
+  'Pet Food', 'Other'
+];
+
+const mapToValidCategory = (input: string | null | undefined): string => {
+  if (!input) return '';
+  const lower = input.toLowerCase();
+  const mappings: Record<string, string> = {
+    fruit: 'Fruits', fruits: 'Fruits', apple: 'Fruits', banana: 'Fruits', orange: 'Fruits', berry: 'Fruits',
+    vegetable: 'Vegetables', vegetables: 'Vegetables', veggie: 'Vegetables', produce: 'Vegetables', salad: 'Vegetables',
+    dairy: 'Dairy', milk: 'Dairy', cheese: 'Dairy', yogurt: 'Dairy',
+    bakery: 'Bakery', bread: 'Bakery', pastry: 'Bakery', cake: 'Bakery',
+    meat: 'Meat', poultry: 'Meat', chicken: 'Meat', beef: 'Meat', pork: 'Meat',
+    snack: 'Snacks', snacks: 'Snacks', chips: 'Snacks', cookie: 'Snacks', cracker: 'Snacks',
+    beverage: 'Beverages', beverages: 'Beverages', drink: 'Beverages', juice: 'Beverages', soda: 'Beverages', water: 'Beverages',
+    pantry: 'Pantry', dry: 'Pantry',
+    oil: 'Oils & Spices', spice: 'Oils & Spices', seasoning: 'Oils & Spices',
+    sauce: 'Condiments & Sauces', condiment: 'Condiments & Sauces', ketchup: 'Condiments & Sauces',
+    frozen: 'Frozen Foods',
+    canned: 'Canned Goods', can: 'Canned Goods',
+    grain: 'Grains & Pasta', pasta: 'Grains & Pasta', rice: 'Grains & Pasta', cereal: 'Grains & Pasta',
+    seafood: 'Seafood', fish: 'Seafood', shrimp: 'Seafood',
+    dessert: 'Desserts', desserts: 'Desserts', sweet: 'Desserts',
+    baby: 'Baby Food',
+    pet: 'Pet Food',
+  };
+  if (ITEM_CATEGORIES.includes(input)) return input;
+  for (const [key, val] of Object.entries(mappings)) {
+    if (lower.includes(key)) return val;
+  }
+  return 'Other';
+};
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -165,7 +201,7 @@ export const AddItem = () => {
           setValue('name', displayName);
         }
         if (product.category) {
-          setValue('category', product.category);
+          setValue('category', mapToValidCategory(product.category));
         }
         if (product.tags && product.tags.length > 0) {
           setValue('tags', product.tags.join(', '));
@@ -253,7 +289,7 @@ export const AddItem = () => {
       if (aiSuggestion.name) setValue('name', aiSuggestion.name);
     }
     if (field === 'category' || field === 'both') {
-      if (aiSuggestion.category) setValue('category', aiSuggestion.category);
+      if (aiSuggestion.category) setValue('category', mapToValidCategory(aiSuggestion.category));
     }
     setAiSuggestion(null);
   };
@@ -272,6 +308,12 @@ export const AddItem = () => {
 
       if (!data.address || data.lat === undefined || data.lat === null || data.lng === undefined || data.lng === null) {
         setLocationError('Please select a location');
+        setLoading(false);
+        return;
+      }
+
+      if (!isFree && data.price && parseFloat(data.price) < 3) {
+        showToast('Minimum price is $3.00 for paid items (Stripe processing requirement)', 'error');
         setLoading(false);
         return;
       }
@@ -598,13 +640,21 @@ export const AddItem = () => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <FormInput
-                label="Category (Optional)"
-                type="text"
-                {...register('category')}
-                error={errors.category?.message}
-                placeholder="e.g., Fruits"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Category (Optional)</label>
+                <select
+                  {...register('category')}
+                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white appearance-none"
+                >
+                  <option value="">Select a category</option>
+                  {ITEM_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                {errors.category?.message && (
+                  <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
+                )}
+              </div>
 
               <FormInput
                 label="Tags (comma-separated)"
@@ -691,12 +741,13 @@ export const AddItem = () => {
                         </div>
                       </div>
                       {(stripeStatus === 'none' || stripeStatus === 'incomplete') && (
-                        <Link
-                          to="/profile"
+                        <button
+                          type="button"
+                          onClick={() => navigate('/profile')}
                           className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold active:scale-[0.98] transition shadow-sm"
                         >
                           {stripeStatus === 'none' ? 'Set up Stripe Account' : 'Complete Stripe Setup'}
-                        </Link>
+                        </button>
                       )}
                     </div>
                   )}

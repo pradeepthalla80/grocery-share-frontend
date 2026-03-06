@@ -50,6 +50,12 @@ const createItem = async (req, res) => {
       });
     }
     
+    if (!isItemFree && parseFloat(price) < 3) {
+      return res.status(400).json({ 
+        error: 'Minimum price is $3.00 for paid items (Stripe processing requirement)' 
+      });
+    }
+    
     // Determine final price
     const finalPrice = isItemFree ? 0 : parseFloat(price);
     

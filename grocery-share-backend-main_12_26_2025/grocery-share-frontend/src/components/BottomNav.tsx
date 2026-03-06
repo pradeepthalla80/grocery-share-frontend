@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Plus, MessageCircle, HandHeart, User } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -12,12 +13,17 @@ const navItems = [
 
 export const BottomNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) return null;
 
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-nav border-t border-gray-200/80 md:hidden safe-area-bottom" style={{ zIndex: 9999 }}>
+  const handleNav = (path: string) => {
+    navigate(path);
+  };
+
+  return createPortal(
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-nav border-t border-gray-200/80 md:hidden safe-area-bottom" style={{ zIndex: 99999, pointerEvents: 'auto' }}>
       <div className="flex items-center justify-around h-14">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 
@@ -26,22 +32,24 @@ export const BottomNav = () => {
 
           if (item.isAction) {
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
+                type="button"
+                onClick={() => handleNav(item.path)}
                 className="flex flex-col items-center justify-center -mt-5"
               >
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-600 text-white shadow-lg active:scale-90 transition-transform">
                   <Icon className="h-6 w-6" />
                 </div>
-              </Link>
+              </button>
             );
           }
 
           return (
-            <Link
+            <button
               key={item.path}
-              to={item.path}
+              type="button"
+              onClick={() => handleNav(item.path)}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-90 ${
                 isActive
                   ? 'text-green-600'
@@ -59,10 +67,11 @@ export const BottomNav = () => {
               <span className={`text-[10px] mt-0.5 ${isActive ? 'font-semibold' : 'font-medium'}`}>
                 {item.label}
               </span>
-            </Link>
+            </button>
           );
         })}
       </div>
-    </nav>
+    </nav>,
+    document.body
   );
 };
