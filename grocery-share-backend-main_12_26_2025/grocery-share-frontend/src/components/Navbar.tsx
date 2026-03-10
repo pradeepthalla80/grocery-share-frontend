@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { LogOut, User, Home, Package, MessageCircle, HandHeart, Menu, X, Store, Shield, Leaf, CreditCard } from 'lucide-react';
@@ -20,7 +21,10 @@ export const Navbar = () => {
     navigate('/login');
   };
 
-  const closeMobileMenu = () => setMobileMenuOpen(false);
+  const handleNavTo = (path: string) => {
+    setMobileMenuOpen(false);
+    navigate(path);
+  };
 
   const baseNavLinks = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -94,8 +98,10 @@ export const Navbar = () => {
                     <span>Logout</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                     className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition rounded-lg active:bg-gray-100"
+                    style={{ position: 'relative', zIndex: 10000 }}
                   >
                     {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                   </button>
@@ -127,14 +133,14 @@ export const Navbar = () => {
         </div>
       </nav>
 
-      {mobileMenuOpen && isAuthenticated && (
+      {mobileMenuOpen && isAuthenticated && createPortal(
         <>
           <div 
             className="fixed inset-0 bg-black/40 md:hidden animate-fade-in"
-            style={{ zIndex: 9998 }}
-            onClick={closeMobileMenu}
+            style={{ zIndex: 100000, pointerEvents: 'auto' }}
+            onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed top-12 right-0 w-72 h-[calc(100vh-3rem)] bg-white md:hidden shadow-2xl animate-slide-in overflow-y-auto safe-area-top" style={{ zIndex: 9999 }}>
+          <div className="fixed top-12 right-0 w-72 h-[calc(100vh-3rem)] bg-white md:hidden shadow-2xl animate-slide-in overflow-y-auto safe-area-top" style={{ zIndex: 100001, pointerEvents: 'auto' }}>
             <div className="p-4 bg-green-600">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -151,14 +157,11 @@ export const Navbar = () => {
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <Link
+                  <button
                     key={link.path}
-                    to={link.path}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      closeMobileMenu();
-                    }}
-                    className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition touch-ripple ${
+                    type="button"
+                    onClick={() => handleNavTo(link.path)}
+                    className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition w-full text-left ${
                       location.pathname === link.path
                         ? 'bg-green-50 text-green-700 border-l-3 border-green-600'
                         : 'text-gray-700 active:bg-gray-50'
@@ -166,19 +169,16 @@ export const Navbar = () => {
                   >
                     <Icon className="h-5 w-5" />
                     <span>{link.label}</span>
-                  </Link>
+                  </button>
                 );
               })}
               
               <div className="mx-4 my-2 border-t border-gray-100" />
               
-              <Link
-                to="/profile"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  closeMobileMenu();
-                }}
-                className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition touch-ripple ${
+              <button
+                type="button"
+                onClick={() => handleNavTo('/profile')}
+                className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition w-full text-left ${
                   location.pathname === '/profile'
                     ? 'bg-green-50 text-green-700'
                     : 'text-gray-700 active:bg-gray-50'
@@ -186,20 +186,22 @@ export const Navbar = () => {
               >
                 <User className="h-5 w-5" />
                 <span>Profile</span>
-              </Link>
+              </button>
               
               <div className="mx-4 my-2 border-t border-gray-100" />
               
               <button
+                type="button"
                 onClick={handleLogout}
-                className="flex items-center space-x-3 px-5 py-3.5 text-sm font-medium text-red-600 active:bg-red-50 transition w-full touch-ripple"
+                className="flex items-center space-x-3 px-5 py-3.5 text-sm font-medium text-red-600 active:bg-red-50 transition w-full text-left"
               >
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </>
   );
