@@ -175,6 +175,11 @@ export const PlansAndPricing = () => {
 
   const freePlan = plans.find(p => p.id === 'free');
   const paidPlans = plans.filter(p => p.id !== 'free' && p.price > 0);
+  const maxSavingsPct = paidPlans.length > 0
+    ? Math.max(...paidPlans
+        .filter(p => p.yearlyPrice && p.yearlyPrice > 0)
+        .map(p => Math.round((1 - (p.yearlyPrice as number) / (p.price * 12)) * 100)))
+    : 0;
 
   const getPlanIcon = (planId: string) => {
     if (planId === 'mini_store') return Store;
@@ -223,7 +228,11 @@ export const PlansAndPricing = () => {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${billingInterval === 'year' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
               >
                 Yearly
-                <span className="ml-1 text-[10px] text-green-600 font-semibold">Save</span>
+                {maxSavingsPct > 0 && (
+                  <span className="ml-1.5 text-[10px] bg-green-100 text-green-700 font-bold px-1.5 py-0.5 rounded-full">
+                    Save {maxSavingsPct}%
+                  </span>
+                )}
               </button>
             </div>
           )}

@@ -4,14 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { adminAPI, type AdminStats, type AdminUser, type AdminItem } from '../api/admin';
 import { miniStoreAPI, type MiniStoreSettings, type MiniStoreRequestItem } from '../api/miniStore';
 import { planAdminAPI, type AdminPlan } from '../api/planAdmin';
+import { apiClient } from '../api/config';
 import { 
   Users, Package, ShoppingCart, BarChart3, Search, 
   Trash2, Store, ChevronDown, ChevronUp,
   ArrowLeft, AlertTriangle, Check, X, Clock, Loader2, Plus,
-  Settings, Edit3, DollarSign, Percent, ToggleLeft, ToggleRight, Save, Zap
+  Settings, Edit3, DollarSign, Percent, ToggleLeft, ToggleRight, Save, Zap, Mail
 } from 'lucide-react';
 
-type AdminTab = 'overview' | 'users' | 'items' | 'mini-store' | 'plans';
+type AdminTab = 'overview' | 'users' | 'items' | 'mini-store' | 'plans' | 'contact';
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -33,6 +34,18 @@ export const AdminDashboard = () => {
   const [newZipCode, setNewZipCode] = useState('');
   const [newZipMax, setNewZipMax] = useState('5');
   const [storeLoading, setStoreLoading] = useState(false);
+  const [contactMessages, setContactMessages] = useState<any[]>([]);
+  const [contactLoading, setContactLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'contact' && contactMessages.length === 0) {
+      setContactLoading(true);
+      apiClient.get('/contact')
+        .then(res => setContactMessages(res.data.messages || []))
+        .catch(() => {})
+        .finally(() => setContactLoading(false));
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (user?.role !== 'admin' && user?.role !== 'super_admin') {
@@ -176,7 +189,7 @@ export const AdminDashboard = () => {
 
         <div className="mb-4 md:mb-6 sticky top-12 md:top-16 z-30 bg-gray-50 -mx-4 px-4 md:mx-0 md:px-0 py-2 md:py-0">
           <div className="flex bg-gray-100 md:bg-transparent rounded-xl md:rounded-none p-1 md:p-0 md:border-b md:border-gray-200">
-            {(['overview', 'users', 'items', 'mini-store', 'plans'] as AdminTab[]).map(tab => (
+            {(['overview', 'users', 'items', 'mini-store', 'plans', 'contact'] as AdminTab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -453,6 +466,51 @@ export const AdminDashboard = () => {
 
         {activeTab === 'plans' && (
           <PlansAdmin />
+        )}
+
+        {activeTab === 'contact' && (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-100 flex items-center gap-2">
+              <Mail className="h-5 w-5 text-green-600" />
+              <h2 className="font-semibold text-gray-900">Contact Messages</h2>
+              <span className="ml-auto text-xs text-gray-400">{contactMessages.length} message{contactMessages.length !== 1 ? 's' : ''}</span>
+            </div>
+            {contactLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+              </div>
+            ) : contactMessages.length === 0 ? (
+              <div className="text-center py-12 text-gray-400 text-sm">No contact messages yet.</div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {contactMessages.map((msg: any) => (
+                  <div key={msg._id} className="p-4 hover:bg-gray-50 transition">
+                    <div className="flex items-start justify-between gap-3 mb-1.5">
+                      <div>
+                        <span className="font-semibold text-sm text-gray-900">{msg.name}</span>
+                        <span className="text-xs text-gray-400 ml-2">{msg.email}</span>
+                        {msg.user?.name && (
+                          <span className="text-xs text-green-600 ml-2">• {msg.user.name}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                          msg.status === 'resolved' ? 'bg-green-100 text-green-700' :
+                          msg.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {msg.status === 'in_progress' ? 'In Progress' : msg.status === 'resolved' ? 'Resolved' : 'New'}
+                        </span>
+                        <span className="text-[10px] text-gray-400">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs font-semibold text-gray-700 mb-1">{msg.subject}</p>
+                    <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">{msg.message}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
