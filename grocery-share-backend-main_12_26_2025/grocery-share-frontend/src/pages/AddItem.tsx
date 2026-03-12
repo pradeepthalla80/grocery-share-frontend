@@ -741,13 +741,13 @@ export const AddItem = () => {
                         </div>
                       </div>
                       {(stripeStatus === 'none' || stripeStatus === 'incomplete') && (
-                        <button
-                          type="button"
-                          onClick={() => navigate('/profile')}
-                          className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold active:scale-[0.98] transition shadow-sm"
+                        <a
+                          href="/profile"
+                          style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+                          className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold active:scale-[0.98] transition shadow-sm no-underline"
                         >
                           {stripeStatus === 'none' ? 'Set up Stripe Account' : 'Complete Stripe Setup'}
-                        </button>
+                        </a>
                       )}
                     </div>
                   )}

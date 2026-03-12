@@ -23,7 +23,7 @@ export const Navbar = () => {
 
   const handleNavTo = (path: string) => {
     setMobileMenuOpen(false);
-    navigate(path);
+    window.location.href = path;
   };
 
   const baseNavLinks = [
@@ -157,11 +157,12 @@ export const Navbar = () => {
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <button
+                  <a
                     key={link.path}
-                    type="button"
-                    onClick={() => handleNavTo(link.path)}
-                    className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition w-full text-left ${
+                    href={link.path}
+                    onClick={(e) => { e.preventDefault(); handleNavTo(link.path); }}
+                    style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation', display: 'flex' }}
+                    className={`items-center space-x-3 px-5 py-3.5 text-sm font-medium transition w-full ${
                       location.pathname === link.path
                         ? 'bg-green-50 text-green-700 border-l-3 border-green-600'
                         : 'text-gray-700 active:bg-gray-50'
@@ -169,16 +170,17 @@ export const Navbar = () => {
                   >
                     <Icon className="h-5 w-5" />
                     <span>{link.label}</span>
-                  </button>
+                  </a>
                 );
               })}
               
               <div className="mx-4 my-2 border-t border-gray-100" />
               
-              <button
-                type="button"
-                onClick={() => handleNavTo('/profile')}
-                className={`flex items-center space-x-3 px-5 py-3.5 text-sm font-medium transition w-full text-left ${
+              <a
+                href="/profile"
+                onClick={(e) => { e.preventDefault(); handleNavTo('/profile'); }}
+                style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation', display: 'flex' }}
+                className={`items-center space-x-3 px-5 py-3.5 text-sm font-medium transition w-full ${
                   location.pathname === '/profile'
                     ? 'bg-green-50 text-green-700'
                     : 'text-gray-700 active:bg-gray-50'
@@ -186,7 +188,7 @@ export const Navbar = () => {
               >
                 <User className="h-5 w-5" />
                 <span>Profile</span>
-              </button>
+              </a>
               
               <div className="mx-4 my-2 border-t border-gray-100" />
               
