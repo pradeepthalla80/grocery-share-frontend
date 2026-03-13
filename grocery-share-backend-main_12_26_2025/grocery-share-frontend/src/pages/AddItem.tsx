@@ -149,6 +149,7 @@ export const AddItem = () => {
   const lat = watch('lat');
   const lng = watch('lng');
   const address = watch('address');
+  const watchedPrice = watch('price');
 
   const getDefaultExpiryDays = (category?: string): number => {
     if (!category) return 14;
@@ -313,7 +314,13 @@ export const AddItem = () => {
       }
 
       if (!isFree && data.price && parseFloat(data.price) < 3) {
-        showToast('Minimum price is $3.00 for paid items (Stripe processing requirement)', 'error');
+        showToast('Price must be at least $3.00. Please increase the price.', 'error');
+        setLoading(false);
+        return;
+      }
+
+      if (!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete')) {
+        showToast('You need to complete Stripe setup before listing paid items. Buyers cannot pay you without it.', 'error');
         setLoading(false);
         return;
       }
@@ -717,20 +724,26 @@ export const AddItem = () => {
                     error={errors.price?.message}
                     placeholder="9.99"
                   />
-                  <p className="text-[10px] text-gray-400 -mt-3">Minimum $3.00 for paid items (Stripe processing requirement)</p>
+                  {watchedPrice && parseFloat(watchedPrice) > 0 && parseFloat(watchedPrice) < 3 ? (
+                    <p className="text-[11px] text-red-600 font-medium -mt-3">
+                      Minimum price is $3.00 — card processing requires at least this amount. Please enter $3.00 or more.
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 -mt-3">Minimum $3.00 (card processing requirement)</p>
+                  )}
                   {stripeStatus !== 'loading' && stripeStatus !== 'active' && (
-                    <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-2.5">
+                    <div className={`p-3.5 rounded-xl space-y-2.5 border ${stripeStatus === 'pending' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
                       <div className="flex items-start gap-2.5">
-                        <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${stripeStatus === 'pending' ? 'text-amber-500' : 'text-red-500'}`} />
                         <div className="text-sm">
                           {stripeStatus === 'none' && (
-                            <p className="text-amber-800">
-                              To sell paid items, you need a free Stripe account so buyers can pay you directly to your bank account.
+                            <p className="text-red-800 font-medium">
+                              Stripe account required. You cannot list paid items until you set up a free Stripe account — buyers have no way to pay you without it.
                             </p>
                           )}
                           {stripeStatus === 'incomplete' && (
-                            <p className="text-amber-800">
-                              Your Stripe setup is incomplete. Buyers won't be able to pay you until it's finished.
+                            <p className="text-red-800 font-medium">
+                              Stripe setup incomplete. Finish your Stripe account setup before listing paid items — buyers cannot pay you until it's done.
                             </p>
                           )}
                           {stripeStatus === 'pending' && (
@@ -746,7 +759,7 @@ export const AddItem = () => {
                           style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
                           className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold active:scale-[0.98] transition shadow-sm no-underline"
                         >
-                          {stripeStatus === 'none' ? 'Set up Stripe Account' : 'Complete Stripe Setup'}
+                          {stripeStatus === 'none' ? 'Set up Stripe Account (Free)' : 'Complete Stripe Setup'}
                         </a>
                       )}
                     </div>
@@ -810,10 +823,11 @@ export const AddItem = () => {
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete'))}
+                title={!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete') ? 'Complete your Stripe setup above to list paid items' : undefined}
                 className="flex-1 bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium active:scale-[0.98]"
               >
-                {loading ? 'Adding...' : 'Add Item'}
+                {loading ? 'Adding...' : (!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete')) ? 'Stripe Setup Required' : 'Add Item'}
               </button>
               <button
                 type="button"
