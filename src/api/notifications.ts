@@ -2,7 +2,7 @@ import { apiClient } from './config';
 
 export interface Notification {
   id: string;
-  type: 'nearby_free' | 'nearby_discounted' | 'expiring_soon' | 'new_match' | 'pickup_request' | 'request_accepted' | 'request_declined' | 'exchange_completed';
+  type: 'nearby_free' | 'nearby_discounted' | 'expiring_soon' | 'new_match' | 'new_message' | 'pickup_request' | 'request_accepted' | 'request_declined' | 'request_canceled' | 'pickup_confirmed' | 'exchange_completed' | 'store_request_new' | 'store_request_approved' | 'store_request_rejected' | 'waitlist_joined';
   message: string;
   read: boolean;
   item: {
@@ -12,6 +12,14 @@ export interface Notification {
     isFree: boolean;
     imageURL?: string;
   } | null;
+  metadata?: {
+    requestId?: string;
+    deliveryMode?: string;
+    address?: string;
+    instructions?: string;
+    itemName?: string;
+    [key: string]: unknown;
+  };
   createdAt: string;
 }
 
@@ -30,12 +38,4 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
 
 export const deleteNotification = async (id: string): Promise<void> => {
   await apiClient.delete(`/notifications/${id}`);
-};
-
-export const sendInterestNotification = async (itemId: string, itemName: string, type: 'item' | 'request'): Promise<void> => {
-  await apiClient.post('/notifications/interest', { itemId, itemName, type });
-};
-
-export const requestPickup = async (itemId: string): Promise<void> => {
-  await apiClient.post('/notifications/pickup-request', { itemId });
 };
