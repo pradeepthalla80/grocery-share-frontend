@@ -1,19 +1,63 @@
-import { Bell } from 'lucide-react';
+import { Bell, MessageCircle, Package, ShoppingBag } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { useNavigate, useLocation } from 'react-router-dom';
+
+const getNotifIcon = (type: string) => {
+  switch (type) {
+    case 'new_message': return <MessageCircle className="h-4 w-4 text-blue-500" />;
+    case 'pickup_request':
+    case 'request_accepted':
+    case 'request_declined':
+    case 'request_canceled':
+    case 'pickup_confirmed':
+    case 'exchange_completed':
+      return <ShoppingBag className="h-4 w-4 text-green-500" />;
+    case 'nearby_free':
+    case 'nearby_discounted':
+    case 'new_match':
+    case 'expiring_soon':
+      return <Package className="h-4 w-4 text-orange-500" />;
+    default: return <Package className="h-4 w-4 text-gray-500" />;
+  }
+};
+
+const getNotifRoute = (type: string): string => {
+  switch (type) {
+    case 'new_message': return '/chat';
+    case 'pickup_request': return '/my-items';
+    case 'request_accepted':
+    case 'request_declined':
+    case 'request_canceled':
+    case 'pickup_confirmed':
+    case 'exchange_completed':
+      return '/my-items';
+    case 'nearby_free':
+    case 'nearby_discounted':
+    case 'new_match':
+    case 'expiring_soon':
+      return '/dashboard';
+    case 'store_request_new':
+    case 'waitlist_joined':
+      return '/admin';
+    case 'store_request_approved':
+    case 'store_request_rejected':
+      return '/profile';
+    default: return '/dashboard';
+  }
+};
 
 export function NotificationBell() {
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Close dropdown when navigating to a new page
-  useEffect(() => {
+  const handleNotifClick = (notif: typeof notifications[0]) => {
+    if (!notif.read) markAsRead(notif.id);
     setIsOpen(false);
-  }, [location.pathname]);
+    navigate(getNotifRoute(notif.type));
+  };
 
   return (
     <div className="relative">
@@ -54,36 +98,24 @@ export function NotificationBell() {
                     className={`p-4 hover:bg-gray-50 cursor-pointer ${
                       !notif.read ? 'bg-blue-50' : ''
                     }`}
-                    onClick={() => {
-                      if (!notif.read) markAsRead(notif.id);
-                      setIsOpen(false);
-                      
-                      // Route based on notification type
-                      const pickupRequestTypes = ['pickup_request', 'request_accepted', 'request_declined', 'request_canceled', 'exchange_completed', 'pickup_confirmed'];
-                      const itemDiscoveryTypes = ['nearby_free', 'nearby_discounted', 'expiring_soon', 'new_match'];
-                      
-                      if (pickupRequestTypes.includes(notif.type)) {
-                        navigate('/pickup-requests');
-                      } else if (itemDiscoveryTypes.includes(notif.type) && notif.item?.id) {
-                        // Item discovery notifications - go to item detail
-                        navigate(`/item/${notif.item.id}`);
-                      } else {
-                        // Interest, message, and other notifications - go to chat
-                        navigate('/chat');
-                      }
-                    }}
+                    onClick={() => handleNotifClick(notif)}
                   >
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-medium text-gray-900">
-                        {notif.message}
-                      </p>
+                    <div className="flex gap-3 items-start">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {getNotifIcon(notif.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm ${!notif.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                          {notif.message}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {format(new Date(notif.createdAt), 'MMM dd, h:mm a')}
+                        </p>
+                      </div>
                       {!notif.read && (
-                        <span className="inline-block w-2 h-2 bg-blue-600 rounded-full ml-2 mt-1" />
+                        <span className="inline-block w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1" />
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {format(new Date(notif.createdAt), 'MMM dd, h:mm a')}
-                    </p>
                   </div>
                 ))
               )}
