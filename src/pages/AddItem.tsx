@@ -1,82 +1,64 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { itemsAPI } from '../api/items';
-import { getAccountStatus } from '../api/stripeConnect';
-import { lookupBarcode, type ProductInfo } from '../api/openFoodFacts';
-import { aiAPI } from '../api/ai';
+import { stripeConnectAPI, SUPPORTED_COUNTRIES } from '../api/stripeConnect';
 import { FormInput } from '../components/FormInput';
 import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
-import { BarcodeScanner } from '../components/BarcodeScanner';
+import { ArrowLeft, Store, Home, AlertTriangle, CreditCard, Loader2, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useToast } from '../hooks/useToast';
-import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain, Leaf, Store } from 'lucide-react';
-
-const ITEM_CATEGORIES = [
-  'Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Meat', 'Snacks', 'Beverages',
-  'Pantry', 'Oils & Spices', 'Condiments & Sauces', 'Frozen Foods',
-  'Canned Goods', 'Grains & Pasta', 'Seafood', 'Desserts', 'Baby Food',
-  'Pet Food', 'Other'
-];
-
-const mapToValidCategory = (input: string | null | undefined): string => {
-  if (!input) return '';
-  const lower = input.toLowerCase();
-  const mappings: Record<string, string> = {
-    fruit: 'Fruits', fruits: 'Fruits', apple: 'Fruits', banana: 'Fruits', orange: 'Fruits', berry: 'Fruits',
-    vegetable: 'Vegetables', vegetables: 'Vegetables', veggie: 'Vegetables', produce: 'Vegetables', salad: 'Vegetables',
-    dairy: 'Dairy', milk: 'Dairy', cheese: 'Dairy', yogurt: 'Dairy',
-    bakery: 'Bakery', bread: 'Bakery', pastry: 'Bakery', cake: 'Bakery',
-    meat: 'Meat', poultry: 'Meat', chicken: 'Meat', beef: 'Meat', pork: 'Meat',
-    snack: 'Snacks', snacks: 'Snacks', chips: 'Snacks', cookie: 'Snacks', cracker: 'Snacks',
-    beverage: 'Beverages', beverages: 'Beverages', drink: 'Beverages', juice: 'Beverages', soda: 'Beverages', water: 'Beverages',
-    pantry: 'Pantry', dry: 'Pantry',
-    oil: 'Oils & Spices', spice: 'Oils & Spices', seasoning: 'Oils & Spices',
-    sauce: 'Condiments & Sauces', condiment: 'Condiments & Sauces', ketchup: 'Condiments & Sauces',
-    frozen: 'Frozen Foods',
-    canned: 'Canned Goods', can: 'Canned Goods',
-    grain: 'Grains & Pasta', pasta: 'Grains & Pasta', rice: 'Grains & Pasta', cereal: 'Grains & Pasta',
-    seafood: 'Seafood', fish: 'Seafood', shrimp: 'Seafood',
-    dessert: 'Desserts', desserts: 'Desserts', sweet: 'Desserts',
-    baby: 'Baby Food',
-    pet: 'Pet Food',
-  };
-  if (ITEM_CATEGORIES.includes(input)) return input;
-  for (const [key, val] of Object.entries(mappings)) {
-    if (lower.includes(key)) return val;
-  }
-  return 'Other';
-};
 
 const addItemSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   category: z.string().optional(),
+  customCategory: z.string().optional(),
   tags: z.string().optional(),
   expiryDate: z.string().min(1, 'Expiry date is required'),
   price: z.string().optional(),
   isFree: z.boolean().optional(),
+  quantity: z.string().optional(),
+  stockStatus: z.string().optional(),
   pickupTimeStart: z.string().optional(),
   pickupTimeEnd: z.string().optional(),
   flexiblePickup: z.boolean().optional(),
   validityPeriod: z.string().optional(),
-  quantity: z.string().optional(),
-  stockStatus: z.string().optional(),
-  deliveryFee: z.string().optional(),
+  customValidityDate: z.string().optional(),
   address: z.string().min(1, 'Address is required'),
   lat: z.number(),
   lng: z.number(),
+  offerDelivery: z.boolean().optional(),
+  deliveryFee: z.string().optional(),
 }).refine((data) => {
-  if (!data.isFree) {
-    const p = Number(data.price);
-    if (!Number.isFinite(p) || p <= 0) return false;
+  if (data.offerDelivery && data.deliveryFee && data.deliveryFee !== 'free') {
+    const fee = Number(data.deliveryFee);
+    if (isNaN(fee) || fee < 0) {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: 'Delivery fee must be a valid amount',
+  path: ['deliveryFee'],
+}).refine((data) => {
+  if (!data.isFree && (!data.price || Number(data.price) <= 0)) {
+    return false;
   }
   return true;
 }, {
   message: 'Price must be a positive number when item is not free',
+  path: ['price'],
+}).refine((data) => {
+  // Minimum $3 for paid items (to cover Stripe fees)
+  if (!data.isFree && data.price && Number(data.price) > 0 && Number(data.price) < 3) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Minimum price for paid items is $3.00 (to cover payment processing fees)',
   path: ['price'],
 }).refine((data) => {
   if (!data.flexiblePickup && data.pickupTimeStart && data.pickupTimeEnd) {
@@ -86,6 +68,14 @@ const addItemSchema = z.object({
 }, {
   message: 'Pickup end time must be after start time',
   path: ['pickupTimeEnd'],
+}).refine((data) => {
+  if (data.validityPeriod === 'custom' && !data.customValidityDate) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Please select a custom expiry date and time',
+  path: ['customValidityDate'],
 });
 
 type AddItemFormData = z.infer<typeof addItemSchema>;
@@ -94,7 +84,6 @@ export const AddItem = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { showToast } = useToast();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -102,51 +91,24 @@ export const AddItem = () => {
   const [isFree, setIsFree] = useState(false);
   const [flexiblePickup, setFlexiblePickup] = useState(true);
   const [locationError, setLocationError] = useState('');
-  const [stripeStatus, setStripeStatus] = useState<'loading' | 'active' | 'pending' | 'incomplete' | 'none'>('loading');
-  const [showScanner, setShowScanner] = useState(false);
-  const [scanLoading, setScanLoading] = useState(false);
-  const [scanResult, setScanResult] = useState<{ status: 'success' | 'not_found' | 'error'; product?: ProductInfo } | null>(null);
-  const [showNutrition, setShowNutrition] = useState(false);
-  const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiSuggestion, setAiSuggestion] = useState<{ name: string | null; category: string | null; confidence: number } | null>(null);
-  const [aiDismissed, setAiDismissed] = useState(false);
-  const [freshnessResult, setFreshnessResult] = useState<{ score: number | null; label: string } | null>(null);
-  const [isStoreItem, setIsStoreItem] = useState(false);
   const [offerDelivery, setOfferDelivery] = useState(false);
-  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
-  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
-
-  useEffect(() => {
-    const isStoreParam = searchParams.get('isStoreItem') === 'true';
-    if (isStoreParam && (user as any)?.storeMode) {
-      setIsStoreItem(true);
-    } else if ((user as any)?.isStoreOwner || (user as any)?.storeMode) {
-      setIsStoreItem(true);
-    }
-  }, [searchParams, user]);
-
-  useEffect(() => {
-    const checkStripe = async () => {
-      try {
-        const data = await getAccountStatus();
-        if (data.hasAccount) {
-          if (data.chargesEnabled && data.payoutsEnabled) {
-            setStripeStatus('active');
-          } else if (data.detailsSubmitted) {
-            setStripeStatus('pending');
-          } else {
-            setStripeStatus('incomplete');
-          }
-        } else {
-          setStripeStatus('none');
-        }
-      } catch {
-        setStripeStatus('none');
-      }
-    };
-    checkStripe();
-  }, []);
+  const [deliveryFee, setDeliveryFee] = useState('free');
+  const [customDeliveryFee, setCustomDeliveryFee] = useState('');
+  const [isStoreItem, setIsStoreItem] = useState(false);
+  const [stockStatus, setStockStatus] = useState('in_stock');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [validityPeriod, setValidityPeriod] = useState('never');
+  const [existingItemNames, setExistingItemNames] = useState<string[]>([]);
+  const [duplicateWarning, setDuplicateWarning] = useState('');
+  
+  // Stripe Connect states
+  const [stripeAccountStatus, setStripeAccountStatus] = useState<'loading' | 'not_connected' | 'pending' | 'active'>('loading');
+  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('US');
+  
+  // Real-time price validation
+  const [priceError, setPriceError] = useState('');
 
   const {
     register,
@@ -162,85 +124,140 @@ export const AddItem = () => {
       lng: -87.623177,
       isFree: false,
       flexiblePickup: true,
-      expiryDate: (() => { const d = new Date(); d.setDate(d.getDate() + 14); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })(),
+      offerDelivery: false,
+      deliveryFee: 'free',
+      quantity: '1',
+      stockStatus: 'in_stock',
+      validityPeriod: 'never',
     },
   });
 
   const lat = watch('lat');
   const lng = watch('lng');
   const address = watch('address');
-  const watchedPrice = watch('price');
+  const itemName = watch('name');
+  const allFormValues = watch();
 
-  const getDefaultExpiryDays = (category?: string): number => {
-    if (!category) return 14;
-    const cat = category.toLowerCase();
-    if (cat.includes('dairy') || cat.includes('milk') || cat.includes('yogurt') || cat.includes('cheese')) return 14;
-    if (cat.includes('meat') || cat.includes('poultry') || cat.includes('fish') || cat.includes('seafood')) return 7;
-    if (cat.includes('bread') || cat.includes('bakery') || cat.includes('pastry')) return 7;
-    if (cat.includes('fruit') || cat.includes('vegetable') || cat.includes('produce') || cat.includes('salad')) return 10;
-    if (cat.includes('frozen')) return 90;
-    if (cat.includes('canned') || cat.includes('preserved') || cat.includes('dry') || cat.includes('pasta') || cat.includes('rice') || cat.includes('cereal')) return 180;
-    if (cat.includes('snack') || cat.includes('chips') || cat.includes('cookie') || cat.includes('cracker')) return 90;
-    if (cat.includes('beverage') || cat.includes('drink') || cat.includes('juice') || cat.includes('soda') || cat.includes('water')) return 90;
-    if (cat.includes('sauce') || cat.includes('condiment') || cat.includes('spice') || cat.includes('seasoning')) return 180;
-    return 30;
-  };
-
-  const shortenProductName = (name: string, brand?: string): string => {
-    let display = brand ? `${brand} ${name}` : name;
-
-    display = display.replace(/\b(flavored|flavoured)\b/gi, '');
-    display = display.replace(/\b(potato|tortilla|corn)\s+chips\b/gi, 'Chips');
-    display = display.replace(/\b\d+(\.\d+)?\s*(oz|g|kg|lb|ml|l|fl\s*oz|ct|count|pack|pk)\b/gi, '');
-    display = display.replace(/\s*-\s*/g, ' ');
-    display = display.replace(/\s{2,}/g, ' ').trim();
-
-    if (display.length <= 40) return display;
-
-    const words = display.split(' ');
-    let result = '';
-    for (const word of words) {
-      const test = result ? `${result} ${word}` : word;
-      if (test.length > 40) break;
-      result = test;
-    }
-    return result || words.slice(0, 3).join(' ');
-  };
-
-  const handleBarcodeScan = useCallback(async (barcode: string) => {
-    setShowScanner(false);
-    setScanLoading(true);
-    setScanResult(null);
-    setShowNutrition(false);
-    setScannedBarcode(null);
-    try {
-      const product = await lookupBarcode(barcode);
-      if (product.found) {
-        setScannedBarcode(barcode);
-        if (product.name) {
-          const displayName = shortenProductName(product.name, product.brand);
-          setValue('name', displayName);
+  // Restore form data from localStorage if returning from Stripe
+  // Data expires after 7 days (enough time for Stripe verification)
+  useEffect(() => {
+    const shouldRestore = searchParams.get('restore') === 'true';
+    if (shouldRestore) {
+      const savedData = localStorage.getItem('pendingItemData');
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          
+          // Check if data is expired (7 days = 604800000 ms)
+          const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+          if (parsed.savedAt && (Date.now() - parsed.savedAt > SEVEN_DAYS)) {
+            console.log('Saved form data expired, clearing...');
+            localStorage.removeItem('pendingItemData');
+            return;
+          }
+          
+          // Restore form values
+          if (parsed.name) setValue('name', parsed.name);
+          if (parsed.category) {
+            setValue('category', parsed.category);
+            setSelectedCategory(parsed.category);
+          }
+          if (parsed.customCategory) setValue('customCategory', parsed.customCategory);
+          if (parsed.tags) setValue('tags', parsed.tags);
+          if (parsed.expiryDate) setValue('expiryDate', parsed.expiryDate);
+          if (parsed.price) setValue('price', parsed.price);
+          if (parsed.isFree !== undefined) {
+            setValue('isFree', parsed.isFree);
+            setIsFree(parsed.isFree);
+          }
+          if (parsed.quantity) setValue('quantity', parsed.quantity);
+          if (parsed.address) setValue('address', parsed.address);
+          if (parsed.lat) setValue('lat', parsed.lat);
+          if (parsed.lng) setValue('lng', parsed.lng);
+          if (parsed.validityPeriod) {
+            setValue('validityPeriod', parsed.validityPeriod);
+            setValidityPeriod(parsed.validityPeriod);
+          }
+          if (parsed.customValidityDate) setValue('customValidityDate', parsed.customValidityDate);
+          if (parsed.offerDelivery !== undefined) {
+            setValue('offerDelivery', parsed.offerDelivery);
+            setOfferDelivery(parsed.offerDelivery);
+          }
+          if (parsed.deliveryFee) {
+            setValue('deliveryFee', parsed.deliveryFee);
+            setDeliveryFee(parsed.deliveryFee);
+          }
+          if (parsed.customDeliveryFee) setCustomDeliveryFee(parsed.customDeliveryFee);
+          if (parsed.stockStatus) {
+            setValue('stockStatus', parsed.stockStatus);
+            setStockStatus(parsed.stockStatus);
+          }
+          if (parsed.isStoreItem) setIsStoreItem(parsed.isStoreItem);
+          if (parsed.flexiblePickup !== undefined) {
+            setValue('flexiblePickup', parsed.flexiblePickup);
+            setFlexiblePickup(parsed.flexiblePickup);
+          }
+          if (parsed.pickupTimeStart) setValue('pickupTimeStart', parsed.pickupTimeStart);
+          if (parsed.pickupTimeEnd) setValue('pickupTimeEnd', parsed.pickupTimeEnd);
+          
+          // Clear the saved data after restoring
+          localStorage.removeItem('pendingItemData');
+        } catch (err) {
+          console.error('Failed to restore form data:', err);
         }
-        if (product.category) {
-          setValue('category', mapToValidCategory(product.category));
-        }
-        if (product.tags && product.tags.length > 0) {
-          setValue('tags', product.tags.join(', '));
-        }
-        const days = getDefaultExpiryDays(product.category);
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + days);
-        setValue('expiryDate', `${expiry.getFullYear()}-${String(expiry.getMonth() + 1).padStart(2, '0')}-${String(expiry.getDate()).padStart(2, '0')}`);
-        setScanResult({ status: 'success', product });
-      } else {
-        setScanResult({ status: 'not_found' });
       }
-    } catch {
-      setScanResult({ status: 'error' });
-    } finally {
-      setScanLoading(false);
     }
-  }, [setValue]);
+  }, [searchParams, setValue]);
+
+  useEffect(() => {
+    const isStoreItemParam = searchParams.get('isStoreItem') === 'true';
+    if (isStoreItemParam && user?.storeMode) {
+      setIsStoreItem(true);
+    }
+  }, [searchParams, user]);
+
+  // Fetch existing items to check for duplicates
+  useEffect(() => {
+    const fetchExistingItems = async () => {
+      try {
+        const response = await itemsAPI.getMyItems();
+        const names = response.items.map(item => item.name.toLowerCase().trim());
+        setExistingItemNames(names);
+      } catch (err) {
+        console.error('Failed to fetch existing items:', err);
+      }
+    };
+    fetchExistingItems();
+  }, []);
+
+  // Check Stripe Connect status on mount
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      try {
+        const response = await stripeConnectAPI.getAccountStatus();
+        if (!response.hasAccount) {
+          setStripeAccountStatus('not_connected');
+        } else if (response.accountStatus?.status === 'active') {
+          setStripeAccountStatus('active');
+        } else {
+          setStripeAccountStatus('pending');
+        }
+      } catch (err) {
+        console.error('Failed to check Stripe status:', err);
+        setStripeAccountStatus('not_connected');
+      }
+    };
+    checkStripeStatus();
+  }, []);
+
+  // Check for duplicate names as user types
+  useEffect(() => {
+    if (itemName && existingItemNames.includes(itemName.toLowerCase().trim())) {
+      setDuplicateWarning(`You already have an item named "${itemName}". Consider using a different name to avoid duplicates.`);
+    } else {
+      setDuplicateWarning('');
+    }
+  }, [itemName, existingItemNames]);
 
   const handleLocationSelect = (location: { address: string; lat: number; lng: number }) => {
     setValue('address', location.address);
@@ -256,63 +273,50 @@ export const AddItem = () => {
     } else {
       setImageError('');
     }
-    if (files.length > 0 && !scanResult?.product && !aiDismissed) {
-      handleAiRecognize(files[0]);
-    }
   };
 
-  const isProduceCategory = (category?: string | null): boolean => {
-    if (!category) return false;
-    const cat = category.toLowerCase();
-    return ['fruit', 'vegetable', 'produce', 'salad', 'herb', 'berry', 'leafy', 'root', 'fresh', 'bakery', 'bread', 'pastry'].some(k => cat.includes(k));
+  // Save form data to localStorage (with expiry) before Stripe redirect
+  // Using localStorage instead of sessionStorage so data survives browser close during Stripe verification (1-2 days)
+  const saveFormDataBeforeRedirect = () => {
+    const formDataToSave = {
+      ...allFormValues,
+      isFree,
+      isStoreItem,
+      selectedCategory,
+      validityPeriod,
+      offerDelivery,
+      deliveryFee,
+      customDeliveryFee,
+      stockStatus,
+      flexiblePickup,
+      savedAt: Date.now(), // For expiry check
+    };
+    localStorage.setItem('pendingItemData', JSON.stringify(formDataToSave));
   };
 
-  const handleAiRecognize = async (file: File) => {
+  // Handle Stripe Connect setup from modal
+  const handleStripeSetup = async () => {
     try {
-      setAiLoading(true);
-      setAiSuggestion(null);
-      setFreshnessResult(null);
-
-      const recognitionResult = await aiAPI.recognizeFood(file);
-
-      let detectedCategory: string | null = null;
-      if (recognitionResult.success && recognitionResult.suggestions) {
-        const { bestName, bestCategory, confidence } = recognitionResult.suggestions;
-        detectedCategory = bestCategory;
-        if (bestName || bestCategory) {
-          setAiSuggestion({ name: bestName, category: bestCategory, confidence });
-        }
+      setStripeLoading(true);
+      
+      // Save current form data before redirecting to Stripe
+      saveFormDataBeforeRedirect();
+      
+      if (stripeAccountStatus === 'not_connected') {
+        // Create new account with selected country
+        await stripeConnectAPI.createAccount(selectedCountry);
       }
-
-      if (isProduceCategory(detectedCategory)) {
-        try {
-          const freshnessRes = await aiAPI.checkFreshness(file);
-          if (freshnessRes.success && freshnessRes.freshness) {
-            const { score, label } = freshnessRes.freshness;
-            if (label && label !== 'unknown') {
-              setFreshnessResult({ score, label });
-            }
-          }
-        } catch {
-          console.log('Freshness check not available');
-        }
-      }
-    } catch (err) {
-      console.log('AI recognition not available:', err);
-    } finally {
-      setAiLoading(false);
+      
+      // Get onboarding link
+      const linkResponse = await stripeConnectAPI.createAccountLink();
+      
+      // Redirect to Stripe - this will leave the app briefly for compliance
+      window.location.href = linkResponse.url;
+    } catch (err: any) {
+      console.error('Failed to setup Stripe:', err);
+      setError(err.response?.data?.error || 'Failed to start Stripe setup');
+      setStripeLoading(false);
     }
-  };
-
-  const applyAiSuggestion = (field: 'name' | 'category' | 'both') => {
-    if (!aiSuggestion) return;
-    if (field === 'name' || field === 'both') {
-      if (aiSuggestion.name) setValue('name', aiSuggestion.name);
-    }
-    if (field === 'category' || field === 'both') {
-      if (aiSuggestion.category) setValue('category', mapToValidCategory(aiSuggestion.category));
-    }
-    setAiSuggestion(null);
   };
 
   const onSubmit = async (data: AddItemFormData) => {
@@ -333,14 +337,20 @@ export const AddItem = () => {
         return;
       }
 
-      if (!isFree && data.price && parseFloat(data.price) < 3) {
-        showToast('Price must be at least $3.00. Please increase the price.', 'error');
-        setLoading(false);
-        return;
+      // Check for duplicate - show confirmation if duplicate exists
+      if (existingItemNames.includes(data.name.toLowerCase().trim())) {
+        const confirmAdd = window.confirm(
+          `You already have an item named "${data.name}". Are you sure you want to add another item with the same name?`
+        );
+        if (!confirmAdd) {
+          setLoading(false);
+          return;
+        }
       }
 
-      if (!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete')) {
-        showToast('You need to complete Stripe setup before listing paid items. Buyers cannot pay you without it.', 'error');
+      // Check if selling paid item without Stripe Connect
+      if (!isFree && stripeAccountStatus !== 'active') {
+        setShowStripeModal(true);
         setLoading(false);
         return;
       }
@@ -349,6 +359,12 @@ export const AddItem = () => {
       formData.append('name', data.name);
       if (data.category) {
         formData.append('category', data.category);
+      }
+      // Always send customCategory - empty string clears it when not "Other"
+      if (selectedCategory === 'Other' && data.customCategory) {
+        formData.append('customCategory', data.customCategory);
+      } else {
+        formData.append('customCategory', '');
       }
       formData.append('expiryDate', data.expiryDate);
       formData.append('isFree', isFree.toString());
@@ -364,9 +380,6 @@ export const AddItem = () => {
       const tags = data.tags
         ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean)
         : [];
-      if (scannedBarcode) {
-        tags.push(`barcode:${scannedBarcode}`);
-      }
       formData.append('tags', JSON.stringify(tags));
       
       formData.append('address', data.address);
@@ -375,285 +388,112 @@ export const AddItem = () => {
         lng: data.lng,
       }));
 
-      if (data.validityPeriod) {
-        formData.append('validityPeriod', data.validityPeriod);
+      // Add validity period - handle custom period
+      if (validityPeriod === 'custom' && data.customValidityDate) {
+        formData.append('validityPeriod', data.customValidityDate);
+      } else if (validityPeriod !== 'never') {
+        formData.append('validityPeriod', validityPeriod);
       }
 
-      if (freshnessResult) {
-        if (freshnessResult.score !== null) {
-          formData.append('freshnessScore', freshnessResult.score.toString());
-        }
-        formData.append('freshnessLabel', freshnessResult.label);
-      }
-
+      // Add delivery options
       formData.append('offerDelivery', offerDelivery.toString());
-      if (offerDelivery && data.deliveryFee) {
-        formData.append('deliveryFee', data.deliveryFee);
+      if (offerDelivery) {
+        const feeValue = deliveryFee === 'free' ? '0' : (deliveryFee === 'custom' ? customDeliveryFee : deliveryFee);
+        formData.append('deliveryFee', feeValue);
       }
 
+      // Add store item fields
       if (isStoreItem) {
         formData.append('isStoreItem', 'true');
-        if (data.quantity) {
-          formData.append('quantity', data.quantity);
-        }
-        if (data.stockStatus) {
-          formData.append('stockStatus', data.stockStatus);
-        }
+        formData.append('quantity', data.quantity || '1');
+        formData.append('stockStatus', stockStatus);
       }
 
       imageFiles.forEach(file => {
         formData.append('images', file);
       });
 
-      const recentKey = `last_item_${data.name.toLowerCase().trim()}`;
-      const lastCreated = localStorage.getItem(recentKey);
-      if (lastCreated) {
-        const elapsed = Date.now() - parseInt(lastCreated, 10);
-        if (elapsed < 5 * 60 * 1000) {
-          setPendingFormData(formData);
-          setShowDuplicateConfirm(true);
-          setLoading(false);
-          return;
-        }
-      }
-
       const response = await itemsAPI.create(formData);
-      localStorage.setItem(recentKey, Date.now().toString());
       
       console.log('Item created successfully:', response);
-      showToast('Item added successfully!', 'success');
-      navigate('/dashboard');
+      alert(isStoreItem ? 'Store item added successfully!' : 'Item added successfully!');
+      navigate(isStoreItem ? '/store-dashboard' : '/dashboard');
     } catch (err: any) {
       console.error('Create item error:', err);
       console.error('Error response:', err.response?.data);
       const errorMessage = err.response?.data?.error || err.response?.data?.details || err.message || 'Failed to add item';
       setError(errorMessage);
-      showToast(errorMessage, 'error');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDuplicateConfirm = async () => {
-    if (!pendingFormData) return;
-    try {
-      setShowDuplicateConfirm(false);
-      setLoading(true);
-      const response = await itemsAPI.create(pendingFormData);
-      const nameVal = pendingFormData.get('name') as string;
-      if (nameVal) {
-        localStorage.setItem(`last_item_${nameVal.toLowerCase().trim()}`, Date.now().toString());
-      }
-      console.log('Item created successfully:', response);
-      showToast('Item added successfully!', 'success');
-      navigate('/dashboard');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || 'Failed to add item';
-      setError(errorMessage);
-      showToast(errorMessage, 'error');
-    } finally {
-      setLoading(false);
-      setPendingFormData(null);
-    }
-  };
-
-  const onFormError = (formErrors: any) => {
-    const firstError = Object.values(formErrors)[0] as any;
-    const errorMsg = firstError?.message || 'Please fill in all required fields';
-    showToast(errorMsg, 'error');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Get minimum datetime for custom validity (now + 1 hour)
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    return now.toISOString().slice(0, 16);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 py-5 md:py-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-gray-500 active:text-gray-700 mb-4 md:mb-6 text-sm"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back</span>
-        </button>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(-1);
+            }}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back</span>
+          </button>
+          <a
+            href="/dashboard"
+            className="flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium"
+          >
+            <Home className="h-5 w-5" />
+            <span>Dashboard</span>
+          </a>
+        </div>
 
-        <div className="bg-white rounded-2xl md:rounded-xl shadow-sm border border-gray-100 p-5 md:p-8">
-          <div className="mb-5 md:mb-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl md:text-3xl font-bold text-gray-900">Add New Item</h1>
-              <button
-                type="button"
-                onClick={() => { setScanResult(null); setShowScanner(true); }}
-                disabled={scanLoading}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl text-sm font-medium active:scale-[0.97] transition shadow-sm disabled:opacity-50"
-              >
-                {scanLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ScanLine className="h-4 w-4" />
-                )}
-                <span>{scanLoading ? 'Looking up...' : 'Scan Barcode'}</span>
-              </button>
-            </div>
-            <p className="text-xs text-gray-400 mt-1.5">Scan barcode for packaged items · Upload photo for fresh produce</p>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-8">
+          <div className="flex items-center space-x-3 mb-6">
+            {isStoreItem && (
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Store className="h-6 w-6 text-blue-600" />
+              </div>
+            )}
+            <h1 className="text-2xl sm:text-2xl font-bold text-gray-900">
+              {isStoreItem ? 'Add Store Item' : 'Add New Item'}
+            </h1>
           </div>
 
-          {scanLoading && (
-            <div className="mb-5 p-4 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-3">
-              <Loader2 className="h-5 w-5 text-blue-600 animate-spin flex-shrink-0" />
-              <div>
-                <p className="text-blue-800 font-medium text-sm">Looking up product...</p>
-                <p className="text-blue-600 text-xs mt-0.5">Searching product databases, this may take a moment</p>
-              </div>
-            </div>
-          )}
-
-          {scanResult && (
-            <div className={`mb-5 p-3.5 rounded-xl text-sm flex items-start gap-2.5 ${
-              scanResult.status === 'success'
-                ? 'bg-green-50 border border-green-200'
-                : 'bg-amber-50 border border-amber-200'
-            }`}>
-              {scanResult.status === 'success' ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-green-800 font-medium">Product found!</p>
-                    <p className="text-green-700 mt-0.5">
-                      {scanResult.product?.name}
-                      {scanResult.product?.brand && ` by ${scanResult.product.brand}`}
-                      {scanResult.product?.quantity && ` (${scanResult.product.quantity})`}
-                    </p>
-                    <p className="text-green-600 text-xs mt-1">
-                      Form fields have been auto-filled{scanResult.product?.source && ` via ${scanResult.product.source}`}. You can still edit them.
-                    </p>
-                    {scanResult.product?.nutrition && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setShowNutrition(!showNutrition)}
-                          className="mt-2 flex items-center gap-1 text-green-700 text-xs font-medium hover:text-green-900 transition-colors"
-                        >
-                          {showNutrition ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                          {showNutrition ? 'Hide' : 'View'} Nutrition Info
-                        </button>
-                        {showNutrition && (
-                          <div className="mt-2 bg-white/60 rounded-lg p-2.5 border border-green-100">
-                            {scanResult.product.nutrition.servingSize && (
-                              <p className="text-green-600 text-[10px] mb-1.5 uppercase tracking-wide font-medium">
-                                {scanResult.product.nutrition.servingSize}
-                              </p>
-                            )}
-                            <div className="grid grid-cols-4 gap-1.5">
-                              {scanResult.product.nutrition.calories != null && (
-                                <div className="text-center bg-green-50 rounded-md py-1.5 px-1">
-                                  <p className="text-green-900 font-bold text-sm">{scanResult.product.nutrition.calories}</p>
-                                  <p className="text-green-600 text-[10px]">Cal</p>
-                                </div>
-                              )}
-                              {scanResult.product.nutrition.protein != null && (
-                                <div className="text-center bg-blue-50 rounded-md py-1.5 px-1">
-                                  <p className="text-blue-900 font-bold text-sm">{scanResult.product.nutrition.protein}g</p>
-                                  <p className="text-blue-600 text-[10px]">Protein</p>
-                                </div>
-                              )}
-                              {scanResult.product.nutrition.carbs != null && (
-                                <div className="text-center bg-amber-50 rounded-md py-1.5 px-1">
-                                  <p className="text-amber-900 font-bold text-sm">{scanResult.product.nutrition.carbs}g</p>
-                                  <p className="text-amber-600 text-[10px]">Carbs</p>
-                                </div>
-                              )}
-                              {scanResult.product.nutrition.fat != null && (
-                                <div className="text-center bg-orange-50 rounded-md py-1.5 px-1">
-                                  <p className="text-orange-900 font-bold text-sm">{scanResult.product.nutrition.fat}g</p>
-                                  <p className="text-orange-600 text-[10px]">Fat</p>
-                                </div>
-                              )}
-                            </div>
-                            {(scanResult.product.nutrition.fiber != null || scanResult.product.nutrition.sugar != null || scanResult.product.nutrition.sodium != null) && (
-                              <div className="flex gap-3 mt-1.5 pt-1.5 border-t border-green-100">
-                                {scanResult.product.nutrition.fiber != null && (
-                                  <span className="text-green-700 text-[10px]">Fiber: {scanResult.product.nutrition.fiber}g</span>
-                                )}
-                                {scanResult.product.nutrition.sugar != null && (
-                                  <span className="text-green-700 text-[10px]">Sugar: {scanResult.product.nutrition.sugar}g</span>
-                                )}
-                                {scanResult.product.nutrition.sodium != null && (
-                                  <span className="text-green-700 text-[10px]">Sodium: {scanResult.product.nutrition.sodium}mg</span>
-                                )}
-                              </div>
-                            )}
-                            {scanResult.product?.allergens && scanResult.product.allergens.length > 0 && (
-                              <div className="mt-2 pt-2 border-t border-green-100">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <AlertCircle className="h-3 w-3 text-red-500" />
-                                  <span className="text-red-600 text-[10px] font-semibold uppercase tracking-wide">Allergens</span>
-                                </div>
-                                <div className="flex flex-wrap gap-1">
-                                  {scanResult.product.allergens.map((allergen, i) => (
-                                    <span key={i} className="inline-block bg-red-50 text-red-700 text-[10px] px-1.5 py-0.5 rounded-md border border-red-100">
-                                      {allergen}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {!scanResult.product?.nutrition && scanResult.product?.allergens && scanResult.product.allergens.length > 0 && (
-                      <div className="mt-2 bg-white/60 rounded-lg p-2.5 border border-green-100">
-                        <div className="flex items-center gap-1 mb-1">
-                          <AlertCircle className="h-3 w-3 text-red-500" />
-                          <span className="text-red-600 text-[10px] font-semibold uppercase tracking-wide">Allergens</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {scanResult.product.allergens.map((allergen, i) => (
-                            <span key={i} className="inline-block bg-red-50 text-red-700 text-[10px] px-1.5 py-0.5 rounded-md border border-red-100">
-                              {allergen}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-amber-800 font-medium">
-                      {scanResult.status === 'not_found' ? 'Product not found in database' : 'Lookup failed'}
-                    </p>
-                    <p className="text-amber-700 text-xs mt-0.5">
-                      Fill in details manually, try scanning again, or upload a photo for AI recognition.
-                    </p>
-                  </div>
-                </>
-              )}
-              <button
-                onClick={() => setScanResult(null)}
-                className="ml-auto text-gray-400 hover:text-gray-600 flex-shrink-0"
-              >
-                <XCircle className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-
           {error && (
-            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-5 md:space-y-6">
-            <FormInput
-              label="Item Name"
-              type="text"
-              {...register('name')}
-              error={errors.name?.message}
-              placeholder="e.g., Organic Apples"
-            />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div>
+              <FormInput
+                label="Item Name"
+                type="text"
+                {...register('name')}
+                error={errors.name?.message}
+                placeholder="e.g., Organic Apples"
+              />
+              {duplicateWarning && (
+                <div className="flex items-start space-x-2 mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-yellow-800">{duplicateWarning}</p>
+                </div>
+              )}
+            </div>
 
             <ImageUpload
               maxImages={5}
@@ -661,259 +501,331 @@ export const AddItem = () => {
               error={imageError}
             />
 
-            {aiLoading && (
-              <div className="flex items-center gap-2 p-3 bg-purple-50 border border-purple-200 rounded-xl text-sm text-purple-700">
-                <Brain className="h-4 w-4 animate-pulse" />
-                <span>AI is analyzing your photo...</span>
-              </div>
-            )}
-
-            {aiSuggestion && !aiDismissed && (
-              <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-purple-700 font-medium">
-                    <Sparkles className="h-4 w-4" />
-                    <span>AI Suggestion ({aiSuggestion.confidence}% confidence)</span>
-                  </div>
-                  <button type="button" onClick={() => { setAiSuggestion(null); setAiDismissed(true); }} className="text-gray-400 hover:text-gray-600">
-                    <XCircle className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {aiSuggestion.name && (
-                    <button type="button" onClick={() => applyAiSuggestion('name')}
-                      className="px-3 py-1.5 bg-white border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-100 text-xs">
-                      Use name: <strong>{aiSuggestion.name}</strong>
-                    </button>
-                  )}
-                  {aiSuggestion.category && (
-                    <button type="button" onClick={() => applyAiSuggestion('category')}
-                      className="px-3 py-1.5 bg-white border border-purple-300 rounded-lg text-purple-700 hover:bg-purple-100 text-xs">
-                      Use category: <strong>{aiSuggestion.category}</strong>
-                    </button>
-                  )}
-                  {aiSuggestion.name && aiSuggestion.category && (
-                    <button type="button" onClick={() => applyAiSuggestion('both')}
-                      className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-xs">
-                      Use both
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {freshnessResult && (
-              <div className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
-                freshnessResult.label === 'fresh' ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' :
-                freshnessResult.label === 'moderate' ? 'bg-yellow-50 border border-yellow-200 text-yellow-700' :
-                'bg-red-50 border border-red-200 text-red-700'
-              }`}>
-                <Leaf className="h-4 w-4" />
-                <span>
-                  Freshness: {freshnessResult.label === 'fresh' ? 'Fresh' : freshnessResult.label === 'moderate' ? 'OK' : 'Needs checking'}
-                  {freshnessResult.score !== null ? ` (${freshnessResult.score}%)` : ''}
-                </span>
-                <span className="text-xs opacity-70 ml-auto">AI detected</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Category (Optional)</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Category (Optional)
+                </label>
                 <select
                   {...register('category')}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white appearance-none"
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedCategory(value);
+                    setValue('category', value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <option value="">Select a category</option>
-                  {ITEM_CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
+                  <option value="Fruits">Fruits</option>
+                  <option value="Vegetables">Vegetables</option>
+                  <option value="Dairy">Dairy</option>
+                  <option value="Bakery">Bakery</option>
+                  <option value="Meat">Meat</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Beverages">Beverages</option>
+                  <option value="Pantry">Pantry</option>
+                  <option value="Oils & Spices">Oils & Spices</option>
+                  <option value="Condiments & Sauces">Condiments & Sauces</option>
+                  <option value="Frozen Foods">Frozen Foods</option>
+                  <option value="Canned Goods">Canned Goods</option>
+                  <option value="Grains & Pasta">Grains & Pasta</option>
+                  <option value="Seafood">Seafood</option>
+                  <option value="Desserts">Desserts</option>
+                  <option value="Baby Food">Baby Food</option>
+                  <option value="Pet Food">Pet Food</option>
+                  <option value="Other">Other (Specify Below)</option>
                 </select>
-                {errors.category?.message && (
-                  <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
+                {errors.category && (
+                  <p className="text-sm text-red-600">{errors.category.message}</p>
                 )}
               </div>
 
               <FormInput
-                label="Tags (comma-separated)"
+                label="Tags (comma-separated, optional)"
                 type="text"
                 {...register('tags')}
                 error={errors.tags?.message}
-                placeholder="e.g., organic, fresh"
+                placeholder="e.g., organic, fresh, local"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div>
-                <FormInput
-                  label="Expiry Date"
-                  type="date"
-                  {...register('expiryDate')}
-                  error={errors.expiryDate?.message}
-                />
-                {scanResult?.status === 'success' && (
-                  <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
-                    <AlertTriangle className="h-3 w-3 flex-shrink-0" />
-                    Estimated based on product category. Please verify the actual expiry date on the package.
-                  </p>
-                )}
-              </div>
+            {selectedCategory === 'Other' && (
+              <FormInput
+                label="Custom Category"
+                type="text"
+                {...register('customCategory')}
+                error={errors.customCategory?.message}
+                placeholder="e.g., Cooking Oil, Spices, etc."
+              />
+            )}
 
-              <div className="space-y-1.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput
+                label="Expiry Date"
+                type="date"
+                {...register('expiryDate')}
+                error={errors.expiryDate?.message}
+              />
+
+              <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Listing Validity
+                  Listing Validity Period
                 </label>
                 <select
                   {...register('validityPeriod')}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-gray-50"
+                  value={validityPeriod}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setValidityPeriod(value);
+                    setValue('validityPeriod', value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <option value="never">Never expires</option>
                   <option value="2h">2 hours</option>
                   <option value="6h">6 hours</option>
                   <option value="12h">12 hours</option>
                   <option value="24h">24 hours</option>
+                  <option value="custom">Custom period</option>
                 </select>
-                <p className="text-[10px] text-gray-400">After this period, your listing will be hidden</p>
+                <p className="text-xs text-gray-500">After this period, your listing will be automatically hidden</p>
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-              {!isStoreItem && (
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <div className={`w-10 h-6 rounded-full relative transition-colors ${isFree ? 'bg-green-600' : 'bg-gray-300'}`}
-                    onClick={() => { setIsFree(!isFree); setValue('isFree', !isFree); }}>
-                    <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${isFree ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">Give away for free</span>
+            {validityPeriod === 'custom' && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Custom Expiry Date & Time
                 </label>
-              )}
-              {!isFree && (
-                <>
-                  <FormInput
-                    label="Price ($)"
-                    type="number"
-                    step="0.01"
-                    {...register('price')}
-                    error={errors.price?.message}
-                    placeholder="9.99"
-                  />
-                  {watchedPrice && parseFloat(watchedPrice) > 0 && parseFloat(watchedPrice) < 3 ? (
-                    <p className="text-[11px] text-red-600 font-medium -mt-3">
-                      Minimum price is $3.00 — card processing requires at least this amount. Please enter $3.00 or more.
-                    </p>
-                  ) : (
-                    <p className="text-[10px] text-gray-400 -mt-3">Minimum $3.00 (card processing requirement)</p>
-                  )}
-                  {stripeStatus !== 'loading' && stripeStatus !== 'active' && (
-                    <div className={`p-3.5 rounded-xl space-y-2.5 border ${stripeStatus === 'pending' ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
-                      <div className="flex items-start gap-2.5">
-                        <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${stripeStatus === 'pending' ? 'text-amber-500' : 'text-red-500'}`} />
-                        <div className="text-sm">
-                          {stripeStatus === 'none' && (
-                            <p className="text-red-800 font-medium">
-                              Stripe account required. You cannot list paid items until you set up a free Stripe account — buyers have no way to pay you without it.
-                            </p>
-                          )}
-                          {stripeStatus === 'incomplete' && (
-                            <p className="text-red-800 font-medium">
-                              Stripe setup incomplete. Finish your Stripe account setup before listing paid items — buyers cannot pay you until it's done.
-                            </p>
-                          )}
-                          {stripeStatus === 'pending' && (
-                            <p className="text-amber-800">
-                              Your Stripe account is under review. You can list items, but payments may be delayed until verification is complete.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      {(stripeStatus === 'none' || stripeStatus === 'incomplete') && (
-                        <a
-                          href="/profile"
-                          style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
-                          className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold active:scale-[0.98] transition shadow-sm no-underline"
-                        >
-                          {stripeStatus === 'none' ? 'Set up Stripe Account (Free)' : 'Complete Stripe Setup'}
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <div className={`w-10 h-6 rounded-full relative transition-colors ${offerDelivery ? 'bg-green-600' : 'bg-gray-300'}`}
-                  onClick={() => setOfferDelivery(!offerDelivery)}>
-                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${offerDelivery ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                </div>
-                <span className="text-sm font-medium text-gray-700">Offer Delivery</span>
-              </label>
-              {offerDelivery && (
-                <FormInput
-                  label="Delivery Fee ($)"
-                  type="number"
-                  step="0.01"
-                  {...register('deliveryFee')}
-                  placeholder="0.00 (free delivery)"
+                <input
+                  type="datetime-local"
+                  {...register('customValidityDate')}
+                  min={getMinDateTime()}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
-              )}
-              <p className="text-[10px] text-gray-400">Let buyers know if you can deliver this item</p>
-            </div>
-
-            {isStoreItem && (
-              <div className="bg-blue-50 rounded-xl p-4 space-y-4 border border-blue-200">
-                <div className="flex items-center gap-2 mb-1">
-                  <Store className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-800">Store Item Details</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormInput
-                    label="Quantity in Stock"
-                    type="number"
-                    {...register('quantity')}
-                    error={errors.quantity?.message}
-                    placeholder="1"
-                  />
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-gray-700">Stock Status</label>
-                    <select
-                      {...register('stockStatus')}
-                      className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
-                    >
-                      <option value="in_stock">In Stock</option>
-                      <option value="low_stock">Low Stock</option>
-                      <option value="out_of_stock">Out of Stock</option>
-                    </select>
-                  </div>
-                </div>
+                {errors.customValidityDate && (
+                  <p className="text-sm text-red-600">{errors.customValidityDate.message}</p>
+                )}
+                <p className="text-xs text-gray-500">Select when you want this listing to expire (minimum 1 hour from now)</p>
               </div>
             )}
 
-            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <div className={`w-10 h-6 rounded-full relative transition-colors ${flexiblePickup ? 'bg-green-600' : 'bg-gray-300'}`}
-                  onClick={() => { setFlexiblePickup(!flexiblePickup); setValue('flexiblePickup', !flexiblePickup); }}>
-                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${flexiblePickup ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                {!isStoreItem && (
+                  <label className="flex items-center space-x-2 mb-3">
+                    <input
+                      type="checkbox"
+                      {...register('isFree')}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setIsFree(checked);
+                        setValue('isFree', checked);
+                      }}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Give away for free</span>
+                  </label>
+                )}
+
+                {!isFree && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price ($)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="3"
+                      {...register('price', {
+                        onChange: (e) => {
+                          const value = parseFloat(e.target.value);
+                          if (e.target.value && value < 3) {
+                            setPriceError('Minimum price is $3.00 for paid items');
+                          } else {
+                            setPriceError('');
+                          }
+                        }
+                      })}
+                      placeholder="3.00"
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                        priceError || errors.price?.message ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {(priceError || errors.price?.message) && (
+                      <p className="text-sm text-red-600 mt-1">{priceError || errors.price?.message}</p>
+                    )}
+                    <div className="text-xs text-gray-500 mt-1">
+                      Minimum $3.00 for paid items.{' '}
+                      <a
+                        href="/seller/onboarding"
+                        onClick={() => saveFormDataBeforeRedirect()}
+                        className="text-green-600 hover:text-green-700 underline"
+                      >
+                        Set up seller account
+                      </a>
+                      {' '}to receive payments directly.
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {isStoreItem && (
+                <FormInput
+                  label="Quantity in Stock"
+                  type="number"
+                  min="0"
+                  {...register('quantity')}
+                  error={errors.quantity?.message}
+                  placeholder="100"
+                />
+              )}
+            </div>
+
+            {isStoreItem && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Stock Status
+                </label>
+                <select
+                  {...register('stockStatus')}
+                  value={stockStatus}
+                  onChange={(e) => {
+                    setStockStatus(e.target.value);
+                    setValue('stockStatus', e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="in_stock">In Stock</option>
+                  <option value="low_stock">Low Stock</option>
+                  <option value="out_of_stock">Out of Stock</option>
+                  <option value="unlimited">Unlimited Stock</option>
+                </select>
+                <p className="text-xs text-gray-500">
+                  Customers will see this status when viewing your item
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  {...register('flexiblePickup')}
+                  checked={flexiblePickup}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFlexiblePickup(checked);
+                    setValue('flexiblePickup', checked);
+                  }}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
                 <span className="text-sm font-medium text-gray-700">Flexible Pickup Time</span>
               </label>
-              <input type="hidden" {...register('flexiblePickup')} />
 
               {!flexiblePickup && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormInput
-                    label="Pickup Start"
+                    label="Pickup Start Time"
                     type="datetime-local"
                     {...register('pickupTimeStart')}
                     error={errors.pickupTimeStart?.message}
                   />
                   <FormInput
-                    label="Pickup End"
+                    label="Pickup End Time"
                     type="datetime-local"
                     {...register('pickupTimeEnd')}
                     error={errors.pickupTimeEnd?.message}
                   />
+                </div>
+              )}
+            </div>
+
+            <div className="border-t pt-6 space-y-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  {...register('offerDelivery')}
+                  checked={offerDelivery}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setOfferDelivery(checked);
+                    setValue('offerDelivery', checked);
+                  }}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">Offer Delivery/Drop-off</span>
+              </label>
+
+              {offerDelivery && (
+                <div className="ml-6 space-y-3 bg-green-50 border border-green-200 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Fee
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="free"
+                        checked={deliveryFee === 'free'}
+                        onChange={(e) => {
+                          setDeliveryFee(e.target.value);
+                          setValue('deliveryFee', e.target.value);
+                        }}
+                        className="h-4 w-4 text-green-600"
+                      />
+                      <span className="text-sm text-gray-700">Free Delivery</span>
+                    </label>
+                    {['1', '2', '3', '4', '5'].map((fee) => (
+                      <label key={fee} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          value={fee}
+                          checked={deliveryFee === fee}
+                          onChange={(e) => {
+                            setDeliveryFee(e.target.value);
+                            setValue('deliveryFee', e.target.value);
+                          }}
+                          className="h-4 w-4 text-green-600"
+                        />
+                        <span className="text-sm text-gray-700">${fee} Delivery Fee</span>
+                      </label>
+                    ))}
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="custom"
+                        checked={deliveryFee === 'custom'}
+                        onChange={(e) => {
+                          setDeliveryFee(e.target.value);
+                          setValue('deliveryFee', e.target.value);
+                        }}
+                        className="h-4 w-4 text-green-600"
+                      />
+                      <span className="text-sm text-gray-700">Custom Fee</span>
+                    </label>
+                    {deliveryFee === 'custom' && (
+                      <div className="ml-6 mt-2">
+                        <div className="relative w-32">
+                          <span className="absolute left-3 top-2 text-gray-500">$</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={customDeliveryFee}
+                            onChange={(e) => {
+                              setCustomDeliveryFee(e.target.value);
+                              setValue('deliveryFee', e.target.value);
+                            }}
+                            placeholder="0.00"
+                            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Enter your custom delivery fee</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -927,34 +839,35 @@ export const AddItem = () => {
             />
 
             {lat !== undefined && lat !== null && lng !== undefined && lng !== null && (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Map Preview
                 </label>
-                <div className="rounded-xl overflow-hidden border border-gray-200">
-                  <LocationMap
-                    lat={lat}
-                    lng={lng}
-                    address={address}
-                    height="250px"
-                  />
-                </div>
+                <LocationMap
+                  lat={lat}
+                  lng={lng}
+                  address={address}
+                  height="300px"
+                />
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex space-x-4">
               <button
                 type="submit"
-                disabled={loading || (!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete'))}
-                title={!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete') ? 'Complete your Stripe setup above to list paid items' : undefined}
-                className="flex-1 bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium active:scale-[0.98]"
+                disabled={loading}
+                className="flex-1 bg-green-600 text-white py-3 px-6 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {loading ? 'Adding...' : (!isFree && (stripeStatus === 'none' || stripeStatus === 'incomplete')) ? 'Stripe Setup Required' : 'Add Item'}
+                {loading ? 'Adding Item...' : 'Add Item'}
               </button>
               <button
                 type="button"
-                onClick={() => navigate(-1)}
-                className="px-6 py-3 border border-gray-200 rounded-xl text-gray-600 active:bg-gray-50 transition font-medium"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate('/dashboard');
+                }}
+                className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
@@ -962,40 +875,111 @@ export const AddItem = () => {
           </form>
         </div>
       </div>
-      {showScanner && (
-        <BarcodeScanner
-          onScan={handleBarcodeScan}
-          onClose={() => setShowScanner(false)}
-        />
-      )}
 
-      {showDuplicateConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="h-5 w-5 text-amber-600" />
+      {/* Stripe Connect Modal - High z-index to cover map */}
+      {showStripeModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+          style={{ zIndex: 9999 }}
+          onClick={() => setShowStripeModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-md w-full p-6 relative shadow-2xl"
+            style={{ zIndex: 10000 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowStripeModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 min-h-[36px] min-w-[36px] flex items-center justify-center"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <CreditCard className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Duplicate Item?</h3>
+              <h2 className="text-xl font-bold text-gray-900">Payment Setup Required</h2>
             </div>
-            <p className="text-sm text-gray-600 mb-5">
-              You added an item with this name less than 5 minutes ago. Are you sure you want to add it again?
+
+            <p className="text-gray-600 mb-4">
+              To sell paid items, you need to connect your bank account so you can receive payments directly.
             </p>
-            <div className="flex gap-3">
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-800">
+                <strong>How it works:</strong> When buyers purchase your items, you'll receive 90% of the sale directly to your bank account. BaskMate keeps 10% as a platform fee.
+              </p>
+            </div>
+
+            {stripeAccountStatus === 'pending' && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-orange-800">
+                  You started setting up your payment account but haven't finished. Please complete the setup to sell paid items.
+                </p>
+              </div>
+            )}
+
+            {stripeAccountStatus === 'not_connected' && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Your Country
+                </label>
+                <select
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                >
+                  {SUPPORTED_COUNTRIES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="flex space-x-3">
               <button
-                onClick={() => { setShowDuplicateConfirm(false); setPendingFormData(null); }}
-                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium active:bg-gray-50 transition"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleStripeSetup();
+                }}
+                disabled={stripeLoading}
+                className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
               >
-                Cancel
+                {stripeLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Setting up...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-5 w-5" />
+                    <span>{stripeAccountStatus === 'pending' ? 'Continue Setup' : 'Set Up Payments'}</span>
+                  </>
+                )}
               </button>
               <button
-                onClick={handleDuplicateConfirm}
-                disabled={loading}
-                className="flex-1 px-4 py-2.5 bg-amber-600 text-white rounded-xl text-sm font-medium active:bg-amber-700 transition disabled:opacity-50"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowStripeModal(false);
+                  setIsFree(true);
+                  setValue('isFree', true);
+                }}
+                className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-gray-700"
               >
-                {loading ? 'Adding...' : 'Add Anyway'}
+                Give Free
               </button>
             </div>
+
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              You'll be briefly redirected to Stripe's secure page to verify your identity.
+            </p>
           </div>
         </div>
       )}
