@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,8 +12,9 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AddressInput } from '../components/AddressInput';
 import { LocationMap } from '../components/LocationMap';
 import { BarcodeScanner } from '../components/BarcodeScanner';
+import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain, Leaf } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ScanLine, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, AlertCircle, Sparkles, Brain, Leaf, Store } from 'lucide-react';
 
 const ITEM_CATEGORIES = [
   'Fruits', 'Vegetables', 'Dairy', 'Bakery', 'Meat', 'Snacks', 'Beverages',
@@ -62,12 +63,16 @@ const addItemSchema = z.object({
   pickupTimeEnd: z.string().optional(),
   flexiblePickup: z.boolean().optional(),
   validityPeriod: z.string().optional(),
+  quantity: z.string().optional(),
+  stockStatus: z.string().optional(),
+  deliveryFee: z.string().optional(),
   address: z.string().min(1, 'Address is required'),
   lat: z.number(),
   lng: z.number(),
 }).refine((data) => {
-  if (!data.isFree && (!data.price || Number(data.price) <= 0)) {
-    return false;
+  if (!data.isFree) {
+    const p = Number(data.price);
+    if (!Number.isFinite(p) || p <= 0) return false;
   }
   return true;
 }, {
@@ -87,6 +92,8 @@ type AddItemFormData = z.infer<typeof addItemSchema>;
 
 export const AddItem = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -105,6 +112,19 @@ export const AddItem = () => {
   const [aiSuggestion, setAiSuggestion] = useState<{ name: string | null; category: string | null; confidence: number } | null>(null);
   const [aiDismissed, setAiDismissed] = useState(false);
   const [freshnessResult, setFreshnessResult] = useState<{ score: number | null; label: string } | null>(null);
+  const [isStoreItem, setIsStoreItem] = useState(false);
+  const [offerDelivery, setOfferDelivery] = useState(false);
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
+
+  useEffect(() => {
+    const isStoreParam = searchParams.get('isStoreItem') === 'true';
+    if (isStoreParam && (user as any)?.storeMode) {
+      setIsStoreItem(true);
+    } else if ((user as any)?.isStoreOwner || (user as any)?.storeMode) {
+      setIsStoreItem(true);
+    }
+  }, [searchParams, user]);
 
   useEffect(() => {
     const checkStripe = async () => {
@@ -366,11 +386,39 @@ export const AddItem = () => {
         formData.append('freshnessLabel', freshnessResult.label);
       }
 
+      formData.append('offerDelivery', offerDelivery.toString());
+      if (offerDelivery && data.deliveryFee) {
+        formData.append('deliveryFee', data.deliveryFee);
+      }
+
+      if (isStoreItem) {
+        formData.append('isStoreItem', 'true');
+        if (data.quantity) {
+          formData.append('quantity', data.quantity);
+        }
+        if (data.stockStatus) {
+          formData.append('stockStatus', data.stockStatus);
+        }
+      }
+
       imageFiles.forEach(file => {
         formData.append('images', file);
       });
 
-            const response = await itemsAPI.create(formData);
+      const recentKey = `last_item_${data.name.toLowerCase().trim()}`;
+      const lastCreated = localStorage.getItem(recentKey);
+      if (lastCreated) {
+        const elapsed = Date.now() - parseInt(lastCreated, 10);
+        if (elapsed < 5 * 60 * 1000) {
+          setPendingFormData(formData);
+          setShowDuplicateConfirm(true);
+          setLoading(false);
+          return;
+        }
+      }
+
+      const response = await itemsAPI.create(formData);
+      localStorage.setItem(recentKey, Date.now().toString());
       
       console.log('Item created successfully:', response);
       showToast('Item added successfully!', 'success');
@@ -384,6 +432,29 @@ export const AddItem = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDuplicateConfirm = async () => {
+    if (!pendingFormData) return;
+    try {
+      setShowDuplicateConfirm(false);
+      setLoading(true);
+      const response = await itemsAPI.create(pendingFormData);
+      const nameVal = pendingFormData.get('name') as string;
+      if (nameVal) {
+        localStorage.setItem(`last_item_${nameVal.toLowerCase().trim()}`, Date.now().toString());
+      }
+      console.log('Item created successfully:', response);
+      showToast('Item added successfully!', 'success');
+      navigate('/dashboard');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to add item';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+      setPendingFormData(null);
     }
   };
 
@@ -707,13 +778,15 @@ export const AddItem = () => {
             </div>
 
             <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-              <label className="flex items-center gap-2.5 cursor-pointer">
-                <div className={`w-10 h-6 rounded-full relative transition-colors ${isFree ? 'bg-green-600' : 'bg-gray-300'}`}
-                  onClick={() => { setIsFree(!isFree); setValue('isFree', !isFree); }}>
-                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${isFree ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                </div>
-                <span className="text-sm font-medium text-gray-700">Give away for free</span>
-              </label>
+              {!isStoreItem && (
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <div className={`w-10 h-6 rounded-full relative transition-colors ${isFree ? 'bg-green-600' : 'bg-gray-300'}`}
+                    onClick={() => { setIsFree(!isFree); setValue('isFree', !isFree); }}>
+                    <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${isFree ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">Give away for free</span>
+                </label>
+              )}
               {!isFree && (
                 <>
                   <FormInput
@@ -767,6 +840,55 @@ export const AddItem = () => {
                 </>
               )}
             </div>
+
+            <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <div className={`w-10 h-6 rounded-full relative transition-colors ${offerDelivery ? 'bg-green-600' : 'bg-gray-300'}`}
+                  onClick={() => setOfferDelivery(!offerDelivery)}>
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${offerDelivery ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                </div>
+                <span className="text-sm font-medium text-gray-700">Offer Delivery</span>
+              </label>
+              {offerDelivery && (
+                <FormInput
+                  label="Delivery Fee ($)"
+                  type="number"
+                  step="0.01"
+                  {...register('deliveryFee')}
+                  placeholder="0.00 (free delivery)"
+                />
+              )}
+              <p className="text-[10px] text-gray-400">Let buyers know if you can deliver this item</p>
+            </div>
+
+            {isStoreItem && (
+              <div className="bg-blue-50 rounded-xl p-4 space-y-4 border border-blue-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <Store className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-semibold text-blue-800">Store Item Details</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormInput
+                    label="Quantity in Stock"
+                    type="number"
+                    {...register('quantity')}
+                    error={errors.quantity?.message}
+                    placeholder="1"
+                  />
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-gray-700">Stock Status</label>
+                    <select
+                      {...register('stockStatus')}
+                      className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                    >
+                      <option value="in_stock">In Stock</option>
+                      <option value="low_stock">Low Stock</option>
+                      <option value="out_of_stock">Out of Stock</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-gray-50 rounded-xl p-4 space-y-4">
               <label className="flex items-center gap-2.5 cursor-pointer">
@@ -845,6 +967,37 @@ export const AddItem = () => {
           onScan={handleBarcodeScan}
           onClose={() => setShowScanner(false)}
         />
+      )}
+
+      {showDuplicateConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Duplicate Item?</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              You added an item with this name less than 5 minutes ago. Are you sure you want to add it again?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowDuplicateConfirm(false); setPendingFormData(null); }}
+                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium active:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDuplicateConfirm}
+                disabled={loading}
+                className="flex-1 px-4 py-2.5 bg-amber-600 text-white rounded-xl text-sm font-medium active:bg-amber-700 transition disabled:opacity-50"
+              >
+                {loading ? 'Adding...' : 'Add Anyway'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
