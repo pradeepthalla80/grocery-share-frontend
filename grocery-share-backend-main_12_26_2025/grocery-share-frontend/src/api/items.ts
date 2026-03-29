@@ -34,6 +34,7 @@ export interface Item {
   freshnessScore?: number;
   freshnessLabel?: 'fresh' | 'moderate' | 'poor' | 'unknown';
   isStoreItem?: boolean;
+  quantity?: number;
   status?: string;
   buyerId?: string;
   offerDelivery?: boolean;
