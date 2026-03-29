@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, AlertCircle, ChevronDown, ChevronUp, Loader2, Package, Store, Truck } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, AlertCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { PaymentModal } from '../components/PaymentModal';
 import { requestRefund } from '../api/payment';
-import { createPickupRequest } from '../api/pickupRequests';
 import { lookupBarcode, type ProductInfo } from '../api/openFoodFacts';
 import { parseLocalDate } from '../utils/date';
 
@@ -32,7 +31,6 @@ export const ItemDetail = () => {
   const [showNutritionDetail, setShowNutritionDetail] = useState(false);
   const [hasBarcode, setHasBarcode] = useState(false);
   const [nutritionFailed, setNutritionFailed] = useState(false);
-  const [requestingPickup, setRequestingPickup] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -131,22 +129,6 @@ export const ItemDetail = () => {
         ? `Question about "${item.name}": ${question}` 
         : '';
       navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}${message ? `&message=${encodeURIComponent(message)}` : ''}`);
-    }
-  };
-
-  const handleRequestPickup = async () => {
-    if (!item?.id || !item?.user?.id) return;
-    setRequestingPickup(true);
-    try {
-      await createPickupRequest(item.id);
-      showToast('Pickup request sent! The seller will be notified.', 'success');
-      const message = encodeURIComponent(`Hi! I've requested to pick up your item "${item.name}". Looking forward to it!`);
-      navigate(`/chat?receiverId=${item.user.id}&itemId=${item.id}&message=${message}`);
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.error || 'Failed to request pickup';
-      showToast(errorMsg, 'error');
-    } finally {
-      setRequestingPickup(false);
     }
   };
 
@@ -316,20 +298,12 @@ export const ItemDetail = () => {
               <div className="flex items-start justify-between mb-3 md:mb-4">
                 <div className="flex-1 min-w-0">
                   <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1.5">{item.name}</h1>
-                  <div className="flex flex-wrap gap-1.5">
-                    {item.category && (
-                      <span className="inline-flex items-center bg-green-50 text-green-700 px-2.5 py-1 rounded-lg text-xs font-medium">
-                        <Tag className="h-3 w-3 mr-1" />
-                        {item.category}
-                      </span>
-                    )}
-                    {item.isStoreItem && (
-                      <span className="inline-flex items-center bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg text-xs font-medium">
-                        <Store className="h-3 w-3 mr-1" />
-                        Store Item{item.quantity != null ? ` · ${item.quantity} available` : ''}
-                      </span>
-                    )}
-                  </div>
+                  {item.category && (
+                    <span className="inline-flex items-center bg-green-50 text-green-700 px-2.5 py-1 rounded-lg text-xs font-medium">
+                      <Tag className="h-3 w-3 mr-1" />
+                      {item.category}
+                    </span>
+                  )}
                 </div>
                 <div className="text-right ml-3">
                   {item.isFree ? (
@@ -378,7 +352,9 @@ export const ItemDetail = () => {
                     </div>
                     <div>
                       <span className="text-sm font-medium">{distance.toFixed(1)} miles away</span>
-                      <span className="block text-xs text-gray-400 italic">Exact address shared after seller accepts your pickup request</span>
+                      {item.location.address && (
+                        <span className="block text-xs text-gray-500">{item.location.address}</span>
+                      )}
                     </div>
                   </div>
                 )}
@@ -403,22 +379,6 @@ export const ItemDetail = () => {
                       <Clock className="h-4 w-4 text-purple-600" />
                     </div>
                     <span className="text-sm font-medium">Flexible pickup time</span>
-                  </div>
-                )}
-
-                {(item as any).offerDelivery && (
-                  <div className="flex items-center gap-3 text-gray-700">
-                    <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Truck className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium">Delivery Available</span>
-                      <span className="block text-xs text-gray-500">
-                        {(item as any).deliveryFee > 0
-                          ? `$${(item as any).deliveryFee.toFixed(2)} delivery fee`
-                          : 'Free delivery'}
-                      </span>
-                    </div>
                   </div>
                 )}
 
@@ -560,31 +520,6 @@ export const ItemDetail = () => {
                 </div>
               )}
 
-              {!isMyItem && item.isFree && (item as any).status === 'available' && (
-                <div className="border-t border-gray-100 mt-5 pt-5">
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-0.5">Request This Item</h3>
-                        <p className="text-xs text-gray-500">This item is being offered for free</p>
-                      </div>
-                      <span className="text-lg md:text-2xl font-bold text-green-600">FREE</span>
-                    </div>
-                    <button
-                      onClick={handleRequestPickup}
-                      disabled={requestingPickup}
-                      className="w-full bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 disabled:opacity-50 transition flex items-center justify-center space-x-2 font-semibold active:scale-[0.98]"
-                    >
-                      <Package className="h-5 w-5" />
-                      <span>{requestingPickup ? 'Requesting...' : 'Request Pickup'}</span>
-                    </button>
-                    <p className="text-[10px] text-gray-400 mt-2 text-center">
-                      The seller will be notified and can accept or decline your request.
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {!isMyItem && !item.isFree && !isSoldItem && (item as any)?.status !== 'refunded' && (item as any).status === 'available' && (
                 <div className="border-t border-gray-100 mt-5 pt-5">
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-4 md:p-6">
@@ -672,7 +607,7 @@ export const ItemDetail = () => {
                     <span>Start Conversation</span>
                   </button>
                   <p className="text-[10px] text-gray-400 mt-2 text-center">
-                    Address shared when seller accepts your request
+                    Address revealed only after both parties agree
                   </p>
                 </div>
               )}
