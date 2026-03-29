@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, AlertCircle, ChevronDown, ChevronUp, Loader2, Package, Store, Truck } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Tag, ChevronLeft, ChevronRight, ZoomIn, MessageCircle, Star, CreditCard, RefreshCw, AlertTriangle, AlertCircle, ChevronDown, ChevronUp, Loader2, Package, Store } from 'lucide-react';
 import { format } from 'date-fns';
 import { itemsAPI, type Item } from '../api/items';
 import { useAuth } from '../hooks/useAuth';
@@ -403,22 +403,6 @@ export const ItemDetail = () => {
                       <Clock className="h-4 w-4 text-purple-600" />
                     </div>
                     <span className="text-sm font-medium">Flexible pickup time</span>
-                  </div>
-                )}
-
-                {(item as any).offerDelivery && (
-                  <div className="flex items-center gap-3 text-gray-700">
-                    <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Truck className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium">Delivery Available</span>
-                      <span className="block text-xs text-gray-500">
-                        {(item as any).deliveryFee > 0
-                          ? `$${(item as any).deliveryFee.toFixed(2)} delivery fee`
-                          : 'Free delivery'}
-                      </span>
-                    </div>
                   </div>
                 )}
 
