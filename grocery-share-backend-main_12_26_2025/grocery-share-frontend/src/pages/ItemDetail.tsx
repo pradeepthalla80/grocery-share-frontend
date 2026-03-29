@@ -326,7 +326,7 @@ export const ItemDetail = () => {
                     {item.isStoreItem && (
                       <span className="inline-flex items-center bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg text-xs font-medium">
                         <Store className="h-3 w-3 mr-1" />
-                        Store Item{item.quantity != null ? ` · ${item.quantity} available` : ''}
+                        Store Item{(item as any).quantity != null ? ` · ${(item as any).quantity} available` : ''}
                       </span>
                     )}
                   </div>
