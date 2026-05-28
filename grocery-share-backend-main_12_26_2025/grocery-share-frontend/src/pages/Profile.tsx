@@ -213,6 +213,29 @@ export const Profile = () => {
           </div>
 
           <div className="p-4 md:px-8 md:py-8">
+            {(user?.role === 'admin' || user?.role === 'super_admin') && (
+              <div className="mb-5 bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl p-4 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-28 h-28 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Shield className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold">
+                      {user?.role === 'super_admin' ? 'Super Admin' : 'Admin'} Access
+                    </h3>
+                    <p className="text-slate-300 text-xs mt-0.5">Manage users, items & platform settings</p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/admin')}
+                    className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition flex-shrink-0"
+                  >
+                    Admin Panel
+                  </button>
+                </div>
+              </div>
+            )}
+
             {!user?.isStoreOwner && (
               <div className="mb-5 bg-gradient-to-r from-emerald-600 to-green-700 rounded-xl p-4 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-28 h-28 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
